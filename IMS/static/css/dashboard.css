@@ -1,0 +1,45 @@
+/* Dashboard-specific styles */
+.card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(33, 40, 50, 0.15);
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.card-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #2e3a4d;
+}
+
+.border-left-primary {
+    border-left: 4px solid #4e73df;
+}
+
+.border-left-success {
+    border-left: 4px solid #1cc88a;
+}
+
+.border-left-info {
+    border-left: 4px solid #36b9cc;
+}
+
+.border-left-warning {
+    border-left: 4px solid #f6c23e;
+}
