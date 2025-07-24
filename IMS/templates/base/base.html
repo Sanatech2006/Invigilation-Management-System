@@ -1,71 +1,78 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-gray-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMS - {% block title %}{% endblock %}</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Base CSS -->
-    <link href="/static/css/base.css" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <link href="{% static 'css/dist/output.css' %}" rel="stylesheet">
+    
+    <link href="{% static 'css/src/components.css' %}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-    <!-- Sidebar Navigation -->
-    <div class="sidebar">
+<body class="h-full">
+    <!-- Mobile menu button -->
+     <button id="mobile-menu-button" class="md:hidden fixed top-4 left-4 z-50 p-2 rounded-md text-gray-700 bg-white shadow-lg">
+        <i class="fas fa-bars text-xl"></i>
+    </button>
+
+    
+    <div id="sidebar" class="sidebar">
         <div class="sidebar-header">
-            <h4 class="text-center">Invigilation Management</h4>
+            <h4>ExamEase</h4>
         </div>
-        <nav class="nav flex-column">
-            <a class="nav-link active" href="/">
-                <i class="fas fa-tachometer-alt"></i> Dashboard
-            </a>
-            <a class="nav-link" href="#">
-                <i class="fas fa-users"></i> Staff Management
-            </a>
-            <a class="nav-link" href="#">
-                <i class="fas fa-door-open"></i> Hall Management
-            </a>
-            <a class="nav-link" href="#">
-                <i class="fas fa-calendar-alt"></i> Exam Dates
-            </a>
-            <a class="nav-link" href="#">
-                <i class="fas fa-cog"></i> Invigilation Settings
-            </a>
-            <a class="nav-link" href="#">
-                <i class="fas fa-magic"></i> Generate Schedule
-            </a>
-            <a class="nav-link" href="#">
-                <i class="fas fa-table"></i> View Schedule
-            </a>
-            <a class="nav-link" href="#">
-                <i class="fas fa-chart-bar"></i> Reports
-            </a>
-            <a class="nav-link" href="#">
-                <i class="fas fa-sliders-h"></i> Settings
-            </a>
-            <a class="nav-link" href="#">
-                <i class="fas fa-user-cog"></i> User Management
-            </a>
-            <div class="logout-link">
-                <a class="nav-link text-danger" href="#">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </a>
-            </div>
-        </nav>
+        <nav class="sidebar-nav">
+    <a href="/" class="sidebar-link active">
+        <i class="sidebar-icon fas fa-tachometer-alt"></i> Dashboard
+    </a>
+    <a href="#" class="sidebar-link">
+        <i class="sidebar-icon fas fa-users"></i> Staff Management
+    </a>
+    <a href="#" class="sidebar-link">
+        <i class="sidebar-icon fas fa-school"></i> Hall Management
+    </a>
+    <a href="#" class="sidebar-link">
+        <i class="sidebar-icon fas fa-calendar-alt"></i> Exam Dates
+    </a>
+    <a href="#" class="sidebar-link">
+        <i class="sidebar-icon fas fa-user-shield"></i> Invigilation Settings
+    </a>
+    <a href="#" class="sidebar-link">
+        <i class="sidebar-icon fas fa-cogs"></i> Generate Schedule
+    </a>
+    <a href="#" class="sidebar-link">
+        <i class="sidebar-icon fas fa-eye"></i> View Schedule
+    </a>
+    <a href="#" class="sidebar-link">
+        <i class="sidebar-icon fas fa-user-graduate"></i> Student Management
+    </a>
+    <a href="#" class="sidebar-link">
+        <i class="sidebar-icon fas fa-chart-bar"></i> Reports
+    </a>
+    <a href="#" class="sidebar-link">
+        <i class="sidebar-icon fas fa-sliders-h"></i> Settings
+    </a>
+    <a href="#" class="sidebar-link">
+        <i class="sidebar-icon fas fa-users-cog"></i> User Management
+    </a>
+    <div class="sidebar-logout">
+        <a href="#" class="sidebar-link logout">
+            <i class="sidebar-icon fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+</nav>
+
     </div>
 
-    <!-- Main Content Area -->
-    <div class="main-content">
+    <!-- Main content area -->
+    <main class="md:ml-64 p-4 md:p-6">
         {% block content %}{% endblock %}
-    </div>
+    </main>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Main JS -->
-    <script src="/static/js/main.js"></script>
+    <script src="{% static 'js/sidebar.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

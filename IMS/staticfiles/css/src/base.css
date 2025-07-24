@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply pt-5 bg-[#f8f9fa] font-sans;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+}
+
+@layer components {
+  .sidebar {
+    @apply fixed top-0 bottom-0 left-0 z-[100] py-5 w-[250px] bg-[#343a40] text-white;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .sidebar .nav-link {
+    @apply text-[rgba(255,255,255,0.75)] px-5 py-2 mx-2 my-0.5 rounded transition-all duration-300;
+  }
+
+  .sidebar .nav-link:hover {
+    @apply text-white bg-[rgba(255,255,255,0.1)] no-underline;
+  }
+
+  .sidebar .nav-link.active {
+    @apply text-white bg-[rgba(255,255,255,0.2)];
+  }
+
+  .sidebar .nav-link i {
+    @apply w-5 text-center mr-2.5;
+  }
+
+  .main-content {
+    @apply ml-[250px] p-5;
+  }
+
+  .sidebar-header {
+    @apply px-5 py-2.5 mb-5 border-b border-[rgba(255,255,255,0.1)];
+  }
+
+  .logout-link {
+    @apply pt-3.5 mt-3.5 border-t border-[rgba(255,255,255,0.1)];
+  }
+}
