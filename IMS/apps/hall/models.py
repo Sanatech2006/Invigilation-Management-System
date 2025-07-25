@@ -1,12 +1,12 @@
-# from django.db import models
-# from apps.staff.models import Department
+from django.db import models
 
-# class Hall(models.Model):
-#     name = models.CharField(max_length=50)
-#     code = models.CharField(max_length=10, unique=True)
-#     capacity = models.PositiveIntegerField()
-#     departments = models.ManyToManyField(Department)
-#     is_active = models.BooleanField(default=True)
+class Room(models.Model):
+    DeptType = models.CharField(max_length=100)
+    Block = models.CharField(max_length=100)
+    DeptName = models.CharField(max_length=100)
+    HallNo = models.CharField(max_length=50, unique=True)
+    Strength = models.PositiveIntegerField()
+    Benches = models.PositiveIntegerField()
 
-#     def __str__(self):
-#         return f"{self.name} ({self.code}) - Cap: {self.capacity}"
+    def __str__(self):
+        return f"{self.HallNo} - {self.Block}"

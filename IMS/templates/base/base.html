@@ -28,9 +28,10 @@
     <a href="/" class="sidebar-link active">
         <i class="sidebar-icon fas fa-tachometer-alt"></i> Dashboard
     </a>
-    <a href="#" class="sidebar-link">
-        <i class="sidebar-icon fas fa-users"></i> Staff Management
-    </a>
+    <a href="{% url 'staff-management' %}" class="sidebar-link">
+    <i class="sidebar-icon fas fa-users"></i> Staff Management
+</a>
+
     <a href="#" class="sidebar-link">
         <i class="sidebar-icon fas fa-school"></i> Hall Management
     </a>
@@ -67,7 +68,6 @@
 
     </div>
 
-    <!-- Main content area -->
     <main class="md:ml-64 p-4 md:p-6">
         {% block content %}{% endblock %}
     </main>
