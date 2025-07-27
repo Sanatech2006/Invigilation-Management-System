@@ -80,16 +80,17 @@
     </div>
     <!-- filter -->
 <!-- Filter Section -->
+<!-- Filter Section -->
 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm sm:shadow-md border border-gray-200 mb-8">
     <h3 class="text-md font-medium text-gray-900 mb-4">Filter Staff Records</h3>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <!-- Staff Type Filter -->
         <div>
             <label for="staffTypeFilter" class="block text-sm font-medium text-gray-700 mb-1">Staff Type</label>
-            <select id="staffTypeFilter" class="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="staffTypeFilter" name="staff_category" class="filter-select w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">All Types</option>
                 {% for type in staff_types %}
-                    <option value="{{ type }}">{{ type }}</option>
+                    <option value="{{ type }}" {% if request.GET.staff_category == type %}selected{% endif %}>{{ type }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -97,10 +98,10 @@
         <!-- Designation Filter -->
         <div>
             <label for="designationFilter" class="block text-sm font-medium text-gray-700 mb-1">Designation</label>
-            <select id="designationFilter" class="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="designationFilter" name="designation" class="filter-select w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">All Designations</option>
                 {% for designation in designations %}
-                    <option value="{{ designation.name }}">{{ designation.name }}</option>
+                    <option value="{{ designation.name }}" {% if request.GET.designation == designation.name %}selected{% endif %}>{{ designation.name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -108,10 +109,10 @@
         <!-- Department Category Filter -->
         <div>
             <label for="deptCategoryFilter" class="block text-sm font-medium text-gray-700 mb-1">Dept Category</label>
-            <select id="deptCategoryFilter" class="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="deptCategoryFilter" name="dept_category" class="filter-select w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">All Categories</option>
                 {% for category in dept_categories %}
-                    <option value="{{ category }}">{{ category }}</option>
+                    <option value="{{ category }}" {% if request.GET.dept_category == category %}selected{% endif %}>{{ category }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -119,42 +120,36 @@
         <!-- Department Name Filter -->
         <div>
             <label for="deptNameFilter" class="block text-sm font-medium text-gray-700 mb-1">Department Name</label>
-            <select id="deptNameFilter" class="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="deptNameFilter" name="department" class="filter-select w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">All Departments</option>
                 {% for dept in departments %}
-                    <option value="{{ dept }}">{{ dept }}</option>
+                    <option value="{{ dept }}" {% if request.GET.department == dept %}selected{% endif %}>{{ dept }}</option>
                 {% endfor %}
             </select>
         </div>
     </div>
 </div>
 
-    <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
-        <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <div class="flex items-center mb-2 sm:mb-0">
-                <h3 class="text-lg font-medium text-gray-900">Staff Members</h3>
-                <span class="ml-2 text-sm font-medium text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full">
-                    Total: {{ staff_list.count }} records
-                </span>
-            </div>
-            
-            <div class="flex space-x-2">
-    <input type="text" id="searchInput" placeholder="Search..." class="text-sm border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
-    <button id="searchButton" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-sm flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-        </svg>
-        Search
-    </button>
+    <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+    <div class="flex items-center mb-2 sm:mb-0">
+        <h3 class="text-lg font-medium text-gray-900">Staff Members</h3>
+        <span class="ml-2 text-sm font-medium text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full record-count">
+            Total: {{ staff_list.count }} records
+        </span>
+    </div>
     
-    <!-- <button id="filterButton" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-sm flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-        </svg>
-        Filter
-    </button> -->
+    <div class="flex space-x-2">
+        <input type="text" id="searchInput" placeholder="Search..." 
+               value="{{ request.GET.search|default:'' }}"
+               class="text-sm border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button id="searchButton" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-sm flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            Search
+        </button>
+    </div>
 </div>
-        </div>
         
        <div class="overflow-x-auto overflow-y-auto" style="max-height: 500px;">
             <table class="min-w-full divide-y divide-gray-200">

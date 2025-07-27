@@ -28,7 +28,7 @@
     <a href="/" class="sidebar-link active">
         <i class="sidebar-icon fas fa-tachometer-alt"></i> Dashboard
     </a>
-    <a href="{% url 'staff-management' %}" class="sidebar-link">
+    <a href="{% url 'staff:staff-management' %}" class="sidebar-link">
     <i class="sidebar-icon fas fa-users"></i> Staff Management
 </a>
 
@@ -74,5 +74,6 @@
 
     <script src="{% static 'js/sidebar.js' %}"></script>
     {% block extra_js %}{% endblock %}
+     {% block javascript %}{% endblock %}
 </body>
 </html>

@@ -8,24 +8,43 @@ from .forms import StaffUploadForm
 
 
 def staff_management(request):
+    # Initialize queryset
+    staff_list = Staff.objects.all().select_related('designation')
+    
     # Search functionality
     search_query = request.GET.get('search', '')
+    staff_category_filter = request.GET.get('staff_category')
+    dept_category_filter = request.GET.get('dept_category')
+    designation_filter = request.GET.get('designation')
+    department_filter = request.GET.get('department')
     
-    # Get all staff or filtered staff
+    # Apply filters
     if search_query:
         staff_list = staff_list.filter(
             Q(staff_id__icontains=search_query) |
             Q(name__icontains=search_query) |
             Q(dept_name__icontains=search_query) |
             Q(designation__name__icontains=search_query)
-        ).select_related('designation')  
-    else:
-        staff_list = Staff.objects.all().select_related('designation')  
+        )
     
+    if staff_category_filter:
+        staff_list = staff_list.filter(staff_category=staff_category_filter)
+    
+    if dept_category_filter:
+        staff_list = staff_list.filter(dept_category=dept_category_filter)
+    
+    if designation_filter:
+        staff_list = staff_list.filter(designation__id=designation_filter)
+    
+    if department_filter:
+        staff_list = staff_list.filter(dept_name=department_filter)
+    
+    # Pagination
     paginator = Paginator(staff_list, 70)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # Filter options
     staff_types = Staff.objects.exclude(staff_category__isnull=True)\
                               .exclude(staff_category__exact='')\
                               .order_by('staff_category')\
@@ -39,6 +58,7 @@ def staff_management(request):
     designations = Designation.objects.all().order_by('name')
     departments = Staff.objects.values_list('dept_name', flat=True).distinct()
     
+    # File upload handling
     if request.method == 'POST':
         form = StaffUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -51,7 +71,7 @@ def staff_management(request):
                 
                 if missing_columns:
                     messages.error(request, f'Missing required columns: {", ".join(missing_columns)}')
-                    return redirect('staff_management')
+                    return redirect('staff:staff-management')
                 
                 for index, row in df.iterrows():
                     designation_name = str(row['designation']).strip()
@@ -102,5 +122,9 @@ def staff_management(request):
         'staff_types': staff_types,
         'dept_categories': dept_categories,
         'designations': designations,
-        'departments': departments
+        'departments': departments,
+        'current_staff_category': staff_category_filter,
+        'current_dept_category': dept_category_filter,
+        'current_designation': designation_filter,
+        'current_department': department_filter
     })
