@@ -1,59 +1,106 @@
 import pandas as pd
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .forms import StaffExcelUploadForm
+from django.core.paginator import Paginator
+from django.db.models import Q
 from .models import Staff, Department, Designation
+from .forms import StaffUploadForm
+
 
 def staff_management(request):
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    
+    # Get all staff or filtered staff
+    if search_query:
+        staff_list = staff_list.filter(
+            Q(staff_id__icontains=search_query) |
+            Q(name__icontains=search_query) |
+            Q(dept_name__icontains=search_query) |
+            Q(designation__name__icontains=search_query)
+        ).select_related('designation')  
+    else:
+        staff_list = Staff.objects.all().select_related('designation')  
+    
+    paginator = Paginator(staff_list, 70)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    staff_types = Staff.objects.exclude(staff_category__isnull=True)\
+                              .exclude(staff_category__exact='')\
+                              .order_by('staff_category')\
+                              .values_list('staff_category', flat=True)\
+                              .distinct()
+    dept_categories = Staff.objects.exclude(dept_category__isnull=True)\
+                              .exclude(dept_category__exact='')\
+                              .order_by('dept_category')\
+                              .values_list('dept_category', flat=True)\
+                              .distinct()
+    designations = Designation.objects.all().order_by('name')
+    departments = Staff.objects.values_list('dept_name', flat=True).distinct()
+    
     if request.method == 'POST':
-        form = StaffExcelUploadForm(request.POST, request.FILES)
+        form = StaffUploadForm(request.POST, request.FILES)
         if form.is_valid():
             try:
-                # Read Excel file
                 excel_file = request.FILES['excel_file']
                 df = pd.read_excel(excel_file)
                 
-                # Standardize column names (case insensitive)
-                df.columns = df.columns.str.strip().str.upper()
+                required_columns = ['staff_id', 'name', 'staff_category', 'designation']
+                missing_columns = [col for col in required_columns if col not in df.columns]
                 
-                # Process each row
-                for _, row in df.iterrows():
-                    # Get or create department
-                    dept, _ = Department.objects.get_or_create(
-                        dept_type=row.get('DEPTTYPE', '').strip().upper(),
-                        name=row.get('DEPTNAME', '').strip()
-                    )
+                if missing_columns:
+                    messages.error(request, f'Missing required columns: {", ".join(missing_columns)}')
+                    return redirect('staff_management')
+                
+                for index, row in df.iterrows():
+                    designation_name = str(row['designation']).strip()
+                    if not designation_name:
+                        continue  
+                        
+                    try:
+                        designation = Designation.objects.get(name=designation_name)
+                        if 'dept_category' in row and pd.notna(row['dept_category']):
+                            designation.category = str(row['dept_category']).strip()
+                            designation.save()
+                    except Designation.DoesNotExist:
+                        designation = Designation.objects.create(
+                            name=designation_name,
+                            category=str(row.get('dept_category', 'Teaching')).strip()
+                        )
                     
-                    # Get or create designation
-                    designation, _ = Designation.objects.get_or_create(
-                        name=row.get('DESIGNATION', '').strip(),
-                        category=row.get('CATEGORY', '').strip().upper()
-                    )
-                    
-                    # Create staff record
                     Staff.objects.update_or_create(
-                        staff_id=row['STAFF ID'].strip(),
+                        staff_id=str(row['staff_id']).strip(),
                         defaults={
-                            'name': row.get('STAFFNAME', '').strip(),
-                            'category': row.get('CATEGORY', '').strip().upper(),
+                            'name': str(row['name']).strip(),
+                            'dept_category': str(row.get('dept_category', 'AIDED')).strip(),
                             'designation': designation,
-                            'department': dept,
-                            'mobile': row.get('MOBNUM', '').strip(),
-                            'email': row.get('MAILID', '').strip().lower(),
-                            'date_of_joining': row.get('DOA', None)
+                            'staff_category': str(row['staff_category']).strip(),  
+                            'dept_name': str(row.get('dept_name', '')).strip(),  
+                            'mobile': str(row.get('mobile', '')).strip().replace(' ', '').replace('-', '')[:17],
+                            'email': str(row.get('email', '')).strip(),
+                            'date_of_joining': row.get('date_of_joining'),
+                            'is_active': bool(row.get('is_active', True))
                         }
                     )
                 
-                messages.success(request, 'Staff data imported successfully!')
-                return redirect('staff_management')
+                messages.success(request, f'Successfully imported {len(df)} staff records!')
+                return redirect('staff:staff-management') 
             
             except Exception as e:
                 messages.error(request, f'Error processing file: {str(e)}')
+        else:
+            messages.error(request, 'Invalid file format. Please upload an Excel file (.xlsx, .xls)')
     else:
-        form = StaffExcelUploadForm()
+        form = StaffUploadForm()
     
-    staff_list = Staff.objects.all().select_related('designation', 'department')
     return render(request, 'staff/management.html', {
         'form': form,
-        'staff_list': staff_list
+        'staff_list': page_obj,
+        'search_query': search_query,
+        'messages': messages.get_messages(request),
+        'staff_types': staff_types,
+        'dept_categories': dept_categories,
+        'designations': designations,
+        'departments': departments
     })

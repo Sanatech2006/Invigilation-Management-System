@@ -4,53 +4,53 @@ from django.core.validators import validate_email, RegexValidator
 class Department(models.Model):
     """Department model to store department types and names"""
     DEPT_TYPE_CHOICES = [
-        ('ACADEMIC', 'Academic'),
-        ('ADMIN', 'Administrative'),
-        ('SUPPORT', 'Support Staff'),
+        ('AIDED', 'Aided'),
+        ('SFM', 'sfm'),
+        ('SFW', 'sfw'),
     ]
     
     dept_type = models.CharField(max_length=20, choices=DEPT_TYPE_CHOICES)
     name = models.CharField(max_length=100, unique=True)
     
     def __str__(self):
-        return f"{self.get_dept_type_display()} - {self.name}"
+        return self.name 
 
 class Designation(models.Model):
     """Designation model"""
     name = models.CharField(max_length=100, unique=True)
-    category = models.CharField(max_length=50)  # Teaching/Non-Teaching etc.
+    category = models.CharField(max_length=50) 
     
     def __str__(self):
-        return f"{self.name} ({self.category})"
+        return self.name 
 
 class Staff(models.Model):
     """Main staff model"""
-    CATEGORY_CHOICES = [
-        ('TEACHING', 'Teaching'),
-        ('NON_TEACHING', 'Non-Teaching'),
-        ('CONTRACT', 'Contract'),
-        ('VISITING', 'Visiting Faculty'),
-    ]
+    dept_name = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="Department Name (from Excel)",
+        help_text="Original department name from Excel import"
+    )
     
-    # Core fields
     staff_id = models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=100)
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
-    designation = models.ForeignKey(Designation, on_delete=models.PROTECT)
-    department = models.ForeignKey(Department, on_delete=models.PROTECT)
     
-    # Contact information
+    # New fields replacing department FK and category
+    staff_category = models.CharField(max_length=100)
+    dept_category = models.CharField(max_length=100)
+    
+    designation = models.ForeignKey(Designation, on_delete=models.PROTECT)
+    
     phone_regex = RegexValidator(
         regex=r'^\+?1?\d{9,15}$',
         message="Phone number must be entered in the format: '+999999999'"
     )
-    mobile = models.CharField(validators=[phone_regex], max_length=17, blank=True)
+    mobile = models.CharField(validators=[phone_regex], max_length=20, blank=True)
     email = models.EmailField(validators=[validate_email], blank=True)
     
-    # Dates
     date_of_joining = models.DateField(null=True, blank=True)
     
-    # System fields
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

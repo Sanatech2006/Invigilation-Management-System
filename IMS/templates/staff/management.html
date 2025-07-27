@@ -1,0 +1,266 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Staff Management</h1>
+        <p class="mt-2 text-sm text-gray-600">Manage staff records</p>
+    </div>
+
+    <!-- Upload Card -->
+    <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm sm:shadow-md border border-gray-200 mb-8">
+        <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4 pb-2 border-b border-gray-100">
+            Upload Staff Data
+        </h2>
+        
+        <form method="post" enctype="multipart/form-data" action="{% url 'staff:staff-management' %}">
+            {% csrf_token %}
+            
+            <!-- Display messages -->
+            {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                <div class="{% if message.tags == 'success' %}bg-green-50 border-l-4 border-green-500 text-green-700{% else %}bg-red-50 border-l-4 border-red-500 text-red-700{% endif %} p-4">
+                    <p class="font-bold">{{ message.tags|title }}</p>
+                    <p>{{ message }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- File Input Section -->
+            <div class="space-y-2">
+                <label class="block text-sm sm:text-base font-medium text-gray-700">
+                    Select Excel File
+                </label>
+                
+                <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                    <input type="file" name="excel_file" 
+                        class="block w-full text-sm text-gray-500
+                        file:mr-3 file:py-2 file:px-4
+                        file:rounded-lg file:border-0
+                        file:text-sm file:font-medium
+                        file:bg-blue-50 file:text-blue-700
+                        hover:file:bg-blue-100 transition-colors
+                        border border-gray-300 rounded-lg" 
+                        accept=".xlsx,.xls" required>
+                    
+                    <a href="{% static 'staff/staff_upload_template.xlsx' %}" download
+                        class="text-sm text-blue-600 hover:text-blue-800 underline flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Download Template
+                    </a>
+                </div>
+                
+                <p class="text-xs sm:text-sm text-gray-500 mt-1">
+                    Supports .xlsx, .xls formats. Required columns: staff_id, name, department, designation
+                </p>
+            </div>
+          
+            <div class="pt-2">
+                <button type="submit" 
+                    class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 
+                    text-white px-5 py-2.5 rounded-lg text-sm sm:text-base
+                    font-medium transition-all duration-200
+                    focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                    shadow-sm hover:shadow-md flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    Upload & Process
+                </button>
+            </div>
+        </form>
+    </div>
+    <!-- filter -->
+<!-- Filter Section -->
+<div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm sm:shadow-md border border-gray-200 mb-8">
+    <h3 class="text-md font-medium text-gray-900 mb-4">Filter Staff Records</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- Staff Type Filter -->
+        <div>
+            <label for="staffTypeFilter" class="block text-sm font-medium text-gray-700 mb-1">Staff Type</label>
+            <select id="staffTypeFilter" class="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Types</option>
+                {% for type in staff_types %}
+                    <option value="{{ type }}">{{ type }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Designation Filter -->
+        <div>
+            <label for="designationFilter" class="block text-sm font-medium text-gray-700 mb-1">Designation</label>
+            <select id="designationFilter" class="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Designations</option>
+                {% for designation in designations %}
+                    <option value="{{ designation.name }}">{{ designation.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Department Category Filter -->
+        <div>
+            <label for="deptCategoryFilter" class="block text-sm font-medium text-gray-700 mb-1">Dept Category</label>
+            <select id="deptCategoryFilter" class="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Categories</option>
+                {% for category in dept_categories %}
+                    <option value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Department Name Filter -->
+        <div>
+            <label for="deptNameFilter" class="block text-sm font-medium text-gray-700 mb-1">Department Name</label>
+            <select id="deptNameFilter" class="w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">All Departments</option>
+                {% for dept in departments %}
+                    <option value="{{ dept }}">{{ dept }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+        <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <div class="flex items-center mb-2 sm:mb-0">
+                <h3 class="text-lg font-medium text-gray-900">Staff Members</h3>
+                <span class="ml-2 text-sm font-medium text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full">
+                    Total: {{ staff_list.count }} records
+                </span>
+            </div>
+            
+            <div class="flex space-x-2">
+    <input type="text" id="searchInput" placeholder="Search..." class="text-sm border border-gray-300 rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <button id="searchButton" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-sm flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        Search
+    </button>
+    
+    <!-- <button id="filterButton" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-sm flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+        </svg>
+        Filter
+    </button> -->
+</div>
+        </div>
+        
+       <div class="overflow-x-auto overflow-y-auto" style="max-height: 500px;">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 sticky top-0">
+                    <tr>
+                        <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Staff ID</th>
+                        <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Staff Type</th>
+                        <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Designation</th>
+                        <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"> Department Category</th>
+                        <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department Name</th>
+                        <th scope="col" class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
+                        <th scope="col" class="px- sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% if staff_list %}
+                        {% for staff in staff_list %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ staff.staff_id }}</td>
+                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ staff.name }}</td>
+                            
+                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ staff.staff_category }}</td>
+                            
+                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ staff.designation }}</td>
+                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ staff.dept_category }}</td>
+                            
+                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ staff.dept_name }}</td>
+                             <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ staff.mobile }}</td>
+                             <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="#" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
+                                <a href="#" class="text-red-600 hover:text-red-900">Delete</a>
+                            </td>
+                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+                                
+                            </td>
+                           
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="px-4 sm:px-6 py-4 text-center text-sm text-gray-500">
+                                <div class="flex flex-col items-center justify-center py-8">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <h4 class="mt-2 text-sm font-medium text-gray-700">No staff records found</h4>
+                                    <p class="mt-1 text-xs text-gray-500">Upload an Excel file to get started</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                    
+                </tbody>
+            </table>
+        </div>
+        </div>
+        
+        {% if staff_list.has_other_pages %}
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Showing <span class="font-medium">{{ staff_list.start_index }}</span> to <span class="font-medium">{{ staff_list.end_index }}</span> of <span class="font-medium">{{ staff_list.paginator.count }}</span> results
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        {% if staff_list.has_previous %}
+                        <a href="?page={{ staff_list.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Previous</span>
+                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                        {% endif %}
+                        
+                        {% for i in staff_list.paginator.page_range %}
+                            {% if staff_list.number == i %}
+                            <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                {{ i }}
+                            </a>
+                            {% else %}
+                            <a href="?page={{ i }}" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                {{ i }}
+                            </a>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if staff_list.has_next %}
+                        <a href="?page={{ staff_list.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Next</span>
+                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script src="{% static 'js/staff-management.js' %}"></script>
+{% endblock javascript %}

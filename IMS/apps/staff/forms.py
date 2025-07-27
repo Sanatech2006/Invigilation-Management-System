@@ -1,14 +1,25 @@
 from django import forms
-from .models import Staff, Department, Designation
+from django.core.validators import FileExtensionValidator
+from .models import Staff
 
-class StaffExcelUploadForm(forms.Form):
+class StaffUploadForm(forms.Form):
     excel_file = forms.FileField(
-        label='Select Excel File',
-        help_text='File should contain staff data with specified columns'
+        label='Excel File',
+        validators=[
+            FileExtensionValidator(allowed_extensions=['xlsx', 'xls'])
+        ],
+        widget=forms.FileInput(attrs={
+            'class': 'block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors border border-gray-300 rounded-lg',
+            'accept': '.xlsx,.xls'
+        })
     )
-    
-    def clean_excel_file(self):
-        file = self.cleaned_data['excel_file']
-        if not file.name.endswith(('.xlsx', '.xls')):
-            raise forms.ValidationError("Only Excel files are allowed")
-        return file
+
+class StaffEditForm(forms.ModelForm):
+    class Meta:
+        model = Staff
+        fields = ['staff_id', 'name', 'staff_category', 'designation', 
+                 'dept_category', 'dept_name', 'mobile', 'email', 
+                 'date_of_joining', 'is_active']
+        widgets = {
+            'date_of_joining': forms.DateInput(attrs={'type': 'date'}),
+        }

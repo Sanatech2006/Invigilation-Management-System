@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'apps.dashboard',
-    'staff.apps.StaffConfig',
+    'apps.staff',
     'apps.hall',
     'apps.exams',
     'apps.student',
@@ -85,9 +85,9 @@ WSGI_APPLICATION = 'IMS.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Invigilation',
+        'NAME': 'ims',
         'USER': 'postgres',
-        'PASSWORD': 'hamdhan@2003',
+        'PASSWORD': 'saq123',
         'HOST': 'localhost', 
         'PORT': '5432',
     }
@@ -138,7 +138,6 @@ STATIC_ROOT = BASE_DIR / "staticfiles"  # For production
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 import sys
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-sys.path.append(str(BASE_DIR / "apps"))
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))

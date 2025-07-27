@@ -1,0 +1,72 @@
+/* IMS/static/css/src/staff-management.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Upload Card */
+.upload-card {
+    @apply bg-white p-6 rounded-xl shadow-md mb-8 border border-gray-200;
+}
+
+.upload-card h2 {
+    @apply text-xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100;
+}
+
+/* Table Styles */
+.staff-table-container {
+    @apply bg-white rounded-xl shadow-md overflow-hidden border border-gray-200;
+}
+
+.staff-table-header {
+    @apply px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center;
+}
+
+.staff-table-title {
+    @apply text-lg font-semibold text-gray-800;
+}
+
+.staff-table-count {
+    @apply text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full;
+}
+
+.staff-table {
+    @apply min-w-full divide-y divide-gray-200;
+}
+
+.staff-table th {
+    @apply px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider bg-gray-50;
+}
+
+.staff-table td {
+    @apply px-6 py-4 whitespace-nowrap text-sm;
+}
+
+.staff-table tr:hover {
+    @apply bg-gray-50;
+}
+
+/* Action Buttons */
+.action-btn {
+    @apply inline-flex items-center px-3 py-1 rounded-md text-sm font-medium;
+}
+
+.edit-btn {
+    @apply bg-blue-50 text-blue-600 hover:bg-blue-100 mr-2;
+}
+
+.delete-btn {
+    @apply bg-red-50 text-red-600 hover:bg-red-100;
+}
+
+/* Empty State */
+.empty-state {
+    @apply p-8 text-center;
+}
+
+.empty-state-icon {
+    @apply mx-auto h-12 w-12 text-gray-400;
+}
+
+.empty-state-text {
+    @apply mt-2 text-sm text-gray-500;
+}
