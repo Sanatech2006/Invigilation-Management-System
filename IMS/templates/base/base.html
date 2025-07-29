@@ -25,14 +25,18 @@
             <h4>ExamEase</h4>
         </div>
         <nav class="sidebar-nav">
-    <a href="/" class="sidebar-link active">
+    <!-- Dashboard Link -->
+    <a href="/" 
+       class="sidebar-link {% if request.path == '/' %}active-nav-item{% endif %}">
         <i class="sidebar-icon fas fa-tachometer-alt"></i> Dashboard
     </a>
-    <a href="{% url 'staff:staff-management' %}" class="sidebar-link">
-    <i class="sidebar-icon fas fa-users"></i> Staff Management
-</a>
+    <a href="{% url 'staff:staff-management' %}" 
+       class="sidebar-link {% if 'staff' in request.path %}active-nav-item{% endif %}">
+        <i class="sidebar-icon fas fa-users"></i> Staff Management
+    </a>
 
-    <a href="#" class="sidebar-link">
+ <a href="{% url 'hall_management' %}" 
+       class="sidebar-link {% if 'hall' in request.path %}active-nav-item{% endif %}">
         <i class="sidebar-icon fas fa-school"></i> Hall Management
     </a>
     <a href="#" class="sidebar-link">

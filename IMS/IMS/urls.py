@@ -22,5 +22,6 @@ urlpatterns = [
      path('', include('apps.dashboard.urls')),
      path('staff/', include('apps.staff.urls')),
      path('student/', include('apps.student.urls')),
+     path('hall/', include('apps.hall.urls')),
     # Add other apps here
 ]

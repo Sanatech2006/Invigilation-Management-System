@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from django.views import View
 
-class HallListView(View):
-    def get(self, request):
-        return render(request, 'hall/list.html')
+def hall_management(request):
+    return render(request, 'hall/hall_management.html')

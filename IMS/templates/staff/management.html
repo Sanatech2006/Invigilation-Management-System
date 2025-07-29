@@ -3,86 +3,86 @@
 
 {% block content %}
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<!-- <div id="loading-indicator" class="fixed inset-0 bg-white bg-opacity-70 flex items-center justify-center z-50 ">
+    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+</div> -->
 
 <div class="container mx-auto px-4 py-6">
     <!-- Header -->
-    <div class="mb-8">
+    <!-- <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-800">Staff Management</h1>
         <p class="mt-2 text-sm text-gray-600">Manage staff records</p>
-    </div>
+    </div> -->
 
-    <!-- Upload Card -->
-    <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm sm:shadow-md border border-gray-200 mb-8">
-        <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4 pb-2 border-b border-gray-100">
-            Upload Staff Data
-        </h2>
-        
-        <form method="post" enctype="multipart/form-data" action="{% url 'staff:staff-management' %}">
-            {% csrf_token %}
-            
-            <!-- Display messages -->
-            {% if messages %}
-            <div class="mb-4">
-                {% for message in messages %}
-                <div class="{% if message.tags == 'success' %}bg-green-50 border-l-4 border-green-500 text-green-700{% else %}bg-red-50 border-l-4 border-red-500 text-red-700{% endif %} p-4">
-                    <p class="font-bold">{{ message.tags|title }}</p>
-                    <p>{{ message }}</p>
-                </div>
-                {% endfor %}
+<!-- Upload Card -->
+<div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm sm:shadow-md border border-gray-200 mb-8 max-w-xl">
+    <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4 pb-2 border-b border-gray-100">
+        Upload Staff Data
+    </h2>
+
+    <form method="post" enctype="multipart/form-data" action="{% url 'staff:staff-management' %}">
+        {% csrf_token %}
+
+        <!-- Display messages -->
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="{% if message.tags == 'success' %}bg-green-50 border-l-4 border-green-500 text-green-700{% else %}bg-red-50 border-l-4 border-red-500 text-red-700{% endif %} p-4 rounded-lg">
+                <p class="font-bold">{{ message.tags|title }}</p>
+                <p>{{ message }}</p>
             </div>
-            {% endif %}
-            
-            <!-- File Input Section -->
-            <div class="space-y-2">
-                <label class="block text-sm sm:text-base font-medium text-gray-700">
-                    Select Excel File
-                </label>
-                
-                <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                    <input type="file" name="excel_file" 
-                        class="block w-full text-sm text-gray-500
-                        file:mr-3 file:py-2 file:px-4
-                        file:rounded-lg file:border-0
-                        file:text-sm file:font-medium
-                        file:bg-blue-50 file:text-blue-700
-                        hover:file:bg-blue-100 transition-colors
-                        border border-gray-300 rounded-lg" 
-                        accept=".xlsx,.xls" required>
-                    
-                    <a href="{% static 'staff/staff_upload_template.xlsx' %}" download
-                        class="text-sm text-blue-600 hover:text-blue-800 underline flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                        </svg>
-                        Download Template
-                    </a>
-                </div>
-                
-                <p class="text-xs sm:text-sm text-gray-500 mt-1">
-                    Supports .xlsx, .xls formats. Required columns: staff_id, name, department, designation
-                </p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- File Input Section -->
+        <div class="space-y-2">
+            <label class="block text-sm sm:text-base font-medium text-gray-700">
+                Select Excel File
+            </label>
+
+            <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                <input type="file" name="excel_file" 
+                    class="block w-full text-sm text-gray-500
+                    file:mr-3 file:py-2 file:px-4
+                    file:rounded-lg file:border-0
+                    file:text-sm file:font-medium
+                    file:bg-blue-50 file:text-blue-700
+                    hover:file:bg-blue-100 transition-colors
+                    border border-gray-300 rounded-lg" 
+                    accept=".xlsx,.xls" required>
+
+               <a href="{% static 'staff/Template.xlsx' %}" download="Staff_Template.xlsx"
+   class="text-sm text-blue-600 hover:text-blue-800 underline flex items-center"
+   onclick="return confirmDownload()">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+    </svg>
+    Download Template
+</a>
             </div>
-          
-            <div class="pt-2">
-                <button type="submit" 
-                    class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 
-                    text-white px-5 py-2.5 rounded-lg text-sm sm:text-base
-                    font-medium transition-all duration-200
-                    focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                    shadow-sm hover:shadow-md flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                    </svg>
-                    Upload & Process
-                </button>
-            </div>
-        </form>
-    </div>
+        </div>
+
+        <!-- Left-aligned Button (Updated Section) -->
+        <div class="pt-4 flex justify-start">
+            <button type="submit" 
+                class="bg-blue-600 hover:bg-blue-700 
+                text-white px-5 py-2.5 rounded-lg text-sm sm:text-base
+                font-medium transition-all duration-200
+                focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                shadow-sm hover:shadow-md flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+                Upload & Process
+            </button>
+        </div>
+    </form>
+</div>
+
     <!-- filter -->
-<!-- Filter Section -->
-<!-- Filter Section -->
 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm sm:shadow-md border border-gray-200 mb-8">
-    <h3 class="text-md font-medium text-gray-900 mb-4">Filter Staff Records</h3>
+    <!-- <h3 class="text-md font-medium text-gray-900 mb-4">Filter Staff Records</h3> -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <!-- Staff Type Filter -->
         <div>
@@ -95,14 +95,14 @@
             </select>
         </div>
 
-        <!-- Designation Filter -->
+        <!-- Designation Filter (Updated with only required options) -->
         <div>
             <label for="designationFilter" class="block text-sm font-medium text-gray-700 mb-1">Designation</label>
             <select id="designationFilter" name="designation" class="filter-select w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">All Designations</option>
-                {% for designation in designations %}
-                    <option value="{{ designation.name }}" {% if request.GET.designation == designation.name %}selected{% endif %}>{{ designation.name }}</option>
-                {% endfor %}
+                <option value="ASSISTANT PROFESSOR" {% if request.GET.designation == "ASSISTANT PROFESSOR" %}selected{% endif %}>Assistant Professor</option>
+                <option value="HOD" {% if request.GET.designation == "HOD" %}selected{% endif %}>HOD</option>
+                <option value="ASSOCIATE PROFESSOR" {% if request.GET.designation == "ASSOCIATE PROFESSOR" %}selected{% endif %}>Associate Professor</option>
             </select>
         </div>
 
@@ -208,7 +208,7 @@
         </div>
         </div>
         
-        {% if staff_list.has_other_pages %}
+       {% if staff_list.has_other_pages %}
         <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
             <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
@@ -217,34 +217,34 @@
                     </p>
                 </div>
                 <div>
-                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px pagination" aria-label="Pagination">
                         {% if staff_list.has_previous %}
-                        <a href="?page={{ staff_list.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                            <span class="sr-only">Previous</span>
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
+                        <a href="?page={{ staff_list.previous_page_number }}" 
+                           data-page="{{ staff_list.previous_page_number }}"
+                           class="pagination-link relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <!-- Previous icon -->
                         </a>
                         {% endif %}
                         
                         {% for i in staff_list.paginator.page_range %}
                             {% if staff_list.number == i %}
-                            <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                            <span class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
                                 {{ i }}
-                            </a>
-                            {% else %}
-                            <a href="?page={{ i }}" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                            </span>
+                            {% elif i > staff_list.number|add:"-3" and i < staff_list.number|add:"3" %}
+                            <a href="?page={{ i }}" 
+                               data-page="{{ i }}"
+                               class="pagination-link bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
                                 {{ i }}
                             </a>
                             {% endif %}
                         {% endfor %}
                         
                         {% if staff_list.has_next %}
-                        <a href="?page={{ staff_list.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                            <span class="sr-only">Next</span>
-                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                            </svg>
+                        <a href="?page={{ staff_list.next_page_number }}" 
+                           data-page="{{ staff_list.next_page_number }}"
+                           class="pagination-link relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <!-- Next icon -->
                         </a>
                         {% endif %}
                     </nav>
@@ -258,4 +258,4 @@
 
 {% block javascript %}
 <script src="{% static 'js/staff-management.js' %}"></script>
-{% endblock javascript %}
+{% endblock %}
