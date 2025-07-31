@@ -1,7 +1,7 @@
 {% load static %}
 <tbody class="bg-white divide-y divide-gray-200">
     {% if staff_list %}
-        {% for staff in staff_list %}
+        {% for staff in page_obj %}
         <tr class="hover:bg-gray-50">
             <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ staff.staff_id }}</td>
             <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ staff.name }}</td>

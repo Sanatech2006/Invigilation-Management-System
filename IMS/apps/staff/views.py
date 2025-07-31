@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.db import transaction
 from .models import Staff, Department, Designation
 from .forms import StaffUploadForm
+from django.db.models.functions import Trim
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -15,8 +16,6 @@ logger = logging.getLogger(__name__)
 def staff_management(request):
     # Initialize queryset
     staff_list = Staff.objects.all().select_related('designation')
-    
-    # Handle AJAX requests differently
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     
     # Get filter parameters
@@ -74,7 +73,10 @@ def staff_management(request):
                               .order_by('dept_category')\
                               .values_list('dept_category', flat=True)\
                               .distinct()
-    departments = Staff.objects.values_list('dept_name', flat=True).distinct()
+    departments = Staff.objects.annotate(trimmed_dept=Trim('dept_name')) \
+                           .values_list('trimmed_dept', flat=True) \
+                           .distinct() \
+                           .order_by('trimmed_dept')
     
     # File upload handling
     if request.method == 'POST':

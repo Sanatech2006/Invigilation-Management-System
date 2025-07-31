@@ -1,0 +1,28 @@
+<!-- {% extends 'base/base.html' %}
+{% block content %}
+<h2 class="text-xl font-bold mb-4">Hall List</h2>
+<table class="min-w-full table-auto border border-gray-200">
+    <thead>
+        <tr>
+            <th class="px-4 py-2 border">Department Category</th>
+            <th class="px-4 py-2 border">Department Name</th>
+            <th class="px-4 py-2 border">Hall Number</th>
+            <th class="px-4 py-2 border">Strength</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for hall in halls %}
+        <tr>
+            <td class="px-4 py-2 border">{{ hall.dept_category }}</td>
+            <td class="px-4 py-2 border">{{ hall.dept_name }}</td>
+            <td class="px-4 py-2 border">{{ hall.hall_no }}</td>
+            <td class="px-4 py-2 border">{{ hall.strength }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4" class="px-4 py-2 border text-center">No halls available.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %} -->

@@ -23,5 +23,6 @@ urlpatterns = [
      path('staff/', include('apps.staff.urls')),
      path('student/', include('apps.student.urls')),
      path('hall/', include('apps.hall.urls')),
+      path('exam-dates/', include('apps.exam_dates.urls', namespace='exam_dates')),
     # Add other apps here
 ]

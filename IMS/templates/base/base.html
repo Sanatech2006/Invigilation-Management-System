@@ -39,9 +39,11 @@
        class="sidebar-link {% if 'hall' in request.path %}active-nav-item{% endif %}">
         <i class="sidebar-icon fas fa-school"></i> Hall Management
     </a>
-    <a href="#" class="sidebar-link">
-        <i class="sidebar-icon fas fa-calendar-alt"></i> Exam Dates
-    </a>
+  <a href="{% url 'exam_dates:index' %}" 
+   class="sidebar-link {% if 'exam-dates' in request.path %}active-nav-item{% endif %}">
+    <i class="sidebar-icon fas fa-calendar-alt"></i> Exam Dates
+</a>
+
     <a href="#" class="sidebar-link">
         <i class="sidebar-icon fas fa-user-shield"></i> Invigilation Settings
     </a>

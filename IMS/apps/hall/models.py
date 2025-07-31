@@ -1,12 +1,14 @@
 from django.db import models
 
 class Room(models.Model):
-    DeptType = models.CharField(max_length=100)
-    Block = models.CharField(max_length=100)
-    DeptName = models.CharField(max_length=100)
-    HallNo = models.CharField(max_length=50, unique=True)
-    Strength = models.PositiveIntegerField()
-    Benches = models.PositiveIntegerField()
-
+    dept_category = models.CharField(max_length=100)
+    block = models.CharField(max_length=100, default="-")
+    dept_name = models.CharField(max_length=100)
+    hall_no = models.CharField(max_length=50, unique=True)
+    strength = models.PositiveIntegerField(default=0)
+    benches = models.PositiveIntegerField(default=0)
+    days = models.IntegerField(default=0)  # Fixed: removed max_length
+    staff_allotted = models.CharField(max_length=20, default="Not Allotted")
+    
     def __str__(self):
-        return f"{self.HallNo} - {self.Block}"
+        return f"{self.hall_no} - {self.block}"
