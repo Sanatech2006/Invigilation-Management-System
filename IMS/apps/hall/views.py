@@ -3,6 +3,9 @@ from django.shortcuts import render
 from .models import Room
 
 def hall_management(request):
+    print("\n===== NEW REQUEST =====")  # Debug
+    print(f"Request method: {request.method}")  # Debug
+    
     # Initialize context with all required data
     context = {
         'rooms': Room.objects.all(),
@@ -11,16 +14,29 @@ def hall_management(request):
         'departments': Room.objects.values_list('dept_name', flat=True).distinct(),
     }
 
-    if request.method == "POST" and 'file' in request.FILES:
+    if request.method == "POST":
+        print("\nPOST request received")  # Debug
+        print("Request.FILES contents:", request.FILES)  # Debug
+        print("Request.POST contents:", request.POST)  # Debug
+        
+        if 'file' not in request.FILES:
+            print("\nERROR: No file found in request.FILES")  # Debug
+            context['error'] = "No file was uploaded"
+            return render(request, 'hall/hall_management.html', context)
+            
         excel_file = request.FILES['file']
-        print(f"Processing file: {excel_file.name}")  # Debug
+        print(f"\nFile detected: {excel_file.name}")  # Debug
+        print(f"File size: {excel_file.size} bytes")  # Debug
+        print(f"Content type: {excel_file.content_type}")  # Debug
         
         try:
-            # Read the Excel file
+            print("\nAttempting to read Excel file...")  # Debug
             df = pd.read_excel(excel_file)
+            print("SUCCESS: File read successfully")  # Debug
             print("Columns in file:", df.columns.tolist())  # Debug
-            
-            # Process each row
+            print("First row sample:", df.iloc[0].to_dict() if not df.empty else "Empty DataFrame")  # Debug
+
+            # Rest of your processing code...
             processed = 0
             for _, row in df.iterrows():
                 try:
@@ -42,11 +58,11 @@ def hall_management(request):
                     )
                     processed += 1
                 except Exception as e:
-                    print(f"Error in row: {e}")
+                    print(f"Row processing error: {e}")  # Debug
                     continue
 
             context['message'] = f"Successfully processed {processed} records"
-            # Refresh the data
+            # Refresh data
             context.update({
                 'rooms': Room.objects.all(),
                 'blocks': Room.objects.values_list('block', flat=True).distinct(),
@@ -55,7 +71,7 @@ def hall_management(request):
             })
             
         except Exception as e:
-            print(f"Error processing file: {e}")
+            print(f"\nERROR processing file: {str(e)}")  # Debug
             context['error'] = f"Error processing file: {str(e)}"
 
     return render(request, 'hall/hall_management.html', context)

@@ -48,3 +48,27 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('filter-dept-category')?.addEventListener('change', applyFilters);
     document.getElementById('filter-dept-name')?.addEventListener('change', applyFilters);
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.querySelector('input[type="file"][name="file"]');
+    const fileNameDisplay = document.querySelector('.text-gray-500.text-sm');
+    
+    if (fileInput && fileNameDisplay) {
+        // Update display when file is selected
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                fileNameDisplay.textContent = this.files[0].name;
+                console.log('File selected:', this.files[0].name);
+            } else {
+                fileNameDisplay.textContent = 'No file chosen';
+            }
+        });
+        
+        // Fix for label click handling
+        document.querySelector('label[for="fileInput"]')?.addEventListener('click', function(e) {
+            if (e.target !== fileInput) {
+                fileInput.click();
+            }
+        });
+    }
+});
