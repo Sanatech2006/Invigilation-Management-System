@@ -12,9 +12,9 @@ from django.db.models.functions import Trim
 # Set up logging
 logger = logging.getLogger(__name__)
 
-
 def staff_management(request):
-    # Initialize queryset
+    # Initialize form and queryset
+    form = StaffUploadForm()
     staff_list = Staff.objects.all().select_related('designation')
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     
@@ -56,7 +56,7 @@ def staff_management(request):
     if is_ajax:
         return render(request, 'staff/staff_table.html', {
             'staff_list': page_obj,
-            'request': request,  # Pass request to template
+            'request': request,
             'total_count': paginator.count,
             'page_number': page_number,
             'num_pages': paginator.num_pages,
@@ -64,124 +64,97 @@ def staff_management(request):
     
     # Get filter options for dropdowns
     staff_types = Staff.objects.exclude(staff_category__isnull=True)\
-                          .exclude(staff_category__exact='')\
-                          .order_by('staff_category')\
-                          .values_list('staff_category', flat=True)\
-                          .distinct()
+                        .exclude(staff_category__exact='')\
+                        .order_by('staff_category')\
+                        .values_list('staff_category', flat=True)\
+                        .distinct()
     dept_categories = Staff.objects.exclude(dept_category__isnull=True)\
-                              .exclude(dept_category__exact='')\
-                              .order_by('dept_category')\
-                              .values_list('dept_category', flat=True)\
-                              .distinct()
+                            .exclude(dept_category__exact='')\
+                            .order_by('dept_category')\
+                            .values_list('dept_category', flat=True)\
+                            .distinct()
     departments = Staff.objects.annotate(trimmed_dept=Trim('dept_name')) \
-                           .values_list('trimmed_dept', flat=True) \
-                           .distinct() \
-                           .order_by('trimmed_dept')
+                         .values_list('trimmed_dept', flat=True) \
+                         .distinct() \
+                         .order_by('trimmed_dept')
     
     # File upload handling
     if request.method == 'POST':
-        form = StaffUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            try:
-                with transaction.atomic():
-                    excel_file = request.FILES['excel_file']
-                    df = pd.read_excel(excel_file)
-                    logger.debug(f"Columns detected: {list(df.columns)}")
-                    
-                    # Convert date columns safely
-                    date_cols = [col for col in df.columns if 'date' in col.lower()]
-                    for col in date_cols:
-                        try:
-                            if pd.api.types.is_datetime64_any_dtype(df[col]):
-                                df[col] = df[col].apply(
-                                    lambda x: x.strftime('%Y-%m-%d') if not pd.isna(x) else None
-                                )
-                                logger.debug(f"Converted date column: {col}")
-                        except Exception as e:
-                            logger.error(f"Date conversion failed for {col}: {str(e)}")
-                            raise ValueError(f"Invalid date format in column '{col}'. Use YYYY-MM-DD format.")
-
-                    required_columns = ['staff_id', 'name', 'staff_category', 'designation']
-                    missing_columns = [col for col in required_columns if col not in df.columns]
-                    
-                    if missing_columns:
-                        logger.error(f"Missing columns: {missing_columns}")
-                        messages.error(request, f'Missing required columns: {", ".join(missing_columns)}')
-                        return redirect('staff:staff-management')
-                    
-                    # DEBUG: Log first 3 rows
-                    logger.debug(f"Sample data:\n{df.head(3).to_dict()}")
-
-                    success_count = 0
-                    for index, row in df.iterrows():
-                        try:
-                            # DEBUG: Log current row
-                            logger.debug(f"Processing row {index+1}: {row.to_dict()}")
-                            
-                            designation_name = str(row['designation']).strip()
-                            if not designation_name:
-                                logger.warning(f"Skipping row {index+1}: Empty designation")
-                                continue
-                            
-                            # Handle designation
-                            try:
-                                designation = Designation.objects.get(name=designation_name)
-                                if 'dept_category' in row and pd.notna(row['dept_category']):
-                                    designation.category = str(row['dept_category']).strip()
-                                    designation.save()
-                            except Designation.DoesNotExist:
-                                designation = Designation.objects.create(
-                                    name=designation_name,
-                                    category=str(row.get('dept_category', 'Teaching')).strip()
-                                )
-                                logger.debug(f"Created new designation: {designation_name}")
-
-                            # Handle date_of_joining safely
-                            date_of_joining = None
-                            if 'date_of_joining' in row:
-                                if pd.notna(row['date_of_joining']):
-                                    if isinstance(row['date_of_joining'], str):
-                                        date_of_joining = row['date_of_joining']  # Already converted
-                                    else:
-                                        date_of_joining = row['date_of_joining'].strftime('%Y-%m-%d')
-
-                            # Create/update staff
-                            staff, created = Staff.objects.update_or_create(
-                                staff_id=str(row['staff_id']).strip(),
-                                defaults={
-                                    'name': str(row['name']).strip(),
-                                    'dept_category': str(row.get('dept_category', 'AIDED')).strip(),
-                                    'designation': designation,
-                                    'staff_category': str(row['staff_category']).strip(),
-                                    'dept_name': str(row.get('dept_name', '')).strip(),
-                                    'mobile': str(row.get('mobile', '')).strip().replace(' ', '').replace('-', '')[:17],
-                                    'email': str(row.get('email', '')).strip(),
-                                    'date_of_joining': date_of_joining,
-                                    'is_active': bool(row.get('is_active', True))
-                                }
-                            )
-                            success_count += 1
-                            if created:
-                                logger.debug(f"Created new staff: {staff.staff_id}")
-                            else:
-                                logger.debug(f"Updated staff: {staff.staff_id}")
-
-                        except Exception as e:
-                            logger.error(f"Failed processing row {index+1}: {str(e)}\nRow data: {row.to_dict()}")
-                            raise  # Re-raise to trigger transaction rollback
-
-                    messages.success(request, f'Successfully processed {success_count}/{len(df)} records!')
-                    logger.info(f"File processed successfully. Records: {success_count}/{len(df)}")
+     form = StaffUploadForm(request.POST, request.FILES)
+    if form.is_valid():
+        try:
+            with transaction.atomic():
+                excel_file = request.FILES['excel_file']
+                df = pd.read_excel(excel_file)
+                
+                # Debug: Show raw column names
+                logger.debug(f"Original columns: {list(df.columns)}")
+                
+                # Normalize column names
+                df.columns = [str(col).strip().lower().replace(' ', '_') for col in df.columns]
+                logger.debug(f"Normalized columns: {list(df.columns)}")
+                
+                # Verify required columns
+                required_columns = ['staff_id', 'name', 'staff_category', 'designation',
+                                  'dept_category', 'dept_name', 'mobile', 'email',
+                                  'date_of_joining', 'session', 'fixed_session']
+                
+                missing = [col for col in required_columns if col not in df.columns]
+                if missing:
+                    messages.error(request, f'Missing columns: {", ".join(missing)}')
                     return redirect('staff:staff-management')
 
-            except Exception as e:
-                logger.exception("Fatal error during file processing:")
-                messages.error(request, f'Error: {str(e)} [Check server logs for details]')
-        else:
-            logger.error(f"Invalid form: {form.errors}")
-            messages.error(request, 'Invalid file format. Please upload an Excel file (.xlsx, .xls)')
-    else:
-        form = StaffUploadForm()
+                success_count = 0
+                for index, row in df.iterrows():
+                    try:
+                        # Debug raw values
+                        raw_session = row.get('session')
+                        raw_fixed = row.get('fixed_session')
+                        logger.debug(f"Row {index+1} - Raw session: {raw_session}, Raw fixed: {raw_fixed}")
+                        
+                        # Convert session values (handles negatives)
+                        def convert_value(val):
+                            try:
+                                if pd.isna(val) or str(val).strip() == '':
+                                    return 0
+                                return int(float(str(val).strip()))
+                            except (ValueError, TypeError):
+                                return 0
+                        
+                        session_val = convert_value(raw_session)
+                        fixed_val = convert_value(raw_fixed)
+                        
+                        # Debug converted values
+                        logger.debug(f"Row {index+1} - Converted session: {session_val}, Fixed: {fixed_val}")
+                        
+                        # Get/create designation
+                        designation_name = str(row['designation']).strip()
+                        designation, _ = Designation.objects.get_or_create(
+                            name=designation_name,
+                            defaults={'category': str(row.get('dept_category', 'Teaching')).strip()}
+                        )
+                        
+                        # Update staff record
+                        Staff.objects.update_or_create(
+                            staff_id=str(row['staff_id']).strip(),
+                            defaults={
+                                # ... [other fields] ...
+                                'session': session_val,
+                                'fixed_session': fixed_val
+                            }
+                        )
+                        success_count += 1
+                        
+                    except Exception as e:
+                        logger.error(f"Row {index+1} error: {str(e)}")
+                        continue
+                
+                messages.success(request, f'Successfully processed {success_count}/{len(df)} records!')
+                return redirect('staff:staff-management')
+        
+        except Exception as e:
+            logger.exception("File processing failed")
+            messages.error(request, f'Error: {str(e)}')
     
     return render(request, 'staff/management.html', {
         'form': form,
@@ -194,5 +167,5 @@ def staff_management(request):
         'total_count': paginator.count,
         'page_number': page_number or 1,
         'num_pages': paginator.num_pages,
-        'request': request,  # Pass request to template
+        'request': request,
     })

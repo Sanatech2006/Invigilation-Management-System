@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import validate_email, RegexValidator
 
 class Department(models.Model):
+    app_label = 'staff'
     """Department model to store department types and names"""
     DEPT_TYPE_CHOICES = [
         ('AIDED', 'Aided'),
@@ -16,6 +17,7 @@ class Department(models.Model):
         return self.name 
 
 class Designation(models.Model):
+    app_label = 'staff'
     """Designation model"""
     name = models.CharField(max_length=100, unique=True)
     category = models.CharField(max_length=50) 
@@ -24,6 +26,7 @@ class Designation(models.Model):
         return self.name 
 
 class Staff(models.Model):
+    app_label = 'staff'
     """Main staff model"""
     dept_name = models.CharField(
         max_length=100,
@@ -52,10 +55,19 @@ class Staff(models.Model):
     date_of_joining = models.DateField(null=True, blank=True)
     
     is_active = models.BooleanField(default=True)
+    session = models.IntegerField(  # Changed from PositiveIntegerField
+        default=0,
+        help_text="Dynamically allocated session value (can be negative)"
+    )
+    fixed_session = models.IntegerField(  # Changed from PositiveIntegerField
+        default=0,
+        help_text="Fixed session allocation (can be negative)"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
+        app_label = 'staff'
         verbose_name_plural = "Staff"
         ordering = ['name']
     

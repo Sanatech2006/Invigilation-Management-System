@@ -9,6 +9,8 @@ class Room(models.Model):
     benches = models.PositiveIntegerField(default=0)
     days = models.IntegerField(default=0)  # Fixed: removed max_length
     staff_allotted = models.CharField(max_length=20, default="Not Allotted")
+    staff_required = models.IntegerField(default=1)  # or whatever field type you're using
+    total_staff_required = models.IntegerField(default=2)
     
     def __str__(self):
         return f"{self.hall_no} - {self.block}"

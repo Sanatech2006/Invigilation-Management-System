@@ -1,0 +1,72 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Generate Schedule{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Generate Schedule</h1>
+    
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Sessions Required by Category</h2>
+        
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Sessions Required</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for item in schedule_data %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ item.category }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ item.total_sessions }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2" class="px-6 py-4 text-center text-gray-500">No data available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" name="allocate_sessions" class="btn btn-primary">
+        Allocate Sessions to Staff
+    </button>
+</form>
+
+<!-- Display allocation results -->
+{% if allocation_results %}
+    <div class="mt-4">
+        <h3>Allocation Results</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dept, result in allocation_results.items %}
+                <tr>
+                    <td>{{ dept }}</td>
+                    <td>{{ result.status }}</td>
+                    <td>
+                        {% if result.status == 'Success' %}
+                            Allocated {{ result.remaining_sessions }} sessions to {{ result.updated_count }} staff
+                        {% else %}
+                            {{ result.reason|default:result.error }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+{% endblock %}
