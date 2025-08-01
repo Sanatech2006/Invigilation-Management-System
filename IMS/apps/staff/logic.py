@@ -1,33 +1,24 @@
-from django.db.models import Sum, Count
+from django.db.models import Sum
 from datetime import datetime
-from apps.staff.models import Staff   # Make sure this import is correct
+from apps.staff.models import Staff
 
 def allocate_sessions(total_staff_required):
-    """
-    Allocate sessions to staff with session=-1 based on department categories
-    total_staff_required: Dictionary {dept_category: required_sessions}
-    Returns dictionary with allocation results
-    """
     results = {}
     
     for dept_category, required_sessions in total_staff_required.items():
         try:
-            # Filter staff by department category
+            # Get staff data
             staff_in_dept = Staff.objects.filter(dept_category=dept_category)
-            
-            # Identify assigned and unassigned staff
             assigned_staff = staff_in_dept.filter(session__gt=-1)
-            unassigned_staff = staff_in_dept.filter(session=-1).order_by('date_of_joining')
+            unassigned_staff = staff_in_dept.filter(session=-1)
             
+            # Calculate session requirements
             assigned_count = assigned_staff.count()
             unassigned_count = unassigned_staff.count()
-            
-            # Calculate fixed sessions sum
             fixed_sessions = assigned_staff.aggregate(total=Sum('session'))['total'] or 0
-            
-            # Determine remaining sessions
             remaining_sessions = required_sessions - fixed_sessions
-            
+
+            # Edge cases
             if remaining_sessions <= 0:
                 results[dept_category] = {
                     'status': 'No allocation needed',
@@ -38,37 +29,34 @@ def allocate_sessions(total_staff_required):
             if unassigned_count == 0:
                 results[dept_category] = {
                     'status': 'No allocation possible',
-                    'reason': 'No unassigned staff (session=-1)'
+                    'reason': 'No unassigned staff available'
                 }
                 continue
-                
-            # Calculate base allocation and remainder
-            base_allocation = remaining_sessions // unassigned_count
-            remainder = remaining_sessions % unassigned_count
+
+            # Strict equal distribution
+            sessions_per_staff = remaining_sessions // unassigned_count
             
-            # Apply allocations
-            updated_count = 0
-            for i, staff in enumerate(unassigned_staff):
-                # Junior staff (later joining dates) get the remainder
-                allocation = base_allocation + (1 if i < remainder else 0)
-                
-                if allocation > 0:
-                    staff.session = allocation
-                    staff.save()
-                    updated_count += 1
-            
+            if sessions_per_staff == 0:
+                results[dept_category] = {
+                    'status': 'Cannot allocate equally',
+                    'reason': f'Need {remaining_sessions} more sessions for equal distribution'
+                }
+                continue
+
+            # Apply equal allocation
+            for staff in unassigned_staff:
+                staff.session = sessions_per_staff
+                staff.save()
+
             results[dept_category] = {
                 'status': 'Success',
                 'assigned_staff': assigned_count,
                 'unassigned_staff': unassigned_count,
-                'fixed_sessions': fixed_sessions,
-                'remaining_sessions': remaining_sessions,
-                'base_allocation': base_allocation,
-                'remainder': remainder,
-                'updated_count': updated_count,
+                'sessions_per_staff': sessions_per_staff,
+                'leftover_sessions': remaining_sessions % unassigned_count,
                 'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
-            
+
         except Exception as e:
             results[dept_category] = {
                 'status': 'Failed',
