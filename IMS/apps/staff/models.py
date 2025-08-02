@@ -52,7 +52,7 @@ class Staff(models.Model):
     mobile = models.CharField(validators=[phone_regex], max_length=20, blank=True)
     email = models.EmailField(validators=[validate_email], blank=True)
     
-    date_of_joining = models.DateField(null=True, blank=True)
+    date_of_joining = models.TextField(null=True, blank=True)  # This would cause your issue
     
     is_active = models.BooleanField(default=True)
     session = models.IntegerField(  # Changed from PositiveIntegerField

@@ -3,6 +3,11 @@ from django.shortcuts import render
 from .models import Room
 from django.db.models import Sum
 from staff.logic import allocate_sessions
+from django.http import HttpResponse
+from openpyxl import Workbook
+from apps.staff.models import Staff
+from django.utils import timezone
+import datetime
 
 def hall_management(request):
     print("\n===== NEW REQUEST =====")  # Debug
@@ -34,6 +39,9 @@ def hall_management(request):
         try:
             print("\nAttempting to read Excel file...")  # Debug
             df = pd.read_excel(excel_file)
+            # Delete existing rooms BEFORE processing new data
+            if Room.objects.exists():  # Safety check
+                deleted_count = Room.objects.all().delete()[0]
             print("SUCCESS: File read successfully")  # Debug
             print("Columns in file:", df.columns.tolist())  # Debug
             print("First row sample:", df.iloc[0].to_dict() if not df.empty else "Empty DataFrame")  # Debug
@@ -51,9 +59,9 @@ def hall_management(request):
                     # Get days value from Excel (default to 1 if not provided)
                     days = int(row.get('days', 1))
                     
-                    # Calculate total_staff_required
+                    # Calculate required_session
                     sessions = 2  # Assuming 2 sessions per day as per your requirement
-                    total_staff_required = staff_required * sessions * days
+                    required_session = staff_required * sessions * days
                     
                     Room.objects.update_or_create(
                         hall_no=hall_no,
@@ -63,7 +71,7 @@ def hall_management(request):
                             'strength': strength,
                             'days': int(row.get('days', 0)),
                             'staff_required': staff_required,  # New field
-                            'total_staff_required': total_staff_required,
+                            'required_session': required_session,
                             'block': "-",
                             'staff_allotted': "Not Allotted",
                             'benches': 0,
@@ -96,12 +104,18 @@ def hall_list(request):
 def generate_schedule(request):
     # Calculate total sessions required by category
     categories = Room.objects.values('dept_category').annotate(
-        total_sessions=Sum('total_staff_required')
+        total_sessions=Sum('required_session')
     ).order_by('dept_category')
     
+    # Get staff counts with case-insensitive matching
+    staff_counts = {
+        'Aided': Staff.objects.filter(dept_category__iexact='aided').count(),
+        'SFM': Staff.objects.filter(dept_category__iexact='sfm').count(),
+        'SFW': Staff.objects.filter(dept_category__iexact='sfw').count()
+    }
+    
     # Format the data for display
-      # Convert to dictionary format for allocate_sessions
-    total_staff_required = {
+    required_session = {
         item['dept_category']: item['total_sessions']
         for item in categories
     }
@@ -109,20 +123,69 @@ def generate_schedule(request):
     # Call the allocation function (only if form submitted)
     allocation_results = None
     if request.method == 'POST' and 'allocate_sessions' in request.POST:
-        allocation_results = allocate_sessions(total_staff_required)
+        allocation_results = allocate_sessions(required_session)
     
-    # Format the data for display
-    schedule_data = [
-        {
-            'category': item['dept_category'],
+    # Format the data for display with staff counts
+    schedule_data = []
+    for item in categories:
+        dept = item['dept_category']
+        # Normalize department name for lookup
+        lookup_dept = 'Aided' if dept.lower() == 'aided' else dept.upper()
+        schedule_data.append({
+            'category': dept,
             'total_sessions': item['total_sessions'],
-            'allocation_status': allocation_results[item['dept_category']]['status'] if allocation_results else None
-        }
-        for item in categories
-    ]
+            'staff_count': staff_counts.get(lookup_dept, 0),
+            'allocation_status': allocation_results[dept]['status'] if allocation_results else None
+        })
     
     context = {
         'schedule_data': schedule_data,
-        'categories': ['Aided', 'SFM', 'SFW']  # All possible categories
+        'categories': ['Aided', 'SFM', 'SFW']
     }
     return render(request, 'hall/generate_schedule.html', context)
+
+def export_schedule_excel(request):
+    # Create a workbook and add worksheet
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Staff Schedule"
+    
+    # Add column headers
+    headers = [
+        "Staff ID",
+        "Name", 
+        "Department",
+        "Department Category",
+        "Sessions",
+        "Join Date"
+    ]
+    ws.append(headers)
+    
+    # Get all staff data with correct comma separation
+    staff_data = Staff.objects.all().values_list(
+        'staff_id',      # Staff ID
+        'name',          # Name
+        'dept_name',     # Department
+        'dept_category', # Department Category
+        'session',       # Sessions
+        'date_of_joining' # Join Date
+    )
+    
+    # Add data rows
+    for staff in staff_data:
+        ws.append(staff)
+    
+    # Format the date fields
+    for row in ws.iter_rows(min_row=2):
+        if len(row) > 5 and isinstance(row[5].value, (datetime.date, datetime.datetime)):  # Date of Joining column (6th column)
+            row[5].number_format = 'YYYY-MM-DD'
+    
+    # Create HTTP response
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    filename = f"staff_schedule_{timezone.now().strftime('%Y%m%d_%H%M')}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    wb.save(response)
+    return response
