@@ -1,6 +1,8 @@
 from django.db.models import Sum
 from datetime import datetime
 from apps.staff.models import Staff
+from apps.hall.models import Room # Make sure this import matches your actual model
+
 
 def allocate_sessions(required_session):
     results = {}
@@ -11,15 +13,21 @@ def allocate_sessions(required_session):
             # staff_in_dept = Staff.objects.filter(dept_category=dept_category)
             staff_in_dept = Staff.objects.filter(dept_category=dept_category).order_by('date_of_joining')
 
-            assigned_staff = staff_in_dept.filter(session=-1)
+            assigned_staff = staff_in_dept.filter(session=0)
             unassigned_staff = staff_in_dept.filter(fixed_session=-1)
             
             assigned_count = assigned_staff.count()
             unassigned_count = unassigned_staff.count()
             
+            
             # Calculate sessions
-            fixed_session = assigned_staff.aggregate(total=Sum('session'))['total'] or 0
-            unallotted_session = total_required_session - fixed_session
+
+            # fixed_session = Room.objects.filter(dept_category=dept_category).exclude(fixed_session=-1).aggregate(total=Sum('fixed_session'))['total'] or 0
+          
+
+            fixed_session = assigned_staff.aggregate(total=Sum('fixed_session'))['total'] or 0
+            unallotted_session = total_required_session - fixed_session 
+            print(f"DEBUG - {dept_category}: Unallotted Sessions = {unallotted_session}")
 
             # Edge cases
             if unallotted_session <= 0:

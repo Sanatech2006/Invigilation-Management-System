@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from apps.invigilation_schedule import views as invigilation_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,5 +25,11 @@ urlpatterns = [
      path('student/', include('apps.student.urls')),
      path('hall/', include('apps.hall.urls')),
       path('exam-dates/', include('apps.exam_dates.urls', namespace='exam_dates')),
+     path('', include('invigilation_settings.urls')),
+     path('view-schedule/', invigilation_views.view_schedule, name='view_schedule'),
+    path('api/schedule/', invigilation_views.schedule_api, name='schedule_api'),
+      path('exam-dates/', include('apps.exam_dates.urls')),
+    
+
     # Add other apps here
 ]

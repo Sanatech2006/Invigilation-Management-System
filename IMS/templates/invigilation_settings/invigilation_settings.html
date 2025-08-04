@@ -1,0 +1,84 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Invigilation Settings</h1>
+    
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6 overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Constraint Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status (enabled)</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hard</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">locked</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for constraint in constraints %}
+                <tr>
+                    <!-- Constraint Name Column -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ constraint.name }}
+                    </td>
+                    
+                    <!-- Enabled Status Column -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {{ constraint.enabled }}
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" 
+                                   class="sr-only peer enabled-toggle" 
+                                   {% if constraint.enabled %}checked{% endif %}
+                                   data-constraint-id="{{ constraint.id }}"
+                                   data-field="enabled">
+                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-green-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                        </label>
+                    </td>
+                    
+                    <!-- Hard Column -->
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {{ constraint.is_hard }}
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" 
+                                   class="sr-only peer hard-toggle" 
+                                   {% if constraint.is_hard %}checked{% endif %}
+                                   data-constraint-id="{{ constraint.id }}"
+                                   data-field="is_hard">
+                            <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-green-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                        </label>
+                    </td>
+                    
+                    <!-- Locked Column -->
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ constraint.locked|yesno:"true,false" }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Action buttons -->
+    <div class="flex space-x-4">
+        <button id="save-settings" class="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            <span>💾</span>
+            <span class="ml-2">Save Settings</span>
+        </button>
+    </div>
+        <div class="flex space-x-6">
+        <button id="save-settings" class="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            <span>💾</span>
+            <span class="ml-2">Reset </span>
+        </button>
+    </div>
+    
+    
+    <!-- Message display -->
+    <div id="message-display" class="mt-4 p-3 rounded-md hidden"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/invigilation_settings.js' %}"></script>
+{% endblock %}

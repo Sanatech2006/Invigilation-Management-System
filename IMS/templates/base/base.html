@@ -44,15 +44,15 @@
     <i class="sidebar-icon fas fa-calendar-alt"></i> Exam Dates
 </a>
 
-    <a href="#" class="sidebar-link">
-        <i class="sidebar-icon fas fa-user-shield"></i> Invigilation Settings
-    </a>
+    <a href="/invigilation_settings/" class="sidebar-link">
+    <i class="sidebar-icon fas fa-user-shield"></i> Invigilation Settings
+</a>
     <a href="{% url 'generate_schedule' %}" class="sidebar-link">
         <i class="sidebar-icon fas fa-cogs"></i> Generate Schedule
     </a>
-    <a href="#" class="sidebar-link">
-        <i class="sidebar-icon fas fa-eye"></i> View Schedule
-    </a>
+   <a href="{% url 'view_schedule' %}" class="sidebar-link">
+    <i class="sidebar-icon fas fa-eye"></i> View Schedule
+</a>
     <a href="{% url 'student_upload' %}" class="sidebar-link">
         <i class="sidebar-icon fas fa-user-graduate"></i> Student Management
     </a>

@@ -158,6 +158,7 @@ def export_schedule_excel(request):
         "Department Category",
         "Sessions",
         "Join Date"
+        "Fixed session"
     ]
     ws.append(headers)
     
@@ -168,7 +169,8 @@ def export_schedule_excel(request):
         'dept_name',     # Department
         'dept_category', # Department Category
         'session',       # Sessions
-        'date_of_joining' # Join Date
+        'date_of_joining', # Join Date
+        'fixed_session',
     )
     
     # Add data rows
