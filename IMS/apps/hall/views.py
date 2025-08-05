@@ -8,6 +8,8 @@ from openpyxl import Workbook
 from apps.staff.models import Staff
 from django.utils import timezone
 import datetime
+from ..exam_dates.models import ExamDate
+from ..invigilation_schedule.models import InvigilationSchedule
 
 def hall_management(request):
     print("\n===== NEW REQUEST =====")  # Debug
@@ -102,46 +104,91 @@ def hall_list(request):
     return render(request, 'hall/hall_list.html', {'halls': rooms})
 
 def generate_schedule(request):
+    if request.method == "POST":
+        print("this is the route")
+        halls = Room.objects.all().values() 
+        dates=ExamDate.objects.all()
+        print("dates",dates)
+
+        # Assuming you already have dates and halls loaded
+
+        for date in dates:
+            for hall in halls:
+                total = hall['staff_required'] * 2
+                for i in range(total):
+                    session_number = "1" if i < total // 2 else "2"
+                    # print("gsfd",date.date)
+
+                    InvigilationSchedule.objects.create(
+                        date=date.date,
+                        session=session_number,
+                        hall_no=hall['hall_no'],
+                        hall_department=hall['dept_name'],
+                        dept_category=hall['dept_category'],
+                        #set later
+                        staff_id=None,
+                        name=None,
+                        designation=None,
+                        staff_category=None,
+                        double_session=False
+                    )
+                    # print("gsfd",date.date)
+
+
+
+
+
+
     # Calculate total sessions required by category
-    categories = Room.objects.values('dept_category').annotate(
-        total_sessions=Sum('required_session')
-    ).order_by('dept_category')
+    # categories = Room.objects.values('dept_category').annotate(
+    #     total_sessions=Sum('required_session')
+    # ).order_by('dept_category')
+    # i=1
+    # for hall in halls:
+    #     print(i,hall)
+    #     i=i+1
     
-    # Get staff counts with case-insensitive matching
-    staff_counts = {
-        'Aided': Staff.objects.filter(dept_category__iexact='aided').count(),
-        'SFM': Staff.objects.filter(dept_category__iexact='sfm').count(),
-        'SFW': Staff.objects.filter(dept_category__iexact='sfw').count()
-    }
+
+
+
+
+    # # Get staff counts with case-insensitive matching  
+    # staff_counts = {
+    #     'Aided': Staff.objects.filter(dept_category__iexact='aided').count(),
+    #     'SFM': Staff.objects.filter(dept_category__iexact='sfm').count(),
+    #     'SFW': Staff.objects.filter(dept_category__iexact='sfw').count()
+    # }
     
-    # Format the data for display
-    required_session = {
-        item['dept_category']: item['total_sessions']
-        for item in categories
-    }
+    # # Format the data for display
+    # required_session = {
+    #     item['dept_category']: item['total_sessions']
+    #     for item in categories
+    # }
     
-    # Call the allocation function (only if form submitted)
-    allocation_results = None
-    if request.method == 'POST' and 'allocate_sessions' in request.POST:
-        allocation_results = allocate_sessions(required_session)
+    # # Call the allocation function (only if form submitted)
+    # # allocation_results = None
+    # if request.method == 'POST' and 'allocate_sessions' in request.POST:
+    #     allocation_results = allocate_sessions(required_session)
     
-    # Format the data for display with staff counts
-    schedule_data = []
-    for item in categories:
-        dept = item['dept_category']
-        # Normalize department name for lookup
-        lookup_dept = 'Aided' if dept.lower() == 'aided' else dept.upper()
-        schedule_data.append({
-            'category': dept,
-            'total_sessions': item['total_sessions'],
-            'staff_count': staff_counts.get(lookup_dept, 0),
-            'allocation_status': allocation_results[dept]['status'] if allocation_results else None
-        })
+    # # Format the data for display with staff counts
+    #     schedule_data = []
+    #     for item in categories:
+    #         dept = item['dept_category']
+    #         # Normalize department name for lookup
+    #         lookup_dept = 'Aided' if dept.lower() == 'aided' else dept.upper()
+    #         schedule_data.append({
+    #             'category': dept,
+    #             'total_sessions': item['total_sessions'],
+    #             'staff_count': staff_counts.get(lookup_dept, 0),
+    #             'allocation_status': allocation_results[dept]['status'] if allocation_results else None
+    #         })
     
     context = {
-        'schedule_data': schedule_data,
+        'schedule_data': "schedule_data",
         'categories': ['Aided', 'SFM', 'SFW']
     }
+
+
     return render(request, 'hall/generate_schedule.html', context)
 
 def export_schedule_excel(request):

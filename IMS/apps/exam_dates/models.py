@@ -11,4 +11,4 @@ class ExamDate(models.Model):
         verbose_name_plural = "Exam Dates"
     
     def __str__(self):
-        return f"Day {self.day_no} - {self.date}"
+        return str(self.date)

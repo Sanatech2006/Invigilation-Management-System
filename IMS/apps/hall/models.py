@@ -12,5 +12,4 @@ class Room(models.Model):
     staff_required = models.IntegerField(default=1)  # or whatever field type you're using
     required_session = models.IntegerField(default=2)
     
-    def __str__(self):
-        return f"{self.hall_no} - {self.block}"
+    # export Room='Room'
