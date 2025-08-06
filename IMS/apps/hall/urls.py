@@ -2,6 +2,8 @@ from django.urls import path
 from . import views
 from .views import generate_schedule
 from .views import export_schedule_excel
+from .views import assign_staff
+from .views import generate_session
 
 urlpatterns = [
     path('management/', views.hall_management, name='hall_management'),  # Changed to hall_management
@@ -9,4 +11,7 @@ urlpatterns = [
     path('list/', views.hall_list, name='hall_list'),
      path('generate-schedule/', generate_schedule, name='generate_schedule'),
     path('export-staff-excel/', export_schedule_excel, name='export_schedule_excel'),
+    path('assign-staff/', views.assign_staff, name='assign_staff'),
+    path('generate_session/', generate_session, name='generate_session')
+
 ] 

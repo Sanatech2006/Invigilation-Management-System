@@ -88,7 +88,7 @@ WSGI_APPLICATION = 'IMS.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'DummyHall',
+        'NAME': 'ims',
         'USER': 'postgres',
         'PASSWORD': 'Postgres',
         'HOST': 'localhost', 

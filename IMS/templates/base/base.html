@@ -7,6 +7,9 @@
     <title>IMS - {% block title %}{% endblock %}</title>
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
     <!-- Tailwind CSS -->
     <link href="{% static 'css/dist/output.css' %}" rel="stylesheet">
     
@@ -81,5 +84,7 @@
     <script src="{% static 'js/sidebar.js' %}"></script>
     {% block extra_js %}{% endblock %}
      {% block javascript %}{% endblock %}
+     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </body>
 </html>

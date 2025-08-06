@@ -1,15 +1,19 @@
 import pandas as pd
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from .models import Room
 from django.db.models import Sum
+from django.db.models import Sum, Count
 from staff.logic import allocate_sessions
 from django.http import HttpResponse
 from openpyxl import Workbook
 from apps.staff.models import Staff
 from django.utils import timezone
 import datetime
+from collections import defaultdict
 from ..exam_dates.models import ExamDate
 from ..invigilation_schedule.models import InvigilationSchedule
+import random
+
 
 def hall_management(request):
     print("\n===== NEW REQUEST =====")  # Debug
@@ -104,92 +108,117 @@ def hall_list(request):
     return render(request, 'hall/hall_list.html', {'halls': rooms})
 
 def generate_schedule(request):
-    if request.method == "POST":
-        print("this is the route")
-        halls = Room.objects.all().values() 
-        dates=ExamDate.objects.all()
-        print("dates",dates)
+    # if request.method == "POST":
+        # print("this is the route")
+        # halls = Room.objects.all().values() 
+        # dates=ExamDate.objects.all()
+        # print("dates",dates)
 
-        # Assuming you already have dates and halls loaded
+        # # Assuming you already have dates and halls loaded
 
-        for date in dates:
-            for hall in halls:
-                total = hall['staff_required'] * 2
-                for i in range(total):
-                    session_number = "1" if i < total // 2 else "2"
+        # for date in dates:
+        #     for hall in halls:
+        #         total = hall['staff_required'] * 2
+        #         for i in range(total):
+        #             session_number = "1" if i < total // 2 else "2"
+        #             # print("gsfd",date.date)
+
+        #             InvigilationSchedule.objects.create(
+        #                 date=date.date,
+        #                 session=session_number,
+        #                 hall_no=hall['hall_no'],
+        #                 hall_department=hall['dept_name'],
+        #                 hall_dept_category=hall['dept_category'],
+        #                 #set later
+        #                 staff_id=None,
+        #                 name=None,
+        #                 designation=None,
+        #                 staff_category=None,
+        #                 double_session=False
+                    # )
                     # print("gsfd",date.date)
 
-                    InvigilationSchedule.objects.create(
-                        date=date.date,
-                        session=session_number,
-                        hall_no=hall['hall_no'],
-                        hall_department=hall['dept_name'],
-                        dept_category=hall['dept_category'],
-                        #set later
-                        staff_id=None,
-                        name=None,
-                        designation=None,
-                        staff_category=None,
-                        double_session=False
-                    )
-                    # print("gsfd",date.date)
 
 
 
 
 
+    CATEGORIES = ['AIDED', 'SFM', 'SFW']
+    
+    # # Get room data
+    room_data = Room.objects.values('dept_category').annotate(
+        total_sessions=Sum('required_session')
+    ).order_by('dept_category')
+    
+    # # Get staff data
+    staff_data = Staff.objects.values('dept_category').annotate(
+        total_staff=Count('id')
+    ).order_by('dept_category')
+    
+    room_dict = {item['dept_category'].upper(): item for item in room_data}
+    staff_dict = {item['dept_category'].upper(): item for item in staff_data}
+    
+    # Prepare schedule data for display
+    schedule_data = []
+    for category in CATEGORIES:
+        sessions = room_dict.get(category, {}).get('total_sessions', 0)
+        staff_count = staff_dict.get(category, {}).get('total_staff', 0)
+        
+        schedule_data.append({
+            'category': category,
+            'total_sessions': sessions,
+            'staff_count': staff_count
+        })
+
+    required_session = {
+        item['dept_category']: item['total_sessions']
+        for item in room_data
+    }
+    
+    # # Handle allocation if requested
+    allocation_results = None
+    if request.method == 'POST' and 'allocate_sessions' in request.POST:
+        allocation_results = allocate_sessions(required_session)
 
     # Calculate total sessions required by category
-    # categories = Room.objects.values('dept_category').annotate(
-    #     total_sessions=Sum('required_session')
-    # ).order_by('dept_category')
+    categories = Room.objects.values('dept_category').annotate(
+        total_sessions=Sum('required_session')
+    ).order_by('dept_category')
     # i=1
     # for hall in halls:
     #     print(i,hall)
     #     i=i+1
-    
-
-
-
 
     # # Get staff counts with case-insensitive matching  
-    # staff_counts = {
-    #     'Aided': Staff.objects.filter(dept_category__iexact='aided').count(),
-    #     'SFM': Staff.objects.filter(dept_category__iexact='sfm').count(),
-    #     'SFW': Staff.objects.filter(dept_category__iexact='sfw').count()
-    # }
+    staff_counts = {
+        'Aided': Staff.objects.filter(dept_category__iexact='aided').count(),
+        'SFM': Staff.objects.filter(dept_category__iexact='sfm').count(),
+        'SFW': Staff.objects.filter(dept_category__iexact='sfw').count()
+    }
     
     # # Format the data for display
-    # required_session = {
-    #     item['dept_category']: item['total_sessions']
-    #     for item in categories
-    # }
-    
-    # # Call the allocation function (only if form submitted)
-    # # allocation_results = None
-    # if request.method == 'POST' and 'allocate_sessions' in request.POST:
-    #     allocation_results = allocate_sessions(required_session)
     
     # # Format the data for display with staff counts
-    #     schedule_data = []
-    #     for item in categories:
-    #         dept = item['dept_category']
-    #         # Normalize department name for lookup
-    #         lookup_dept = 'Aided' if dept.lower() == 'aided' else dept.upper()
-    #         schedule_data.append({
-    #             'category': dept,
-    #             'total_sessions': item['total_sessions'],
-    #             'staff_count': staff_counts.get(lookup_dept, 0),
-    #             'allocation_status': allocation_results[dept]['status'] if allocation_results else None
-    #         })
-    
+    schedule_data = []
+    for item in categories:
+            dept = item['dept_category']
+            # Normalize department name for lookup
+            lookup_dept = 'Aided' if dept.lower() == 'aided' else dept.upper()
+            schedule_data.append({
+                'category': dept,
+                'total_sessions': item['total_sessions'],
+                'staff_count': staff_counts.get(lookup_dept, 0),
+                'allocation_status': allocation_results[dept]['status'] if allocation_results else None
+            })
+
     context = {
-        'schedule_data': "schedule_data",
-        'categories': ['Aided', 'SFM', 'SFW']
+        'schedule_data': schedule_data,
+        'categories': CATEGORIES,
+        'allocation_results': allocation_results
     }
 
-
     return render(request, 'hall/generate_schedule.html', context)
+
 
 def export_schedule_excel(request):
     # Create a workbook and add worksheet
@@ -238,3 +267,242 @@ def export_schedule_excel(request):
     
     wb.save(response)
     return response
+
+
+
+# def assign_staff(request):
+#     if request.method == 'POST':
+#         # Your logic here
+#         print("Staff assigned")
+#         # return HttpResponse("Staff assigned")
+#         # Maybe redirect somewhere
+#         return redirect('generate_schedule')
+#     return render(request, 'your_template.html')
+
+
+
+def generate_session(request):
+    if request.method == "POST":
+        print("this is the route")
+        halls = Room.objects.all().values() 
+        dates=ExamDate.objects.all()
+        print("dates",dates)
+
+        # Assuming you already have dates and halls loaded
+
+        for date in dates:
+            for hall in halls:
+                total = hall['staff_required'] * 2
+                for i in range(total):
+                    session_number = "1" if i < total // 2 else "2"
+                    # print("gsfd",date.date)
+
+                    InvigilationSchedule.objects.create(
+                        date=date.date,
+                        session=session_number,
+                        hall_no=hall['hall_no'],
+                        hall_department=hall['dept_name'],
+                        hall_dept_category=hall['dept_category'],
+                        #set later
+                        dept_category="None",
+                        staff_id=None,
+                        name=None,
+                        designation=None,
+                        staff_category=None,
+                        double_session=False
+                    )
+                    # print("gsfd",date.date)
+        return redirect('generate_schedule')
+
+
+
+#Assign Staff Based on no COndition 
+
+# def assign_staff(request):
+#     if request.method == 'POST':
+#         # Get all staff with session > 0 and active
+#         eligible_staff = Staff.objects.filter(is_active=True, session__gt=0)
+#         print("staffs",eligible_staff)
+
+#         for staff in eligible_staff:
+#             # Filter existing assignments for this staff
+#             current_assignments = InvigilationSchedule.objects.filter(staff_id=staff.staff_id).count()
+
+#             remaining_assignments = staff.session - current_assignments
+#             if remaining_assignments <= 0:
+#                 continue
+
+#             # Get unassigned schedule slots
+#             unassigned_slots = InvigilationSchedule.objects.filter(staff_id__isnull=True)
+
+#             # Select random slots
+#             selected_slots = random.sample(
+#                 list(unassigned_slots),
+#                 min(remaining_assignments, unassigned_slots.count())
+#             )
+
+#             for slot in selected_slots:
+#                 slot.staff_id = staff.staff_id
+#                 slot.name = staff.name
+#                 slot.designation = str(staff.designation)
+#                 slot.staff_category = staff.staff_category
+#                 slot.dept_category = staff.dept_category
+#                 slot.save()
+
+#         print("Staff assignment completed")
+#         return redirect('generate_schedule')
+
+#     # return render(request, 'your_template.html')
+
+
+
+
+# import random
+
+# this is based on Category matching  staff_depat_category === hall_dept_category
+
+# def assign_staff(request):
+#     if request.method == 'POST':
+#         eligible_staff = Staff.objects.filter(is_active=True, session__gt=0)
+
+#         # Loop through each eligible staff member
+#         for staff in eligible_staff:
+#             current_assignments = InvigilationSchedule.objects.filter(staff_id=staff.staff_id).count()
+#             remaining_assignments = staff.session - current_assignments
+#             if remaining_assignments <= 0:
+#                 continue
+
+#             # Filter unassigned slots that match dept_category
+#             matched_slots = InvigilationSchedule.objects.filter(
+#                 staff_id__isnull=True,
+#                 hall_dept_category=staff.dept_category
+#             )
+
+#             # Random selection of slots
+#             selected_slots = random.sample(
+#                 list(matched_slots),
+#                 min(remaining_assignments, matched_slots.count())
+#             )
+
+#             for slot in selected_slots:
+#                 slot.staff_id = staff.staff_id
+#                 slot.name = staff.name
+#                 slot.designation = str(staff.designation)
+#                 slot.staff_category = staff.staff_category
+#                 slot.dept_category = staff.dept_category
+#                 slot.save()
+
+#         print("Staff assignment with department matching complete")
+#         return redirect('generate_schedule')
+
+#     return render(request, 'your_template.html')
+
+
+
+# this is based on Category matching  staff_depat_category === hall_dept_category &&  dept_name != hall_Department 
+
+def assign_staff(request):
+    if request.method == 'POST':
+        eligible_staff = Staff.objects.filter(is_active=True, session__gt=0)
+
+        # Loop through each eligible staff member
+        for staff in eligible_staff:
+            current_assignments = InvigilationSchedule.objects.filter(staff_id=staff.staff_id).count()
+            remaining_assignments = staff.session - current_assignments
+            if remaining_assignments <= 0:
+                continue
+
+            # Filter unassigned slots that:
+            # 1. Match the staff's dept_category
+            # 2. Have a hall_department DIFFERENT from the staff's department dept_name
+            matched_slots = InvigilationSchedule.objects.filter(
+                staff_id__isnull=True,
+                hall_dept_category=staff.dept_category
+            ).exclude(
+                hall_department=staff.dept_name
+            )
+
+            # Random selection of slots
+            slot_count = matched_slots.count()
+            if slot_count == 0:
+                continue  # Skip if no eligible slots
+
+            selected_slots = random.sample(
+                list(matched_slots),
+                min(remaining_assignments, slot_count)
+            )
+
+            for slot in selected_slots:
+                slot.staff_id = staff.staff_id
+                slot.name = staff.name
+                slot.designation = str(staff.designation)
+                slot.staff_category = staff.staff_category
+                slot.dept_category = staff.dept_category
+                slot.save()
+
+        print("✅ Staff assignment with department conflict exclusion complete")
+        return redirect('generate_schedule')
+
+    return render(request, 'your_template.html')
+
+
+
+
+
+
+# def assign_slot(slot, staff, double=False):
+#     slot.staff_id = staff.staff_id
+#     slot.name = staff.name
+#     slot.designation = str(staff.designation)
+#     slot.staff_category = staff.staff_category
+#     slot.dept_category = staff.dept_category
+#     slot.double_session = double
+#     slot.save()
+
+# def assign_staff(request):
+#     if request.method == 'POST':
+#         exam_dates = list(ExamDate.objects.all().order_by('date'))
+#         total_dates = len(exam_dates)
+
+#         eligible_staff = Staff.objects.filter(is_active=True, session__gt=0)
+
+#         for staff in eligible_staff:
+#             current_assignments = InvigilationSchedule.objects.filter(staff_id=staff.staff_id).count()
+#             remaining_assignments = staff.session - current_assignments
+#             if remaining_assignments <= 0:
+#                 continue
+
+#             matched_slots = InvigilationSchedule.objects.filter(
+#                 staff_id__isnull=True,
+#                 hall_dept_category=staff.dept_category
+#             ).exclude(
+#                 hall_department=staff.dept_name
+#             ).order_by('date', 'session')
+
+#             assignment_counter = 0
+
+#             for date in exam_dates:
+#                 if assignment_counter >= remaining_assignments:
+#                     break
+
+#                 slots_for_day = matched_slots.filter(date=date.date)
+
+#                 # Group slots by hall
+#                 hall_groups = defaultdict(list)
+#                 for slot in slots_for_day:
+#                     hall_groups[slot.hall_no].append(slot)
+
+#                 # Find halls with remaining capacity
+#                 for hall, hall_slots in hall_groups.items():
+#                     while assignment_counter < remaining_assignments and hall_slots:
+#                         double = assignment_counter >= total_dates  # overflow flag
+#                         assign_slot(hall_slots.pop(0), staff, double)
+#                         assignment_counter += 1
+#                     if assignment_counter >= remaining_assignments:
+#                         break
+
+#         print("✅ Continuous + fair staff assignment complete")
+#         return redirect('generate_schedule')
+
+#     return render(request, 'your_template.html')
+    

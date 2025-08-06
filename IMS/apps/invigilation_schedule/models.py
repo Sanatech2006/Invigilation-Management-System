@@ -6,11 +6,12 @@ class InvigilationSchedule(models.Model):
     session = models.CharField(max_length=20, blank=True, null=True)
     hall_no = models.CharField(max_length=50)
     hall_department = models.CharField(max_length=100)
-    staff_id = models.CharField(max_length=20, blank=True, null=True)
+    hall_dept_category = models.CharField(max_length=100,null=True)
+    staff_id = models.CharField(max_length=50, blank=True, null=True)
     name = models.CharField(max_length=100, blank=True, null=True)
-    designation = models.CharField(max_length=50, blank=True, null=True)
+    designation = models.CharField(max_length=100, blank=True, null=True)
     staff_category = models.CharField(max_length=100, blank=True, null=True)
-    dept_category = models.CharField(max_length=50)
+    dept_category=models.CharField(max_length=100,null=True)
     double_session = models.BooleanField(default=False)
     
     class Meta:
