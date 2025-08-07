@@ -59,6 +59,7 @@ class Staff(models.Model):
         default=0,
         help_text="Dynamically allocated session value (can be negative)"
     )
+    random = models.IntegerField(default=0)
     fixed_session = models.IntegerField(  
         default=0,
         help_text="Fixed session allocation (can be negative)"
