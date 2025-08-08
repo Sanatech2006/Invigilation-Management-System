@@ -25,6 +25,20 @@ def staff_management(request):
     form = StaffUploadForm()
     staff_list = Staff.objects.all().select_related('designation')
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    if is_ajax:
+        return render(request, 'staff/staff_table.html', {
+            'staff_list': page_obj,
+            'request': request,
+            'total_count': paginator.count,
+            'page_number': page_number,
+            'num_pages': paginator.num_pages,
+            # Add filter context to maintain state
+            'search_query': search_query,
+            'staff_category_filter': staff_category_filter,
+            'dept_category_filter': dept_category_filter,
+            'designation_filter': designation_filter,
+            'department_filter': department_filter,
+        })
     
     # Get staff counts - moved up to ensure it's available in all contexts
     staff_counts = get_staff_counts_by_dept()
@@ -36,6 +50,7 @@ def staff_management(request):
     designation_filter = request.GET.get('designation')
     department_filter = request.GET.get('department')
     per_page = int(request.GET.get('per_page', 100))
+    staff_list = Staff.objects.all().select_related('designation')
     
     # Apply filters
     if search_query:
@@ -43,7 +58,8 @@ def staff_management(request):
             Q(staff_id__icontains=search_query) |
             Q(name__icontains=search_query) |
             Q(dept_name__icontains=search_query) |
-            Q(designation__name__icontains=search_query))
+            Q(designation__name__icontains=search_query)
+        )
     
     if staff_category_filter:
         staff_list = staff_list.filter(staff_category=staff_category_filter)
@@ -57,7 +73,10 @@ def staff_management(request):
     if department_filter:
         staff_list = staff_list.filter(dept_name=department_filter)
     
-    # Pagination
+    # Get count BEFORE pagination
+    total_filtered_count = staff_list.count()
+    
+    # Then apply pagination
     paginator = Paginator(staff_list, per_page)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
@@ -66,12 +85,17 @@ def staff_management(request):
     if is_ajax:
         return render(request, 'staff/staff_table.html', {
             'staff_list': page_obj,
-            'request': request,
-            'total_count': paginator.count,
+            'total_count': staff_list.count(), 
             'page_number': page_number,
             'num_pages': paginator.num_pages,
+            # Include filter values to maintain state
+            'search_query': search_query,
+            'staff_category_filter': staff_category_filter,
+            'dept_category_filter': dept_category_filter,
+            'designation_filter': designation_filter,
+            'department_filter': department_filter,
         })
-    
+     
     # Get filter options
     staff_types = Staff.objects.exclude(staff_category__isnull=True)\
                         .exclude(staff_category__exact='')\

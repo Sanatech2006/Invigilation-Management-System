@@ -26,7 +26,7 @@ urlpatterns = [
      path('hall/', include('apps.hall.urls')),
       path('exam-dates/', include('apps.exam_dates.urls', namespace='exam_dates')),
      path('', include('invigilation_settings.urls')),
-     path('view-schedule/', invigilation_views.view_schedule, name='view_schedule'),
+     path('view-schedule/', include('apps.view_schedule.urls')),
     path('api/schedule/', invigilation_views.schedule_api, name='schedule_api'),
       path('exam-dates/', include('apps.exam_dates.urls')),
     

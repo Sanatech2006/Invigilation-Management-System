@@ -1,131 +1,139 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Staff Management initialized');
 
-    // Get elements with error handling
-    const getElement = (selector) => {
-        const el = document.querySelector(selector);
-        if (!el) console.error(`Element not found: ${selector}`);
-        return el;
+    // Debugging function to log element status
+    const debugElement = (name, element) => {
+        if (!element) {
+            console.error(`[ERROR] Element not found: ${name}`);
+            return false;
+        }
+        console.log(`[DEBUG] Found element: ${name}`);
+        return true;
     };
 
+    // Get all elements with better error handling
     const elements = {
-        searchInput: getElement('#searchInput'),
-        staffTypeFilter: getElement('#staffTypeFilter'),
-        designationFilter: getElement('#designationFilter'),
-        deptCategoryFilter: getElement('#deptCategoryFilter'),
-        deptNameFilter: getElement('#deptNameFilter'),
-        staffTableBody: getElement('tbody'),
-        paginationContainer: getElement('.pagination-container'),
-        recordCount: getElement('.record-count'),
-        itemsPerPage: getElement('#itemsPerPage') // New element for page size dropdown
+        searchInput: document.getElementById('searchInput'),
+        staffTypeFilter: document.getElementById('staffTypeFilter'),
+        designationFilter: document.getElementById('designationFilter'),
+        deptCategoryFilter: document.getElementById('deptCategoryFilter'),
+        deptNameFilter: document.getElementById('deptNameFilter'),
+        searchButton: document.getElementById('searchButton'),
+        tableBody: document.querySelector('tbody'),
+        showingCount: document.querySelector('.record-count'),
+        staffRows: document.querySelectorAll('tbody tr')
     };
 
-    // Debounce function for search
-    const debounce = (func, delay) => {
-        let timeout;
-        return function() {
-            const context = this;
-            const args = arguments;
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(context, args), delay);
-        };
-    };
+    // Verify required elements
+    const elementsFound = Object.entries(elements).every(([name, element]) => {
+        return debugElement(name, element);
+    });
 
-    // Main update function
-    const updateContent = async function() {
-        const params = new URLSearchParams(window.location.search);
-        
-        try {
-            // Update params with current filter values
-            if (elements.searchInput?.value) params.set('search', elements.searchInput.value);
-            if (elements.staffTypeFilter?.value) params.set('staff_category', elements.staffTypeFilter.value);
-            if (elements.designationFilter?.value) params.set('designation', elements.designationFilter.value);
-            if (elements.deptCategoryFilter?.value) params.set('dept_category', elements.deptCategoryFilter.value);
-            if (elements.deptNameFilter?.value) params.set('department', elements.deptNameFilter.value);
-            if (elements.itemsPerPage?.value) params.set('per_page', elements.itemsPerPage.value);
-            
-            // Remove page param when filters change (start from first page)
-            params.delete('page');
+    if (!elementsFound) {
+        console.error('Critical elements missing - stopping execution');
+        return;
+    }
 
-            console.log('Fetching with params:', params.toString());
-
-            const response = await fetch(`?${params.toString()}`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
-            const html = await response.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-
-            // Update table body
-            if (elements.staffTableBody) {
-                const newTableBody = doc.querySelector('tbody');
-                if (newTableBody) {
-                    elements.staffTableBody.innerHTML = newTableBody.innerHTML;
-                }
-            }
-
-            // Update pagination
-            if (elements.paginationContainer) {
-                const newPagination = doc.querySelector('.pagination-container');
-                if (newPagination) {
-                    elements.paginationContainer.innerHTML = newPagination.innerHTML;
-                }
-            }
-            
-            // Update record count
-            if (elements.recordCount) {
-                const newCount = doc.querySelector('.record-count');
-                if (newCount) {
-                    elements.recordCount.textContent = newCount.textContent;
-                }
-            }
-
-        } catch (error) {
-            console.error('Update failed:', error);
-            // Fallback to full page reload
-            window.location.search = params.toString();
-        }
-    };
-
-    // Initialize event listeners
-    const initializeEventListeners = () => {
-        const debouncedUpdate = debounce(updateContent, 300);
-        
-        // Search input
-        if (elements.searchInput) {
-            elements.searchInput.addEventListener('input', debouncedUpdate);
-        }
-        
-        // Filter dropdowns
-        [elements.staffTypeFilter, elements.designationFilter, 
-         elements.deptCategoryFilter, elements.deptNameFilter, elements.itemsPerPage]
-            .filter(el => el)
-            .forEach(el => el.addEventListener('change', updateContent));
-        
-        // Delegated event for pagination
-        document.addEventListener('click', function(e) {
-            const paginationLink = e.target.closest('.pagination-link');
-            if (paginationLink) {
-                e.preventDefault();
-                const page = paginationLink.dataset.page || 
-                             new URL(paginationLink.href).searchParams.get('page');
-                if (page) {
-                    const params = new URLSearchParams(window.location.search);
-                    params.set('page', page);
-                    window.location.search = params.toString();
-                }
-            }
+    // Log initial data for debugging
+    console.log(`[DEBUG] Found ${elements.staffRows.length} staff rows`);
+    elements.staffRows.forEach((row, index) => {
+        console.log(`[DEBUG] Row ${index + 1} data:`, {
+            staffType: row.dataset.staffType || row.querySelector('td:nth-child(3)')?.textContent.trim(),
+            designation: row.dataset.designation || row.querySelector('td:nth-child(4)')?.textContent.trim(),
+            deptCategory: row.dataset.deptCategory || row.querySelector('td:nth-child(5)')?.textContent.trim(),
+            deptName: row.dataset.deptName || row.querySelector('td:nth-child(6)')?.textContent.trim()
         });
-    };
+    });
 
-    // Initial setup
-    initializeEventListeners();
-    if (elements.itemsPerPage) {
-    elements.itemsPerPage.addEventListener('change', updateContent);
-}
+    // Apply Filters function with enhanced debugging
+    function applyFilters() {
+        console.log('[DEBUG] Applying filters');
+        
+        // Get all filter values
+        const filters = {
+            staffType: elements.staffTypeFilter.value.toLowerCase(),
+            designation: elements.designationFilter.value.toLowerCase(),
+            deptCategory: elements.deptCategoryFilter.value.toLowerCase(),
+            deptName: elements.deptNameFilter.value.toLowerCase(),
+            search: elements.searchInput.value.toLowerCase()
+        };
+
+        console.log('[DEBUG] Current filters:', filters);
+
+        let visibleCount = 0;
+
+        // Filter and show/hide rows
+        elements.staffRows.forEach(row => {
+            // Get row data from either dataset attributes or cell contents
+            const rowData = {
+                staffType: (row.dataset.staffType || 
+                           row.querySelector('td:nth-child(3)')?.textContent || '').toLowerCase().trim(),
+                designation: (row.dataset.designation || 
+                            row.querySelector('td:nth-child(4)')?.textContent || '').toLowerCase().trim(),
+                deptCategory: (row.dataset.deptCategory || 
+                              row.querySelector('td:nth-child(5)')?.textContent || '').toLowerCase().trim(),
+                deptName: (row.dataset.deptName || 
+                         row.querySelector('td:nth-child(6)')?.textContent || '').toLowerCase().trim(),
+                searchText: (
+                    (row.querySelector('td:nth-child(1)')?.textContent || '') + ' ' + // Staff ID
+                    (row.querySelector('td:nth-child(2)')?.textContent || '') + ' ' + // Name
+                    (row.querySelector('td:nth-child(3)')?.textContent || '') + ' ' + // Staff Type
+                    (row.querySelector('td:nth-child(4)')?.textContent || '') + ' ' + // Designation
+                    (row.querySelector('td:nth-child(5)')?.textContent || '') + ' ' + // Dept Category
+                    (row.querySelector('td:nth-child(6)')?.textContent || '')   // Dept Name
+                ).toLowerCase()
+            };
+
+            console.log(`[DEBUG] Row data for comparison:`, rowData);
+
+            // Check if row matches all active filters
+            const matchesAllFilters = (
+                (!filters.staffType || rowData.staffType.includes(filters.staffType)) &&
+                (!filters.designation || rowData.designation.includes(filters.designation)) &&
+                (!filters.deptCategory || rowData.deptCategory.includes(filters.deptCategory)) &&
+                (!filters.deptName || rowData.deptName.includes(filters.deptName)) &&
+                (!filters.search || rowData.searchText.includes(filters.search))
+            );
+
+            // Toggle visibility
+            row.style.display = matchesAllFilters ? '' : 'none';
+            if (matchesAllFilters) visibleCount++;
+        });
+
+        // Update counts
+        if (elements.showingCount) {
+            elements.showingCount.textContent = `Showing ${visibleCount} of ${elements.staffRows.length} records`;
+            console.log(`[DEBUG] Updated counts - visible: ${visibleCount}, total: ${elements.staffRows.length}`);
+        }
+    }
+
+    // Event listeners with debouncing for search
+    let searchTimeout;
+    elements.searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            console.log('[DEBUG] Search input changed');
+            applyFilters();
+        }, 300);
+    });
+
+    // Filter change handlers
+    [elements.staffTypeFilter, elements.designationFilter, 
+     elements.deptCategoryFilter, elements.deptNameFilter].forEach(filter => {
+        filter.addEventListener('change', function() {
+            console.log(`[DEBUG] ${this.id} changed to ${this.value}`);
+            applyFilters();
+        });
+    });
+
+    // Search button click handler
+    if (elements.searchButton) {
+        elements.searchButton.addEventListener('click', function() {
+            console.log('[DEBUG] Search button clicked');
+            applyFilters();
+        });
+    }
+
+    // Initial filter application
+    applyFilters();
 });

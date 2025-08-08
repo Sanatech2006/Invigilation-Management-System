@@ -74,12 +74,21 @@
             <!-- Assign Staff Button -->
             </button>
             </form>
-            <form method="post" action="{% url 'assign_staff' %}">
+            <form method="post" action="{% url 'assign_staff' %}" id="generateForm">
+                {% csrf_token %}
+                <button type="submit"
+                    class="flex-1 min-w-[200px] bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium transition-colors duration-200">
+                    Assign Staff
+                </button>
+            </form>
+
+
+            <!-- <form method="post" action="{% url 'assign_staff' %}">
                 {% csrf_token %}
                 <button type="submit" class="text-blue-400">
                     Assign Staff
                 </button>
-            </form>
+            </form> -->
 
 
         </div>
