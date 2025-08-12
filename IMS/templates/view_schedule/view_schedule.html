@@ -1,127 +1,393 @@
-<!-- IMS/templates/view_schedule/view_schedule.html -->
 {% extends 'base/base.html' %}
 {% load static %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
 
-    <!-- Top Row: Title + Buttons -->
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">View Schedule</h1>
-        <div class="flex space-x-2">
-            <!-- Download Excel -->
-            <a href="{% url 'download_schedule_excel' %}" 
-               class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                Download Excel
-            </a>
-            <!-- Add Staff -->
-            <a href="#" 
-               class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                Add Staff
-            </a>
-        </div>
-    </div>
-    <!-- Filters -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-            <select id="filterStaffName" class="w-full border rounded px-3 py-2"></select>
-        </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Department Category</label>
-            <select id="filterDeptCategory" class="w-full border rounded px-3 py-2"></select>
-        </div>
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Staff Department</label>
-            <select id="filterStaffDept" class="w-full border rounded px-3 py-2"></select>
-        </div>
-    </div>
-
-</div>
-
-
-
-  <!-- Table -->
-  <div class="bg-white shadow-md rounded-lg overflow-hidden">
-    <div class="overflow-y-auto max-h-[500px] border border-gray-300 rounded-lg">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Serial No</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Schedule Date</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Session</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Hall No</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Hall Department</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Staff ID</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Staff Name</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Designation</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Staff Department</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Dept Category</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Double Session</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody class="bg-white divide-y divide-gray-200">
-          {% for schedule in schedules %}
-          <tr>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">{{ schedule.serial_number }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">{{ schedule.date }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">{{ schedule.session|default:"-" }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">{{ schedule.hall_no }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">{{ schedule.hall_department }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">{{ schedule.staff_id|default:"-" }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">{{ schedule.name|default:"-" }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">{{ schedule.designation|default:"-" }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">{{ schedule.staff_category|default:"-" }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">{{ schedule.dept_category|default:"-" }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-medium">
-              {% if schedule.double_session %}Yes{% else %}No{% endif %}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-              <div class="flex items-center space-x-3">
-                <!-- Edit -->
-                <button type="button" title="Edit">
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                       class="h-5 w-5 text-blue-600"
-                       fill="none" viewBox="0 0 24 24"
-                       stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6-6 3 3-6 6H9v-3z" />
-                  </svg>
-                </button>
-                <!-- Delete -->
-                <button type="button" title="Delete">
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                       class="h-5 w-5 text-red-600"
-                       fill="none" viewBox="0 0 24 24"
-                       stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="12" class="px-6 py-4 text-center text-sm text-gray-500">
-              No schedule records found.
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination -->
-    <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-        <p class="text-sm text-gray-700">
-          Showing <span class="font-medium">{{ dates|length }}</span> results
-        </p>
-      </div>
+  <!-- Top Row: Title + Buttons -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">View Schedule</h1>
+    <div class="flex space-x-2">
+      <a href="{% url 'download_schedule_excel' %}"
+        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        Download Excel
+      </a>
+      <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Add Staff
+      </a>
     </div>
   </div>
 
-  <script src="{% static 'js/view_schedule.js' %}"></script>
+  <!-- Filters -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+      <select id="filter-date" class="w-full border rounded px-3 py-2"></select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Department Category</label>
+      <select id="filter-dept-category" class="w-full border rounded px-3 py-2"></select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Hall Department</label>
+      <select id="filter-hall-dept" class="w-full border rounded px-3 py-2"></select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Staff ID</label>
+      <select id="filter-staff-id" class="w-full border rounded px-3 py-2"></select>
+    </div>
+  </div>
+
 </div>
+
+<!-- Table -->
+<div class="bg-white shadow-md rounded-lg overflow-hidden">
+  <div class="overflow-y-auto max-h-[500px] border border-gray-300 rounded-lg">
+    <table id="schedule-table" class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Serial No</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Schedule Date</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Session</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Hall No</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Hall Department</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Staff ID</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Staff Name</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Designation</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Staff Department</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Dept Category</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Double Session</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for schedule in schedules %}
+        <tr>
+          <td>{{ schedule.serial_number }}</td>
+          <td>{{ schedule.date }}</td>
+          <td>{{ schedule.session|default:"-" }}</td>
+          <td>{{ schedule.hall_no }}</td>
+          <td>{{ schedule.hall_department }}</td>
+          <td>{{ schedule.staff_id|default:"-" }}</td>
+          <td>{{ schedule.name|default:"-" }}</td>
+          <td>{{ schedule.designation|default:"-" }}</td>
+          <td>{{ schedule.staff_category|default:"-" }}</td>
+          <td>{{ schedule.dept_category|default:"-" }}</td>
+          <!-- <td>{{ schedule.hall_dept_category|default:"-" }}</td> -->
+          <td>{% if schedule.double_session %}Yes{% else %}No{% endif %}</td>
+          <td>
+            <button type="button" class="edit-btn text-blue-600 underline" data-id-edit="{{ schedule.serial_number }}"
+              data-edit="{{ schedule.date }}" data-hallno="{{ schedule.hall_no }}"
+              data-session="{{ schedule.session|default:'-' }}" hall-department="{{schedule.hall_department}}" hall-category="{{schedule.hall_dept_category}}">
+              Edit
+            </button>
+            <button type="button" class="delete-btn text-red-600" data-id-delete="{{ schedule.serial_number }}"
+              data-staffid="{{ schedule.staff_id|default:'-' }}" data-date="{{ schedule.date }}"
+              data-session="{{ schedule.session|default:'-' }}" data-hallno="{{ schedule.hall_no }}">
+              Delete
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="12" class="text-center text-gray-500 py-4">No schedule records found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+  <div class="modal-content">
+    <h2 class="text-lg font-semibold mb-2">Confirm Deletion</h2>
+    <p class="text-sm text-gray-700 mb-4">
+      Are you sure you want to delete the schedule for:
+    </p>
+
+    <!-- Form for backend -->
+    <form id="deleteForm" method="post" action="{% url 'staff_delete_session' %}">
+      {% csrf_token %}
+
+      <ul class="text-sm text-gray-800 mb-4 text-left">
+        <li>
+          <strong>Serial ID:</strong> <span id="SerialID">-</span>
+          <input type="number" name="SessionSerial" id="inputSerialNumber" readonly >
+        </li>
+        <li>
+          <strong>Staff ID:</strong> <span id="modalStaffId">-</span>
+          <input type="text" name="staff_id" id="inputStaffId" readonly hidden>
+        </li>
+        <li>
+          <strong>Date:</strong> <span id="modalDate">-</span>
+          <input type="text" name="date" id="inputDate" readonly hidden>
+        </li>
+        <li>
+          <strong>Hall No:</strong> <span id="modalHallNo">-</span>
+          <input type="text" name="hall_no" id="inputHallNo" readonly hidden>
+        </li>
+        <li>
+          <strong>Session:</strong> <span id="modalSession">-</span>
+          <input type="text" name="session" id="inputSession" readonly hidden>
+        </li>
+      </ul>
+
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-delete">Delete</button>
+        <button type="button" id="cancelDelete" class="btn btn-cancel">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- Edit Modal -->
+<div id="editModal" class="custom-modal hidden">
+  <div class="custom-modal-content">
+    <h2 class="custom-modal-title">Reassign Staff</h2>
+    <p><strong>Date:</strong> <span id="editDate"></span></p>
+    <p><strong>Hall No:</strong> <span id="editHall"></span></p>
+    <p><strong>Session:</strong> <span id="editSession"></span></p>
+    <p><strong>Session:</strong> <span id="serialNoEdit"></span></p>
+    <label for="staffSelect"><strong>Select Staff ID:</strong></label>
+
+    <form action="{% url 'staff_edit_session' %}" id="editform" method="POST">
+      {% csrf_token %}
+      <input type="text" name="date-edit" id="hall-date-edit" readonly hidden>
+      <input type="text" name="hallno-edit" id="hall-no-edit" readonly hidden>
+      <input type="text" name="session-edit" id="hall-session-edit" readonly hidden>
+      <input type="text" name="serial-no-edit" id="hall-serial-edit" readonly >
+      <!-- <input type="text" name="staff-edit" id="hall-date-edit" readonly> -->
+
+      <select id="staffSelect" name="staff-edit">
+        <option value="">-- Select Staff --</option>
+        <option value="S101" id="staff-edit">S101</option>
+        <option value="S102" id="staff-edit">S102</option>
+        <option value="S103" id="staff-edit">S103</option>
+      </select>
+
+      <div class="custom-modal-buttons">
+        <button id="confirmEditBtn" class="confirm-btn" type="submit">Confirm</button>
+        <button id="cancelEditBtn" class="cancel-btn">Cancel</button>
+      </div>
+
+    </form>
+
+
+  </div>
+</div>
+
+
+
+<script src="{% static 'js/view_schedule.js' %}"></script>
+<style>
+  /* Modal background */
+  .modal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Dark overlay */
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Modal box */
+  .modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 350px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Buttons */
+  .modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .btn-delete {
+    background-color: #e53935;
+    color: white;
+  }
+
+  .btn-delete:hover {
+    background-color: #c62828;
+  }
+
+  .btn-cancel {
+    background-color: #9e9e9e;
+    color: white;
+  }
+
+  .btn-cancel:hover {
+    background-color: #757575;
+  }
+
+
+  /* Reuse modal background */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 350px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  .modal-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .modal-text {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 15px;
+  }
+
+  .form-group {
+    text-align: left;
+    margin-bottom: 10px;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .details-list {
+    text-align: left;
+    font-size: 14px;
+    color: #333;
+    margin: 10px 0;
+  }
+
+  .details-list li {
+    margin: 4px 0;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+  }
+
+  .btn {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .btn-save {
+    background-color: #4CAF50;
+    color: white;
+  }
+
+  .btn-save:hover {
+    background-color: #45a049;
+  }
+
+  .btn-cancel {
+    background-color: #9e9e9e;
+    color: white;
+  }
+
+  .btn-cancel:hover {
+    background-color: #757575;
+  }
+
+
+
+
+
+  .custom-modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+
+  .custom-modal-content {
+    background: white;
+    padding: 20px;
+    max-width: 400px;
+    margin: 100px auto;
+    border-radius: 8px;
+  }
+
+  .custom-modal-title {
+    margin-bottom: 15px;
+  }
+
+  .custom-modal-buttons {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .confirm-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .cancel-btn {
+    background-color: #ccc;
+    color: black;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+</style>
+
+
+
+<script>
+  const getStaffUrl = "{% url 'get_available_staff' %}";
+</script>
 {% endblock %}

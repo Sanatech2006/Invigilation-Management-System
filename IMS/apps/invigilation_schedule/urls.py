@@ -2,6 +2,7 @@ from django.urls import path
 from .views import generate_schedule, view_schedule
 from . import views
 from .views import schedule_api, view_schedule
+from .views import session_staff_delete
 
 
 urlpatterns = [

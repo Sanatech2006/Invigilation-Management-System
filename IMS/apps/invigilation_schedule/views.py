@@ -110,3 +110,4 @@ def schedule_api(request):
     
 def view_schedule(request):  # THIS MUST EXIST
     return render(request, 'view_schedule/view_schedule.html')
+

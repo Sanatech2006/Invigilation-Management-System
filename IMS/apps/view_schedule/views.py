@@ -1,11 +1,19 @@
 # IMS/apps/view_schedule/views.py
-from django.shortcuts import render
+from django.shortcuts import render,redirect
+
+
+from django.forms.models import model_to_dict
+
+
 from apps.invigilation_schedule.models import InvigilationSchedule
 import openpyxl
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.db.models import Q
-
+from ..hall.models import Room
+from ..invigilation_schedule.models import InvigilationSchedule
+from datetime import datetime
+from ..staff.models import Staff
 
 def view_schedule(request):
     print("\n===== VIEW SCHEDULE REQUEST =====")  # Debug
@@ -32,12 +40,12 @@ def view_schedule(request):
 
     
     # Debug output
-    print(f"Found {len(context['schedules'])} schedules")  # Debug
-    print(f"Found {len(context['staff_names'])} staff names")  # Debug
+    # print(f"Found {len(context['schedules'])} schedules")  # Debug
+    # print(f"Found {len(context['staff_names'])} staff names")  # Debug
     # Temporary debug - add right before return
-    print("All schedules from DB:")
-    for s in context['schedules']:
-     print(f"{s.serial_number} | {s.date} | {s.name}")
+    # print("All schedules from DB:")
+    # for s in context['schedules']:
+    #  print(f"{s.serial_number} | {s.date} | {s.name}")
     
     return render(request, 'view_schedule/view_schedule.html', context)
 
@@ -117,3 +125,171 @@ def filter_schedule(request):
         })
 
     return JsonResponse({'schedules': data})
+
+
+
+# from django.shortcuts import redirect
+# from .models import InvigilationSchedule
+
+from django.shortcuts import redirect
+from datetime import datetime
+from apps.invigilation_schedule.models import InvigilationSchedule
+
+def session_staff_delete(request):
+    if request.method == "POST":
+        staff_id = request.POST.get("staff_id")
+        date_str = request.POST.get("date")
+        hall_no = request.POST.get("hall_no")
+        session = request.POST.get("session")
+        SessionSerial = request.POST.get("SessionSerial", "")
+
+        print("Staff ID:", staff_id)
+        print("Date:", date_str)
+        print("Hall No:", hall_no)
+        print("Session:", session)
+
+        # ✅ Validate and convert SessionSerial
+        if SessionSerial and SessionSerial.isdigit():
+            serial_number = int(SessionSerial)
+            print("Serial:", serial_number)
+        else:
+            print("❌ SessionSerial is missing or invalid:", SessionSerial)
+            return redirect("view_schedule")
+
+        # 📅 Convert date
+        try:
+            date_obj = datetime.strptime(date_str, "%b. %d, %Y").date()
+        except ValueError:
+            try:
+                date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+            except ValueError:
+                print("❌ Invalid date format:", date_str)
+                return redirect("view_schedule")
+
+        # 🛠️ Update matching record
+        updated = InvigilationSchedule.objects.filter(
+            serial_number=serial_number,
+            staff_id=staff_id,
+            date=date_obj,
+            hall_no=hall_no,
+            session=session
+        ).update(
+            staff_id=None,
+            designation=None,
+            name=None,
+            dept_category=None,
+            double_session=False,
+            staff_category=None
+        )
+
+        print(f"✅ Cleared {updated} schedule record(s)")
+
+    return redirect("view_schedule")
+
+def get_available_staff(request):
+    try:
+        date = request.GET.get('date')
+        session = request.GET.get('session')
+        hall_department = request.GET.get('hall_department')
+        hall_category = request.GET.get('hall_category')
+
+
+        print(date)
+        print(session)
+        print(hall_department)
+        print(hall_category)
+
+        if not date or not session or not hall_department or not hall_category:
+            return JsonResponse({"error": "Missing required parameters"}, status=400)
+
+        parsed_date = datetime.strptime(date, "%Y-%m-%d").date()
+
+        assigned_staff_ids_raw = InvigilationSchedule.objects.filter(
+            date=parsed_date,
+            session=session
+        ).values_list('staff_id', flat=True)
+
+        assigned_staff_ids = set(
+            sid.strip().upper()
+            for sid in assigned_staff_ids_raw
+            if sid and sid.strip()
+        )
+
+        # ✅ Constraint filters
+        available_staff = Staff.objects.filter(
+            is_active=True,
+            staff_category=hall_category
+        ).exclude(
+            staff_id__in=assigned_staff_ids
+        ).exclude(
+            dept_name=hall_department
+        )
+
+        return JsonResponse({
+            "staff": [
+                {"staff_id": s.staff_id, "name": s.name}
+                for s in available_staff
+            ]
+        })
+
+    except Exception as e:
+        print("Error in get_available_staff:", str(e))
+        return JsonResponse({"error": "Internal server error"}, status=500)
+
+
+
+def staff_edit_session(request):
+    if request.method == "POST":
+        staff_id = request.POST.get("staff-edit")
+        date_str = request.POST.get("date-edit")
+        hall_no = request.POST.get("hallno-edit")
+        session = request.POST.get("session-edit")
+        hall_serial = request.POST.get("serial-no-edit")
+
+        try:
+            # 📅 Parse date
+            try:
+                date_obj = datetime.strptime(date_str, "%b. %d, %Y").date()
+            except ValueError:
+                date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+
+            # 🔍 Get staff object
+            staff = Staff.objects.get(staff_id=staff_id)
+
+            # 🧠 Extract required fields
+            staff_id_val = staff.staff_id
+            name_val = staff.name
+            designation_val = str(staff.designation)  # Convert FK to string
+            staff_category_val = staff.staff_category
+            dept_category_val = staff.dept_category
+
+            print("\n===== STAFF SELECTED =====")
+            print(f"Staff ID: {staff_id_val}")
+            print(f"Name: {name_val}")
+            print(f"Designation: {designation_val}")
+            print(f"Staff Category: {staff_category_val}")
+            print(f"Dept Category: {dept_category_val}")
+            print(f"Hall serial: {hall_serial}")
+
+            # 🛠️ Update InvigilationSchedule
+            updated = InvigilationSchedule.objects.filter(
+                date=date_obj,
+                hall_no=hall_no,
+                session=session,
+                serial_number=hall_serial
+            ).update(
+                staff_id=staff_id_val,
+                name=name_val,
+                designation=designation_val,
+                staff_category=staff_category_val,
+                dept_category=dept_category_val
+            )
+
+            print(f"✅ Updated {updated} schedule record(s)")
+
+        except Staff.DoesNotExist:
+            print("❌ Staff not found for ID:", staff_id)
+        except Exception as e:
+            print("❌ Error in staff_edit_session:", str(e))
+
+    return redirect("view_schedule")
