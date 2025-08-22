@@ -12,6 +12,8 @@ urlpatterns = [
      path('generate-schedule/', generate_schedule, name='generate_schedule'),
     path('export-staff-excel/', export_schedule_excel, name='export_schedule_excel'),
     path('assign-staff/', views.assign_staff, name='assign_staff'),
-    path('generate_session/', generate_session, name='generate_session')
+    path('generate_session/', generate_session, name='generate_session'),
+    path('download-room-data/', views.download_room_data, name='download_room_data'),
+    path("download-staff-unallotted/", views.download_staff_unallotted, name="download_staff_unallotted"),
 
 ] 

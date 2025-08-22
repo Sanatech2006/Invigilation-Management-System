@@ -9,6 +9,15 @@
         <h1 class="text-3xl font-bold text-gray-800 mb-2">Hall Management</h1>
         <p class="text-gray-600">Manage room records</p>
     </div>
+<div class="flex justify-end mb-4">
+    <a href="{% url 'download_room_data' %}"
+       class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-all duration-200 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 shadow-sm hover:shadow-md flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+        Download Room Data
+    </a>
+</div>
 
     <!-- Upload Section -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
@@ -136,6 +145,7 @@
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DEPT NAME</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">STRENGTH</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BENCHES</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">REQUIRED SESSION</th>
                     </tr>
                 </thead>
                 <tbody id="roomTableBody" class="divide-y divide-gray-200">
@@ -151,6 +161,7 @@
                         <td class="px-6 py-4 whitespace-nowrap">{{ room.dept_name }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ room.strength }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ room.benches }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ room.required_session }}</td>
                     </tr>
                     {% empty %}
                     <tr>

@@ -1,6 +1,6 @@
 # IMS/apps/view_schedule/views.py
 from django.shortcuts import render,redirect
-
+from django.db.models.functions import Lower, Trim
 
 from django.forms.models import model_to_dict
 
@@ -59,28 +59,32 @@ def download_schedule_excel(request):
     # Define headers
     headers = [
         'S.No', 'Date', 'Session', 'Hall No', 'Hall Department',
-        'Staff ID', 'Name', 'Designation', 'Staff Category',
-        'Department Category', 'Double Session'
+        'Staff Department', 'Staff ID', 'Name', 'Designation', 'Staff Category',
+        'Department Category', 'Hall Dept Category', 'Double Session',
     ]
     ws.append(headers)
 
     # Get all data
     schedules = InvigilationSchedule.objects.all()
     for schedule in schedules:
-        ws.append([
+        row = [
             schedule.serial_number,
             schedule.date.strftime("%Y-%m-%d") if schedule.date else '',
             schedule.session or '-',
             schedule.hall_no,
             schedule.hall_department,
+            schedule.dept_name,
             schedule.staff_id or '-',
             schedule.name or '-',
             schedule.designation or '-',
             schedule.staff_category or '-',
             schedule.dept_category or '-',
-            "Yes" if schedule.double_session else "No"
-        ])
-
+            schedule.hall_dept_category or '-',
+            "Yes" if schedule.double_session else "No",
+        ]
+        print(row)  # Debugging line
+        ws.append(row)
+    
     # Create HTTP response
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -116,12 +120,14 @@ def filter_schedule(request):
             'session': s.session,
             'hall_no': s.hall_no,
             'hall_department': s.hall_department,
+            'dept_name': s.dept_name,  
             'staff_id': s.staff_id,
             'name': s.name,
             'designation': s.designation,
             'staff_category': s.staff_category,
             'dept_category': s.dept_category,
-            'double_session': "Yes" if s.double_session else "No"
+            'double_session': "Yes" if s.double_session else "No",
+             
         })
 
     return JsonResponse({'schedules': data})
@@ -293,3 +299,39 @@ def staff_edit_session(request):
             print("❌ Error in staff_edit_session:", str(e))
 
     return redirect("view_schedule")
+
+
+def filter_options(request):
+    # Dates (DateField → already date-only)
+    dates_qs = (InvigilationSchedule.objects
+                .exclude(date__isnull=True)
+                .values_list('date', flat=True)
+                .distinct()
+                .order_by('date'))
+    dates = [d.strftime('%Y-%m-%d') for d in dates_qs]
+
+    # Department Category (trim + case-fold to avoid dupes like "AIDED" vs "aided")
+    dept_cat_qs = (InvigilationSchedule.objects
+                   .exclude(dept_category__isnull=True)
+                   .exclude(dept_category='')
+                   .annotate(v=Lower(Trim('dept_category')))
+                   .values_list('v', flat=True)
+                   .distinct()
+                   .order_by('v'))
+    dept_categories = list(dept_cat_qs)
+
+    # Hall Department (trim + case-fold)
+    hall_dept_qs = (InvigilationSchedule.objects
+                    .exclude(hall_department__isnull=True)
+                    .exclude(hall_department='')
+                    .annotate(v=Lower(Trim('hall_department')))
+                    .values_list('v', flat=True)
+                    .distinct()
+                    .order_by('v'))
+    hall_departments = list(hall_dept_qs)
+
+    return JsonResponse({
+        'dates': dates,
+        'dept_categories': dept_categories,
+        'hall_departments': hall_departments,
+    })

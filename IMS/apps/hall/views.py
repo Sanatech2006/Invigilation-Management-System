@@ -13,7 +13,37 @@ from collections import defaultdict
 from ..exam_dates.models import ExamDate
 from ..invigilation_schedule.models import InvigilationSchedule
 import random
+import openpyxl
+from django.db.models import Q, F, Count, Case, When
+from django.contrib import messages
+import pandas as pd
+from io import BytesIO
+from django.http import HttpResponse
 
+from .slot_optimizer import reduce_unassigned_slots
+from .reduce_unassigned_slots import reduce_unassigned_slots
+
+def is_assignment_allowed(current_s1, current_s2, new_session):
+    """
+    Checks assignment rules in reverse order:
+    1. Allowed (best) → 2. Avoidable → 3. Blocked (worst)
+    """
+    difference = (current_s1 - current_s2)
+    
+    # Calculate projected difference
+    projected_diff = difference + 1 if new_session == 1 else difference - 1
+
+    # 1. First check for ideal cases (0 or ±1 difference)
+    if abs(projected_diff) <= 1:
+        return True, "Allowed (imbalance ≤ 1)"  # ✅ Best case
+
+    # 2. Then check avoidable cases (±2 difference)
+    elif abs(projected_diff) == 2:
+        return True, "Allowed but avoid (imbalance 2)"  # ⚠️ Good but not ideal
+
+    # 3. Finally handle blocked cases (≥±3 difference)
+    else:
+        return False, "Blocked (imbalance ≥ 3)"  # ❌ Worst case
 
 def hall_management(request):
     print("\n===== NEW REQUEST =====")  # Debug
@@ -69,19 +99,18 @@ def hall_management(request):
                     sessions = 2  # Assuming 2 sessions per day as per your requirement
                     required_session = staff_required * sessions * days
                     
-                    Room.objects.update_or_create(
+                    
+                    Room.objects.create(
                         hall_no=hall_no,
-                        defaults={
-                            'dept_category': str(row.get('dept_category', '')),
-                            'dept_name': str(row.get('dept_name', '')),
-                            'strength': strength,
-                            'days': int(row.get('days', 0)),
-                            'staff_required': staff_required,  # New field
-                            'required_session': required_session,
-                            'block': "-",
-                            'staff_allotted': "Not Allotted",
-                            'benches': 0,
-                        }
+                        dept_category=str(row.get('dept_category', '')),
+                        dept_name=str(row.get('dept_name', '')),
+                        strength=strength,
+                        days=int(row.get('days', 0)),
+                        staff_required=staff_required,
+                        required_session=required_session,
+                        block="-",
+                        staff_allotted="Not Allotted",
+                        benches=0,
                     )
                     processed += 1
                 except Exception as e:
@@ -108,39 +137,7 @@ def hall_list(request):
     return render(request, 'hall/hall_list.html', {'halls': rooms})
 
 def generate_schedule(request):
-    # if request.method == "POST":
-        # print("this is the route")
-        # halls = Room.objects.all().values() 
-        # dates=ExamDate.objects.all()
-        # print("dates",dates)
-
-        # # Assuming you already have dates and halls loaded
-
-        # for date in dates:
-        #     for hall in halls:
-        #         total = hall['staff_required'] * 2
-        #         for i in range(total):
-        #             session_number = "1" if i < total // 2 else "2"
-        #             # print("gsfd",date.date)
-
-        #             InvigilationSchedule.objects.create(
-        #                 date=date.date,
-        #                 session=session_number,
-        #                 hall_no=hall['hall_no'],
-        #                 hall_department=hall['dept_name'],
-        #                 hall_dept_category=hall['dept_category'],
-        #                 #set later
-        #                 staff_id=None,
-        #                 name=None,
-        #                 designation=None,
-        #                 staff_category=None,
-        #                 double_session=False
-                    # )
-                    # print("gsfd",date.date)
-
-
-
-
+    
 
 
     CATEGORIES = ['AIDED', 'SFM', 'SFW']
@@ -233,8 +230,8 @@ def export_schedule_excel(request):
         "Department",
         "Department Category",
         "Sessions",
-        "Join Date"
-        "Fixed session"
+        "Join Date",
+        "Fixed session",
     ]
     ws.append(headers)
     
@@ -270,18 +267,9 @@ def export_schedule_excel(request):
 
 
 
-# def assign_staff(request):
-#     if request.method == 'POST':
-#         # Your logic here
-#         print("Staff assigned")
-#         # return HttpResponse("Staff assigned")
-#         # Maybe redirect somewhere
-#         return redirect('generate_schedule')
-#     return render(request, 'your_template.html')
-
-
 
 def generate_session(request):
+    InvigilationSchedule.objects.all().delete()
     if request.method == "POST":
         print("this is the route")
         halls = Room.objects.all().values() 
@@ -315,833 +303,357 @@ def generate_session(request):
         return redirect('generate_schedule')
 
 
-
-#Assign Staff Based on no COndition 
-
-# def assign_staff(request):
-#     if request.method == 'POST':
-#         # Get all staff with session > 0 and active
-#         eligible_staff = Staff.objects.filter(is_active=True, session__gt=0)
-#         print("staffs",eligible_staff)
-
-#         for staff in eligible_staff:
-#             # Filter existing assignments for this staff
-#             current_assignments = InvigilationSchedule.objects.filter(staff_id=staff.staff_id).count()
-
-#             remaining_assignments = staff.session - current_assignments
-#             if remaining_assignments <= 0:
-#                 continue
-
-#             # Get unassigned schedule slots
-#             unassigned_slots = InvigilationSchedule.objects.filter(staff_id__isnull=True)
-
-#             # Select random slots
-#             selected_slots = random.sample(
-#                 list(unassigned_slots),
-#                 min(remaining_assignments, unassigned_slots.count())
-#             )
-
-#             for slot in selected_slots:
-#                 slot.staff_id = staff.staff_id
-#                 slot.name = staff.name
-#                 slot.designation = str(staff.designation)
-#                 slot.staff_category = staff.staff_category
-#                 slot.dept_category = staff.dept_category
-#                 slot.save()
-
-#         print("Staff assignment completed")
-#         return redirect('generate_schedule')
-
-#     # return render(request, 'your_template.html')
-
-
-
-
-# import random
-
-# this is based on Category matching  staff_depat_category === hall_dept_category
-
-
-
-
-
-# def assign_staff(request):
-#     if request.method == 'POST':
-#         eligible_staff = Staff.objects.filter(is_active=True, session__gt=0)
-
-#         # Loop through each eligible staff member
-#         for staff in eligible_staff:
-#             current_assignments = InvigilationSchedule.objects.filter(staff_id=staff.staff_id).count()
-#             remaining_assignments = staff.session - current_assignments
-#             if remaining_assignments <= 0:
-#                 continue
-
-#             # Filter unassigned slots that match dept_category
-#             matched_slots = InvigilationSchedule.objects.filter(
-#                 staff_id__isnull=True,
-#                 hall_dept_category=staff.dept_category
-#             )
-
-#             # Random selection of slots
-#             selected_slots = random.sample(
-#                 list(matched_slots),
-#                 min(remaining_assignments, matched_slots.count())
-#             )
-
-#             for slot in selected_slots:
-#                 slot.staff_id = staff.staff_id
-#                 slot.name = staff.name
-#                 slot.designation = str(staff.designation)
-#                 slot.staff_category = staff.staff_category
-#                 slot.dept_category = staff.dept_category
-#                 slot.save()
-
-#         print("Staff assignment with department matching complete")
-#         return redirect('generate_schedule')
-
-#     return render(request, 'your_template.html')
-
-
-
-# this is based on Category matching  staff_depat_category === hall_dept_category &&  dept_name != hall_Department 
-
-
-
-
-
-
-
-# def assign_staff(request):
-#     if request.method == 'POST':
-#         eligible_staff = Staff.objects.filter(is_active=True, session__gt=0)
-
-#         # Loop through each eligible staff member
-#         for staff in eligible_staff:
-#             current_assignments = InvigilationSchedule.objects.filter(staff_id=staff.staff_id).count()
-#             remaining_assignments = staff.session - current_assignments
-#             if remaining_assignments <= 0:
-#                 continue
-
-#             # Filter unassigned slots that:
-#             # 1. Match the staff's dept_category
-#             # 2. Have a hall_department DIFFERENT from the staff's department dept_name
-#             matched_slots = InvigilationSchedule.objects.filter(
-#                 staff_id__isnull=True,
-#                 hall_dept_category=staff.dept_category
-#             ).exclude(
-#                 hall_department=staff.dept_name
-#             )
-
-#             # Random selection of slots
-#             slot_count = matched_slots.count()
-#             if slot_count == 0:
-#                 continue  # Skip if no eligible slots
-
-#             selected_slots = random.sample(
-#                 list(matched_slots),
-#                 min(remaining_assignments, slot_count)
-#             )
-
-#             for slot in selected_slots:
-#                 slot.staff_id = staff.staff_id
-#                 slot.name = staff.name
-#                 slot.designation = str(staff.designation)
-#                 slot.staff_category = staff.staff_category
-#                 slot.dept_category = staff.dept_category
-#                 slot.save()
-
-#         print("✅ Staff assignment with department conflict exclusion complete")
-#         return redirect('generate_schedule')
-
-#     return render(request, 'your_template.html')
-
-
-
-
-
-
-
-
-
-
-# def assign_slot(slot, staff, double=False):
-#     slot.staff_id = staff.staff_id
-#     slot.name = staff.name
-#     slot.designation = str(staff.designation)
-#     slot.staff_category = staff.staff_category
-#     slot.dept_category = staff.dept_category
-#     slot.double_session = double
-#     slot.save()
-
-# def assign_staff(request):
-#     if request.method == 'POST':
-#         exam_dates = list(ExamDate.objects.all().order_by('date'))
-#         total_dates = len(exam_dates)
-
-#         eligible_staff = Staff.objects.filter(is_active=True, session__gt=0)
-
-#         for staff in eligible_staff:
-#             current_assignments = InvigilationSchedule.objects.filter(staff_id=staff.staff_id).count()
-#             remaining_assignments = staff.session - current_assignments
-#             if remaining_assignments <= 0:
-#                 continue
-
-#             matched_slots = InvigilationSchedule.objects.filter(
-#                 staff_id__isnull=True,
-#                 hall_dept_category=staff.dept_category
-#             ).exclude(
-#                 hall_department=staff.dept_name
-#             ).order_by('date', 'session')
-
-#             assignment_counter = 0
-
-#             for date in exam_dates:
-#                 if assignment_counter >= remaining_assignments:
-#                     break
-
-#                 slots_for_day = matched_slots.filter(date=date.date)
-
-#                 # Group slots by hall
-#                 hall_groups = defaultdict(list)
-#                 for slot in slots_for_day:
-#                     hall_groups[slot.hall_no].append(slot)
-
-#                 # Find halls with remaining capacity
-#                 for hall, hall_slots in hall_groups.items():
-#                     while assignment_counter < remaining_assignments and hall_slots:
-#                         double = assignment_counter >= total_dates  # overflow flag
-#                         assign_slot(hall_slots.pop(0), staff, double)
-#                         assignment_counter += 1
-#                     if assignment_counter >= remaining_assignments:
-#                         break
-
-#         print("✅ Continuous + fair staff assignment complete")
-#         return redirect('generate_schedule')
-
-#     return render(request, 'your_template.html')
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-# date wise condition
-
-# def assign_staff(request):
-#     if request.method == 'POST':
-#         exam_dates = list(ExamDate.objects.all().order_by('date'))  # Ordered for consistency
-#         total_dates = len(exam_dates)
-
-#         eligible_staff = Staff.objects.filter(is_active=True, session__gt=0)
-
-#         for staff in eligible_staff:
-#             current_assignments = InvigilationSchedule.objects.filter(staff_id=staff.staff_id).count()
-#             remaining_assignments = staff.session - current_assignments
-#             if remaining_assignments <= 0:
-#                 continue
-
-#             matched_slots = InvigilationSchedule.objects.filter(
-#                 staff_id__isnull=True,
-#                 hall_dept_category=staff.dept_category
-#             ).exclude(
-#                 hall_department=staff.dept_name
-#             )
-
-#             if matched_slots.count() == 0:
-#                 continue  # No slots available for this staff member
-
-#             #  Case 1: Assign exactly one per date
-#             if remaining_assignments == total_dates:
-#                 for date in exam_dates:
-#                     slot = matched_slots.filter(date=date.date).first()
-#                     if slot:
-#                         slot.staff_id = staff.staff_id
-#                         slot.name = staff.name
-#                         slot.designation = str(staff.designation)
-#                         slot.staff_category = staff.staff_category
-#                         slot.dept_category = staff.dept_category
-#                         slot.save()
-
-#             # Case 2: Assign randomly across distinct non-repeating dates
-#             elif remaining_assignments < total_dates:
-#                 selected_dates = random.sample(exam_dates, remaining_assignments)
-#                 for date in selected_dates:
-#                     slot = matched_slots.filter(date=date.date).first()
-#                     if slot:
-#                         slot.staff_id = staff.staff_id
-#                         slot.name = staff.name
-#                         slot.designation = str(staff.designation)
-#                         slot.staff_category = staff.staff_category
-#                         slot.dept_category = staff.dept_category
-#                         slot.save()
-
-#             # You can optionally add more advanced handling here for overflow cases if needed
-
-#         print("✅ Date-aware staff assignment complete")
-#         return redirect('generate_schedule')
-
-#     return render(request, 'your_template.html')
-
-
-
-
-
-
-
-
-
-
-
-        #overflow condtion
-        
-# def assign_staff(request):
-#     if request.method == 'POST':
-#         exam_dates = list(ExamDate.objects.all().order_by('date'))
-#         total_dates = len(exam_dates)
-
-#         eligible_staff = Staff.objects.filter(is_active=True, session__gt=0)
-
-#         for staff in eligible_staff:
-#             current_assignments = InvigilationSchedule.objects.filter(staff_id=staff.staff_id).count()
-#             remaining_assignments = staff.session - current_assignments
-#             if remaining_assignments <= 0:
-#                 continue
-
-#             matched_slots = InvigilationSchedule.objects.filter(
-#                 staff_id__isnull=True,
-#                 hall_dept_category=staff.dept_category
-#             ).exclude(
-#                 hall_department=staff.dept_name
-#             )
-
-#             if matched_slots.count() == 0:
-#                 continue
-
-#             # Case 1: Assign exactly one per date
-#             if remaining_assignments == total_dates:
-#                 for date in exam_dates:
-#                     slot = matched_slots.filter(date=date.date).first()
-#                     if slot:
-#                         slot.staff_id = staff.staff_id
-#                         slot.name = staff.name
-#                         slot.designation = str(staff.designation)
-#                         slot.staff_category = staff.staff_category
-#                         slot.dept_category = staff.dept_category
-#                         slot.save()
-
-#             # Case 2: Assign randomly across distinct dates
-#             elif remaining_assignments < total_dates:
-#                 selected_dates = random.sample(exam_dates, remaining_assignments)
-#                 for date in selected_dates:
-#                     slot = matched_slots.filter(date=date.date).first()
-#                     if slot:
-#                         slot.staff_id = staff.staff_id
-#                         slot.name = staff.name
-#                         slot.designation = str(staff.designation)
-#                         slot.staff_category = staff.staff_category
-#                         slot.dept_category = staff.dept_category
-#                         slot.save()
-
-#             # 🚀 Case 3: Overflow assignment if remaining > dates
-#             else:
-#                 # Step 1: Assign one session per date
-#                 assigned_dates = []
-#                 for date in exam_dates:
-#                     if remaining_assignments <= 0:
-#                         break
-#                     slot = matched_slots.filter(date=date.date).first()
-#                     if slot:
-#                         slot.staff_id = staff.staff_id
-#                         slot.name = staff.name
-#                         slot.designation = str(staff.designation)
-#                         slot.staff_category = staff.staff_category
-#                         slot.dept_category = staff.dept_category
-#                         slot.save()
-#                         assigned_dates.append(date.date)
-#                         remaining_assignments -= 1
-
-#                 # Step 2: Handle overflow by reusing assigned dates
-#                 while remaining_assignments > 0:
-#                     chosen_date = random.choice(assigned_dates)
-#                     prev_assignment = InvigilationSchedule.objects.filter(
-#                         staff_id=staff.staff_id,
-#                         date=chosen_date
-#                     ).first()
-
-#                     if not prev_assignment:
-#                         continue
-
-#                     hall = prev_assignment.hall_no
-#                     existing_session = prev_assignment.session
-#                     new_session = '2' if existing_session == '1' else '1'
-
-#                     extra_slot = matched_slots.filter(
-#                         date=chosen_date,
-#                         hall_no=hall,
-#                         session=new_session
-#                     ).first()
-
-#                     if extra_slot:
-#                         extra_slot.staff_id = staff.staff_id
-#                         extra_slot.name = staff.name
-#                         extra_slot.designation = str(staff.designation)
-#                         extra_slot.staff_category = staff.staff_category
-#                         extra_slot.dept_category = staff.dept_category
-#                         extra_slot.save()
-#                         remaining_assignments -= 1
-
-#         print("✅ All cases handled: balanced + overflow")
-#         return redirect('generate_schedule')
-
-#     return render(request, 'your_template.html')
-
-
-
-
-
-
-
-
-# Assign staff based on session(des) random(asc) with same hall if excess dates
-
-# def assign_staff(request):
-#     if request.method == 'POST':
-#         # Step 1: Assign unique random numbers to all active staff
-#         active_staff = list(Staff.objects.filter(is_active=True))
-#         total_staff = len(active_staff)
-#         unique_randoms = random.sample(range(1, total_staff + 1), total_staff)
-
-#         for staff, rand_val in zip(active_staff, unique_randoms):
-#             staff.random = rand_val
-#             staff.save(update_fields=['random'])
-
-#         # Step 2: Fetch exam dates (ordered)
-#         exam_dates = list(ExamDate.objects.all().order_by('date'))
-#         total_dates = len(exam_dates)
-
-#         # Step 3: Filter and order eligible staff
-#         eligible_staff = Staff.objects.filter(is_active=True, session__gt=0).order_by('-session', 'random')
-
-#         # Step 4: Begin assignment loop
-#         for staff in eligible_staff:
-#             current_assignments = InvigilationSchedule.objects.filter(staff_id=staff.staff_id).count()
-#             remaining_assignments = staff.session - current_assignments
-#             if remaining_assignments <= 0:
-#                 continue
-
-#             matched_slots = InvigilationSchedule.objects.filter(
-#                 staff_id__isnull=True,
-#                 hall_dept_category=staff.dept_category
-#             ).exclude(
-#                 hall_department=staff.dept_name
-#             )
-
-#             if matched_slots.count() == 0:
-#                 continue
-
-#             # Case 1: session > total_dates → assign one per date, then overflow
-#             if remaining_assignments > total_dates:
-#                 # Assign one per date first
-#                 for date in exam_dates:
-#                     slot = matched_slots.filter(date=date.date).first()
-#                     if slot:
-#                         slot.staff_id = staff.staff_id
-#                         slot.name = staff.name
-#                         slot.designation = str(staff.designation)
-#                         slot.staff_category = staff.staff_category
-#                         slot.dept_category = staff.dept_category
-#                         slot.save()
-
-#                 # Assign overflow from any remaining slots (even on same dates)
-#                 overflow_count = remaining_assignments - total_dates
-#                 extra_slots = matched_slots.exclude(staff_id=staff.staff_id)
-#                 extra_slots = list(extra_slots)
-#                 random.shuffle(extra_slots)
-
-#                 assigned = 0
-#                 for slot in extra_slots:
-#                     if assigned >= overflow_count:
-#                         break
-#                     slot.staff_id = staff.staff_id
-#                     slot.name = staff.name
-#                     slot.designation = str(staff.designation)
-#                     slot.staff_category = staff.staff_category
-#                     slot.dept_category = staff.dept_category
-#                     slot.save()
-#                     assigned += 1
-
-#             # Case 2: session == total_dates → assign one per date
-#             elif remaining_assignments == total_dates:
-#                 for date in exam_dates:
-#                     slot = matched_slots.filter(date=date.date).first()
-#                     if slot:
-#                         slot.staff_id = staff.staff_id
-#                         slot.name = staff.name
-#                         slot.designation = str(staff.designation)
-#                         slot.staff_category = staff.staff_category
-#                         slot.dept_category = staff.dept_category
-#                         slot.save()
-
-#             # Case 3: session < total_dates → assign randomly across distinct dates
-#             else:
-#                 selected_dates = random.sample(exam_dates, remaining_assignments)
-#                 for date in selected_dates:
-#                     slot = matched_slots.filter(date=date.date).first()
-#                     if slot:
-#                         slot.staff_id = staff.staff_id
-#                         slot.name = staff.name
-#                         slot.designation = str(staff.designation)
-#                         slot.staff_category = staff.staff_category
-#                         slot.dept_category = staff.dept_category
-#                         slot.save()
-
-#         print("✅ Staff assignment complete with session-aware and overflow logic")
-#         return redirect('generate_schedule')
-
-# Session Opposite Coding
-
-# def assign_staff(request):
-#     if request.method == 'POST':
-#         # Step 1: Assign unique random numbers to all active staff
-#         active_staff = list(Staff.objects.filter(is_active=True))
-#         total_staff = len(active_staff)
-#         unique_randoms = random.sample(range(1, total_staff + 1), total_staff)
-
-#         for staff, rand_val in zip(active_staff, unique_randoms):
-#             staff.random = rand_val
-#             staff.save(update_fields=['random'])
-
-#         # Step 2: Fetch exam dates (ordered)
-#         exam_dates = list(ExamDate.objects.all().order_by('date'))
-#         total_dates = len(exam_dates)
-
-#         # Step 3: Filter and order eligible staff
-#         eligible_staff = Staff.objects.filter(is_active=True, session__gt=0).order_by('-session', 'random')
-
-#         # Step 4: Begin assignment loop
-#         for staff in eligible_staff:
-#             current_assignments = InvigilationSchedule.objects.filter(staff_id=staff.staff_id).count()
-#             remaining_assignments = staff.session - current_assignments
-#             if remaining_assignments <= 0:
-#                 continue
-
-#             matched_slots = InvigilationSchedule.objects.filter(
-#                 staff_id__isnull=True,
-#                 hall_dept_category=staff.dept_category
-#             ).exclude(
-#                 hall_department=staff.dept_name
-#             )
-
-#             if matched_slots.count() == 0:
-#                 continue
-
-#             # Case 1: session > total_dates → assign one per date, then overflow
-#             if remaining_assignments > total_dates:
-#                 # Assign one per date first
-#                 for date in exam_dates:
-#                     slot = matched_slots.filter(
-#                         date=date.date
-#                     ).exclude(
-#                         session__in=InvigilationSchedule.objects.filter(
-#                             staff_id=staff.staff_id,
-#                             date=date.date
-#                         ).values_list('session', flat=True)
-#                     ).first()
-
-#                     if slot:
-#                         slot.staff_id = staff.staff_id
-#                         slot.name = staff.name
-#                         slot.designation = str(staff.designation)
-#                         slot.staff_category = staff.staff_category
-#                         slot.dept_category = staff.dept_category
-#                         slot.save()
-
-#                 # Assign overflow from any remaining slots (even on same dates)
-#                 overflow_count = remaining_assignments - total_dates
-#                 extra_slots = matched_slots.exclude(staff_id=staff.staff_id)
-#                 extra_slots = list(extra_slots)
-#                 random.shuffle(extra_slots)
-
-#                 assigned = 0
-#                 for slot in extra_slots:
-#                     # Ensure session isn't already used by this staff on that date
-#                     used_sessions = InvigilationSchedule.objects.filter(
-#                         staff_id=staff.staff_id,
-#                         date=slot.date
-#                     ).values_list('session', flat=True)
-
-#                     if str(slot.session) in used_sessions:
-#                         continue
-
-#                     if assigned >= overflow_count:
-#                         break
-
-#                     slot.staff_id = staff.staff_id
-#                     slot.name = staff.name
-#                     slot.designation = str(staff.designation)
-#                     slot.staff_category = staff.staff_category
-#                     slot.dept_category = staff.dept_category
-#                     slot.save()
-#                     assigned += 1
-
-#             # Case 2: session == total_dates → assign one per date
-#             elif remaining_assignments == total_dates:
-#                 for date in exam_dates:
-#                     slot = matched_slots.filter(
-#                         date=date.date
-#                     ).exclude(
-#                         session__in=InvigilationSchedule.objects.filter(
-#                             staff_id=staff.staff_id,
-#                             date=date.date
-#                         ).values_list('session', flat=True)
-#                     ).first()
-
-#                     if slot:
-#                         slot.staff_id = staff.staff_id
-#                         slot.name = staff.name
-#                         slot.designation = str(staff.designation)
-#                         slot.staff_category = staff.staff_category
-#                         slot.dept_category = staff.dept_category
-#                         slot.save()
-
-#             # Case 3: session < total_dates → assign randomly across distinct dates
-#             else:
-#                 selected_dates = random.sample(exam_dates, remaining_assignments)
-#                 for date in selected_dates:
-#                     slot = matched_slots.filter(
-#                         date=date.date
-#                     ).exclude(
-#                         session__in=InvigilationSchedule.objects.filter(
-#                             staff_id=staff.staff_id,
-#                             date=date.date
-#                         ).values_list('session', flat=True)
-#                     ).first()
-
-#                     if slot:
-#                         slot.staff_id = staff.staff_id
-#                         slot.name = staff.name
-#                         slot.designation = str(staff.designation)
-#                         slot.staff_category = staff.staff_category
-#                         slot.dept_category = staff.dept_category
-#                         slot.save()
-
-#         print("✅ Staff assignment complete with session-aware and overflow logic")
-#         return redirect('generate_schedule')
-
-
-
-
-
-
-
-
-# from django.shortcuts import redirect
-# import random
-
-# from django.shortcuts import redirect
-# import random
-
+# SAQ TEST CODE 
 def assign_staff(request):
     if request.method != 'POST':
         return redirect('generate_schedule')
 
-    # Step 1: Randomize staff order
-    active_staff = list(Staff.objects.filter(is_active=True))
-    total_staff = len(active_staff)
-    unique_randoms = random.sample(range(1, total_staff + 1), total_staff)
+    DEPT_CATEGORIES = ['AIDED', 'SFM', 'SFW']
+    
+    for dept_category in DEPT_CATEGORIES:
+        print(f"\n=== PROCESSING {dept_category} DEPARTMENT ===")
+        
+        # 1. Prepare staff data with remaining capacity
+        staff_queryset = Staff.objects.filter(
+            is_active=True,
+            session__gt=0,
+            dept_category__iexact=dept_category
+        ).order_by('-session')
+        
+        staff_list = []
+        for staff in staff_queryset:
+            assigned_count = InvigilationSchedule.objects.filter(
+                staff_id=staff.staff_id
+            ).count()
+            staff_list.append({
+                'staff_id': staff.staff_id,
+                'name': staff.name,
+                'designation': str(staff.designation),
+                'staff_category': staff.staff_category,
+                'dept_category': staff.dept_category,
+                'dept_name': staff.dept_name,
+                'session': staff.session,
+                'remaining': staff.session - assigned_count
+            })
 
-    for staff, rand_val in zip(active_staff, unique_randoms):
-        staff.random = rand_val
-        staff.save(update_fields=['random'])
-
-    exam_dates = list(ExamDate.objects.all().order_by('date'))
-    total_dates = len(exam_dates)
-
-    eligible_staff = Staff.objects.filter(is_active=True, session__gt=0).order_by('-session', 'random')
-
-    # 🔧 Helper: Get matched slots with progressive fallback
-    def get_matched_slots(staff):
-        # 🎯 Primary filter: same category, different department
-        slots = InvigilationSchedule.objects.filter(
+        # 2. Get all unassigned slots for this department
+        unassigned_slots = InvigilationSchedule.objects.filter(
             staff_id__isnull=True,
-            hall_dept_category=staff.dept_category
-        ).exclude(
-            hall_department=staff.dept_name
-        )
-        if slots.exists():
-            return slots
+            hall_dept_category__iexact=dept_category
+        ).order_by('date', 'session')
 
-        # 🔁 Fallback: same category, same department
-        slots = InvigilationSchedule.objects.filter(
-            staff_id__isnull=True,
-            hall_dept_category=staff.dept_category,
-            hall_department=staff.dept_name
-        )
-        if slots.exists():
-            print(f"🔁 Relaxed department constraint for {staff.name} ({staff.staff_id})")
-            return slots
+        total_slots = unassigned_slots.count()   # ✅ Add this line
 
-        # 🛠️ Final fallback: ignore category and department
-        slots = InvigilationSchedule.objects.filter(
-            staff_id__isnull=True
-        )
-        if slots.exists():
-            print(f"🛠️ Final fallback used for {staff.name} ({staff.staff_id})")
-            return slots
+        # 3. Perform assignment
+        unassigned_count = 0
 
-        return InvigilationSchedule.objects.none()
+        total_slots = unassigned_slots.count()   # ✅ Add this line
 
-    # 🔧 Helper: Get valid slot for a specific date
-    def get_valid_slot(staff, date, matched_slots):
-        assigned_sessions = InvigilationSchedule.objects.filter(
-            staff_id=staff.staff_id,
-            date=date.date
-        ).values_list('session', flat=True)
+        # for slot in unassigned_slots:
+        for i, slot in enumerate(unassigned_slots, start=1):   # <-- changed loop # ✅ Add this line
+            print(f"Progress: {i}/{total_slots}")               # ✅ Add this line
+            assigned = False
+            
+            # Try to find eligible staff with remaining capacity
+            for staff in staff_list:
+                if staff['remaining'] <= 0:
+                    continue
+                # if staff['session'] <= 3:
+                #     continue  # Skip during auto-phase
+                    
+                # Hard constraint: Same department check
+                if slot.hall_department == staff['dept_name']:
+                    continue
+                    
+                # Hard constraint: Same date+session check
+                if InvigilationSchedule.objects.filter(
+                    staff_id=staff['staff_id'],
+                    date=slot.date,
+                    session=slot.session
+                ).exists():
+                    continue
+                    
+                # Soft constraint: Same-day avoidance (only if sessions < total days)
+                total_exam_days = ExamDate.objects.latest('day_no').day_no
+                if staff['remaining'] < total_exam_days:
+                    if InvigilationSchedule.objects.filter(
+                        staff_id=staff['staff_id'],
+                        date=slot.date
+                    ).exists():
+                        continue  # Skip but may retry later
+                                  
+                # Soft constraint: Session balancing
+                session_counts = InvigilationSchedule.objects.filter(
+                    staff_id=staff['staff_id']
+                ).aggregate(
+                    session1=Count(Case(When(session=1, then=1))),
+                    session2=Count(Case(When(session=2, then=1)))
+                )
+                
+                allowed, reason = is_assignment_allowed(
+                    current_s1=session_counts['session1'],
+                    current_s2=session_counts['session2'],
+                    new_session=slot.session
+                )
+                
+                if not allowed:
+                    continue  # Skip blocked assignments
+                elif "avoid" in reason:
+                    pass  # Skip if already has more Session 2 assignments
 
-        opposite_session = None
-        if '1' in assigned_sessions:
-            opposite_session = '2'
-        elif '2' in assigned_sessions:
-            opposite_session = '1'
-
-        if opposite_session:
-            hall_nos_on_date = InvigilationSchedule.objects.filter(
-                staff_id=staff.staff_id,
-                date=date.date
-            ).values_list('hall_no', flat=True)
-
-            slot = matched_slots.filter(
-                date=date.date,
-                session=opposite_session,
-                hall_no__in=hall_nos_on_date
-            ).first()
-            if slot:
-                return slot
-
-            slot = matched_slots.filter(
-                date=date.date,
-                session=opposite_session
-            ).first()
-            if slot:
-                return slot
-
-            slot = matched_slots.filter(
-                session=opposite_session
-            ).first()
-            if slot:
-                return slot
-
-        slot = matched_slots.filter(
-            date=date.date
-        ).exclude(
-            session__in=assigned_sessions
-        ).first()
-        return slot
-
-    # 🔧 Helper: Overflow slot logic
-    def get_overflow_slot(staff, matched_slots):
-        assigned = InvigilationSchedule.objects.filter(staff_id=staff.staff_id)
-
-        for record in assigned:
-            opp_session = '2' if record.session == '1' else '1'
-            slot = matched_slots.filter(
-                date=record.date,
-                hall_no=record.hall_no,
-                session=opp_session
-            ).first()
-            if slot:
-                return slot
-
-        for record in assigned:
-            opp_session = '2' if record.session == '1' else '1'
-            slot = matched_slots.filter(
-                hall_no=record.hall_no,
-                session=opp_session
-            ).exclude(date=record.date).first()
-            if slot:
-                return slot
-
-        for record in assigned:
-            opp_session = '2' if record.session == '1' else '1'
-            slot = matched_slots.filter(session=opp_session).first()
-            if slot:
-                return slot
-
-        return None
-
-    # 🚀 Begin assignment loop
-    for staff in eligible_staff:
-        current_assignments = InvigilationSchedule.objects.filter(staff_id=staff.staff_id).count()
-        remaining_assignments = staff.session - current_assignments
-        if remaining_assignments <= 0:
-            continue
-
-        matched_slots = get_matched_slots(staff)
-        if matched_slots.count() == 0:
-            continue
-
-        if remaining_assignments > total_dates:
-            for date in exam_dates:
-                slot = get_valid_slot(staff, date, matched_slots)
-                if slot:
-                    slot.staff_id = staff.staff_id
-                    slot.name = staff.name
-                    slot.designation = str(staff.designation)
-                    slot.staff_category = staff.staff_category
-                    slot.dept_category = staff.dept_category
-                    slot.save()
-                    matched_slots = matched_slots.exclude(pk=slot.pk)
-
-            overflow_count = remaining_assignments - total_dates
-            assigned = 0
-            while assigned < overflow_count:
-                slot = get_overflow_slot(staff, matched_slots)
-                if not slot:
-                    break
-                slot.staff_id = staff.staff_id
-                slot.name = staff.name
-                slot.designation = str(staff.designation)
-                slot.staff_category = staff.staff_category
-                slot.dept_category = staff.dept_category
+                # Make the assignment
+                slot.staff_id = staff['staff_id']
+                slot.name = staff['name']
+                slot.designation = staff['designation']
+                slot.staff_category = staff['staff_category']
+                slot.dept_category = staff['dept_category']
+                slot.dept_name = staff['dept_name']
                 slot.save()
-                matched_slots = matched_slots.exclude(pk=slot.pk)
-                assigned += 1
+                staff['remaining'] -= 1
+                assigned = True
+                break
+            
+            if not assigned:
+                unassigned_count += 1
+            
+        # 4. Generate result messages
+        total_slots = InvigilationSchedule.objects.filter(
+            hall_dept_category__iexact=dept_category
+        ).count()
+        
+        assigned_slots = total_slots - unassigned_count
+        remaining_staff = sum(1 for s in staff_list if s['remaining'] > 0)
 
-        elif remaining_assignments == total_dates:
-            for date in exam_dates:
-                slot = get_valid_slot(staff, date, matched_slots)
-                if slot:
-                    slot.staff_id = staff.staff_id
-                    slot.name = staff.name
-                    slot.designation = str(staff.designation)
-                    slot.staff_category = staff.staff_category
-                    slot.dept_category = staff.dept_category
-                    slot.save()
-                    matched_slots = matched_slots.exclude(pk=slot.pk)
+        if unassigned_count > 0:
+            assignments_made = reduce_unassigned_slots(dept_category)
+            messages.info(
+                request,
+                f"{dept_category}: Optimization assigned {assignments_made} slots. "
+                f"{unassigned_count - assignments_made} still unassigned."
+            )
+
+            # Phase III saq
+            # ================================================
+            # PHASE 3: Reassignment with Your Exact Constraints
+            # ================================================
+            remaining_slots = InvigilationSchedule.objects.filter(
+                staff_id__isnull=True,
+                hall_dept_category__iexact=dept_category
+            ).order_by('date', 'session')
+
+            if remaining_slots.exists():
+                print(f"🔍 PHASE 3: Processing {remaining_slots.count()} unassigned slots")
+                
+                for slot in remaining_slots:
+                    # FIRST: Try direct assignment to staff with remaining capacity
+                    direct_assignment = False
+                    for staff_data in staff_list:
+                        if staff_data['remaining'] <= 0:
+                            continue
+                        
+                        # Hard Constraints
+                        if slot.hall_department == staff_data['dept_name']:
+                            continue
+                        if InvigilationSchedule.objects.filter(
+                            staff_id=staff_data['staff_id'],
+                            date=slot.date,
+                            session=slot.session
+                        ).exists():
+                            continue
+                        
+                        # Soft Constraints
+                        total_exam_days = ExamDate.objects.latest('day_no').day_no
+                        if staff_data['remaining'] < total_exam_days:
+                            if InvigilationSchedule.objects.filter(
+                                staff_id=staff_data['staff_id'],
+                                date=slot.date
+                            ).exists():
+                                continue
+                        session_counts = InvigilationSchedule.objects.filter(
+                            staff_id=staff_data['staff_id']
+                        ).aggregate(
+                            session1=Count(Case(When(session=1, then=1))),
+                            session2=Count(Case(When(session=2, then=1)))
+                        )
+                        allowed, _ = is_assignment_allowed(
+                            current_s1=session_counts['session1'],
+                            current_s2=session_counts['session2'],
+                            new_session=slot.session
+                        )
+                        if not allowed:
+                            continue
+                        
+                        # Direct assignment possible
+                        slot.staff_id = staff_data['staff_id']
+                        slot.name = staff_data['name']
+                        slot.designation = staff_data['designation']
+                        slot.staff_category = staff_data['staff_category']
+                        slot.dept_category = staff_data['dept_category']
+                        slot.dept_name = staff_data['dept_name']
+                        slot.save()
+                        staff_data['remaining'] -= 1
+                        unassigned_count -= 1
+                        direct_assignment = True
+                        print(f"   ✅ Direct assignment: {staff_data['name']}")
+                        break
+                    
+                    if direct_assignment:
+                        continue
+                        
+                    # SECOND: Only if direct assignment fails, try reassignment
+                    for staff_data in staff_list:
+                        if staff_data['session'] <= 0:
+                            continue
+                        
+                        # Hard Constraints
+                        if slot.hall_department == staff_data['dept_name']:
+                            continue
+                        if InvigilationSchedule.objects.filter(
+                            staff_id=staff_data['staff_id'],
+                            date=slot.date,
+                            session=slot.session
+                        ).exists():
+                            continue
+                        
+                        # Soft Constraints
+                        total_exam_days = ExamDate.objects.latest('day_no').day_no
+                        if staff_data['remaining'] < total_exam_days:
+                            if InvigilationSchedule.objects.filter(
+                                staff_id=staff_data['staff_id'],
+                                date=slot.date
+                            ).exists():
+                                continue
+                        session_counts = InvigilationSchedule.objects.filter(
+                            staff_id=staff_data['staff_id']
+                        ).aggregate(
+                            session1=Count(Case(When(session=1, then=1))),
+                            session2=Count(Case(When(session=2, then=1)))
+                        )
+                        allowed, _ = is_assignment_allowed(
+                            current_s1=session_counts['session1'],
+                            current_s2=session_counts['session2'],
+                            new_session=slot.session
+                        )
+                        if not allowed:
+                            continue
+                        
+                        # Staff can take this slot - reassign them
+                        slot.staff_id = staff_data['staff_id']
+                        slot.name = staff_data['name']
+                        slot.designation = staff_data['designation']
+                        slot.staff_category = staff_data['staff_category']
+                        slot.dept_category = staff_data['dept_category']
+                        slot.dept_name = staff_data['dept_name']
+                        slot.save()
+                        
+                        # Accept that their old slot becomes unassigned
+                        unassigned_count -= 1
+                        print(f"   ✅ Reassignment: {staff_data['name']} moved to new slot")
+                        break
+
+            # ================================================
+            # PHASE 3 INSERTION POINT - END HERE
+            # ================================================
 
         else:
-            selected_dates = random.sample(exam_dates, remaining_assignments)
-            for date in selected_dates:
-                slot = get_valid_slot(staff, date, matched_slots)
-                if slot:
-                    slot.staff_id = staff.staff_id
-                    slot.name = staff.name
-                    slot.designation = str(staff.designation)
-                    slot.staff_category = staff.staff_category
-                    slot.dept_category = staff.dept_category
-                    slot.save()
-                    matched_slots = matched_slots.exclude(pk=slot.pk)
+            messages.warning(
+                request,
+                f"{dept_category}: Assigned {assigned_slots}/{total_slots} slots. "
+                f"{unassigned_count} remain unassigned (due to session limits or date conflicts). "
+                f"{remaining_staff} staff have remaining capacity."
+                )
+            
+            
+    return redirect('generate_schedule')  # Redirect after processing all departments
 
-    # 📊 Final report
-    total_slots = InvigilationSchedule.objects.count()
-    unassigned = InvigilationSchedule.objects.filter(staff_id__isnull=True).count()
-    print(f"✅ Staff assignment complete. 📊 Coverage: {total_slots - unassigned}/{total_slots} slots assigned")
-    return redirect('generate_schedule')
+
+# Keep these if you still need them for other purposes
+def download_assignments(request):
+    if 'assignment_log' not in request.session:
+        return HttpResponse("No assignment data available")
+        
+    df = pd.DataFrame(request.session['assignment_log'])
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    df.to_excel(writer, sheet_name='Assignments', index=False)
+    writer.close()
+    output.seek(0)
+    
+    response = HttpResponse(
+        output.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=assignment_log.xlsx'
+    return response
+
+
+def download_room_data(request):
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Room Data"
+
+    headers = ["Hall No", "Department Category", "Department Name", "Strength", "Required Session"]
+    ws.append(headers)
+
+    rooms = Room.objects.all().values_list(
+        'hall_no', 'dept_category', 'dept_name', 'strength', 'required_session'
+    )
+    
+    for room in rooms:
+        ws.append(room)
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=RoomData.xlsx'
+    wb.save(response)
+    return response
+
+# SAQ TEST CODE ENDS
+# For printing a message
+#  if remaining_slots.exists():
+#                 print(f"🔍 PHASE 3: Processing {remaining_slots.count()} unassigned slots")
+
+
+def download_staff_unallotted(request):
+    # Create workbook and sheet
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Staff Allotment"
+
+    # Headers
+    headers = [
+        "staff_id", "name", "dept_category", "session",
+        "Session 1 Allotted", "Session 2 Allotted",
+        "Total Allotted", "Remaining Sessions"
+    ]
+    ws.append(headers)
+
+    # Loop through all staff
+    for staff in Staff.objects.all():
+        # Count allotments in invigilation_schedule by staff_id + session number
+        session1_allotted = InvigilationSchedule.objects.filter(staff_id=staff.staff_id, session=1).count()
+        session2_allotted = InvigilationSchedule.objects.filter(staff_id=staff.staff_id, session=2).count()
+
+        total_allotted = session1_allotted + session2_allotted
+        remaining = (staff.session or 0) - total_allotted   # avoid NoneType issue
+
+        ws.append([
+            staff.staff_id,
+            staff.name,
+            staff.dept_category,
+            staff.session,
+            session1_allotted,
+            session2_allotted,
+            total_allotted,
+            remaining
+        ])
+
+    # Return Excel file
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="staff_allotment.xlsx"'
+    wb.save(response)
+
+    return response

@@ -95,7 +95,7 @@ def schedule_api(request):
         ).values(
             'id', 'date', 'session', 'hall_no', 'hall_department',
             'staff_id', 'name', 'designation', 'staff_category',
-            'dept_category', 'double_session'
+            'dept_category', 'double_session', 'dept_name',
         )
         return JsonResponse({
             'status': 'success',

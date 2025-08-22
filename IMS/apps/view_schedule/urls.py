@@ -13,5 +13,6 @@ urlpatterns = [
     path('staff_delete_session/', session_staff_delete, name='staff_delete_session'),
     path('staff_edit_session/', staff_edit_session, name='staff_edit_session'),
     path('get-available-staff/', get_available_staff, name='get_available_staff'),
+    path('filter-options/', views.filter_options, name='filter_options'),
 
 ]

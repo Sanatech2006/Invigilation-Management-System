@@ -13,6 +13,7 @@ class InvigilationSchedule(models.Model):
     staff_category = models.CharField(max_length=100, blank=True, null=True)
     dept_category=models.CharField(max_length=100,null=True)
     double_session = models.BooleanField(default=False)
+    dept_name=models.CharField(max_length=100,null=True)
     
     class Meta:
         db_table = 'invigilation_schedule'

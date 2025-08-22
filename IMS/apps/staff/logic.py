@@ -2,6 +2,8 @@ from django.db.models import Sum
 from datetime import datetime
 from apps.staff.models import Staff
 from apps.hall.models import Room # Make sure this import matches your actual model
+from django.db import models
+
 
 
 def allocate_sessions(required_session):
@@ -76,6 +78,14 @@ def allocate_sessions(required_session):
                 remainder  # This accounts for the extra sessions given
             )
             verification_remaining = total_required_session - total_allocated
+
+            Staff.objects.filter(
+                dept_category=dept_category
+            ).exclude(
+                fixed_session=-1
+            ).update(
+                session=models.F('fixed_session')
+            )
 
             # Prepare allocation report
             allocation_report = [
