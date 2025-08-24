@@ -75,3 +75,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial filter application
     applyFilters();
 });
+
+ const fileInput = document.getElementById('fileInput');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+            fileNameDisplay.textContent = this.files[0].name;
+        } else {
+            fileNameDisplay.textContent = "No file chosen";
+        }
+    });

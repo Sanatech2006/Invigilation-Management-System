@@ -20,85 +20,128 @@
 
   <!-- Filters -->
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-      <select id="filter-date" class="w-full border rounded px-3 py-2"></select>
-    </div>
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Department Category</label>
-      <select id="filter-dept-category" class="w-full border rounded px-3 py-2"></select>
-    </div>
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1">Hall Department</label>
-      <select id="filter-hall-dept" class="w-full border rounded px-3 py-2"></select>
-    </div>
-   
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+    <select id="filter-date" class="w-full border rounded px-3 py-2">
+      <option value="">All Dates</option>
+      {% for date in dates %}
+      <option value="{{ date }}">{{ date }}</option>
+      {% endfor %}
+    </select>
   </div>
+  
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Department Category</label>
+    <select id="filter-dept-category" class="w-full border rounded px-3 py-2">
+      <option value="">All Categories</option>
+      {% for category in dept_categories %}
+      <option value="{{ category }}">{{ category }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Hall Department</label>
+    <select id="filter-hall-dept" class="w-full border rounded px-3 py-2">
+      <option value="">All Hall Departments</option>
+      {% for hall in hall_department %}
+      <option value="{{ hall }}">{{ hall }}</option>
+      {% endfor %}
+    </select>
+  </div>
+</div>
+
 
 </div>
 
-<!-- Table -->
-<div class="bg-white shadow-md rounded-lg overflow-hidden">
-  <div class="overflow-y-auto max-h-[500px] border border-gray-300 rounded-lg">
-    <table id="schedule-table" class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-100">
-        <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Serial No</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Schedule Date</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Session</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Hall No</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Hall Department</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Staff Department</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Staff ID</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Staff Name</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Designation</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Staff Category</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Dept Category</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase"> Hall Dept Category</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Double Session</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for schedule in schedules %}
-        <tr>
-          <td>{{ schedule.serial_number }}</td>
-          <td>{{ schedule.date }}</td>
-          <td>{{ schedule.session|default:"-" }}</td>
-          <td>{{ schedule.hall_no }}</td>
-          <td>{{ schedule.hall_department }}</td>
-          <td>{{ schedule.dept_name }}</td>
-          <td>{{ schedule.staff_id|default:"-" }}</td>
-          <td>{{ schedule.name|default:"-" }}</td>
-          <td>{{ schedule.designation|default:"-" }}</td>
-          <td>{{ schedule.staff_category|default:"-" }}</td>
-          <td>{{ schedule.dept_category|default:"-" }}</td>
-          <td>{{ schedule.hall_dept_category|default:"-" }}</td>
-          <td>{% if schedule.double_session %}Yes{% else %}No{% endif %}</td>
-          <td>
-            <button type="button" class="edit-btn text-blue-600 underline" data-id-edit="{{ schedule.serial_number }}"
+   <!-- Table Container with Scroll -->
+  <div class="bg-white shadow-md rounded-lg border border-gray-300 flex-1 min-h-0">
+    <div id="showingCount" class="record-count text-sm text-gray-700 mb-2">
+    Showing all records
+</div>
+
+    <!-- Single wrapper for both horizontal and vertical scroll -->
+    <div class="overflow-auto max-h-[500px]">
+      <table id="schedule-table" class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-100 sticky top-0 z-10">
+         <tr data-date="{{ schedule.date }}" 
+    data-dept-category="{{ schedule.dept_category }}" 
+    data-hall-department="{{ schedule.hall_department }}">
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Serial No</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Schedule Date</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Session</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Hall No</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Hall Department</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Staff Department</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Staff ID</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Staff Name</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Designation</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Staff Category</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Dept Category</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Hall Dept Category</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Double Session</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for schedule in schedules %}
+          <tr data-date="{{ schedule.date }}" 
+              data-dept-category="{{ schedule.dept_category }}" 
+              data-hall-department="{{ schedule.hall_department }}">
+            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.serial_number }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.date }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.session|default:"-" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_no }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_department }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.dept_name }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.staff_id|default:"-" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.name|default:"-" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.designation|default:"-" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.staff_category|default:"-" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.dept_category|default:"-" }}</td>            
+            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_dept_category|default:"-" }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">{% if schedule.double_session %}Yes{% else %}No{% endif %}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <!-- <button type="button" class="edit-btn text-blue-600 underline" data-id-edit="{{ schedule.serial_number }}"
+                data-edit="{{ schedule.date }}" data-hallno="{{ schedule.hall_no }}"
+                data-session="{{ schedule.session|default:'-' }}" hall-department="{{schedule.hall_department}}" hall-category="{{schedule.hall_dept_category}}">
+                Edit
+              </button>
+              <button type="button" class="delete-btn text-red-600" data-id-delete="{{ schedule.serial_number }}"
+                data-staffid="{{ schedule.staff_id|default:'-' }}" data-date="{{ schedule.date }}"
+                data-session="{{ schedule.session|default:'-' }}" data-hallno="{{ schedule.hall_no }}">
+                Delete
+              </button> -->
+              <button type="button" class="edit-btn text-blue-600 underline" data-id-edit="{{ schedule.serial_number }}"
               data-edit="{{ schedule.date }}" data-hallno="{{ schedule.hall_no }}"
-              data-session="{{ schedule.session|default:'-' }}" hall-department="{{schedule.hall_department}}" hall-category="{{schedule.hall_dept_category}}">
+              data-session="{{ schedule.session|default:'-' }}" data-hall-department="{{ schedule.hall_department }}"
+              data-hall-category="{{ schedule.hall_dept_category }}">
               Edit
             </button>
-            <button type="button" class="delete-btn text-red-600" data-id-delete="{{ schedule.serial_number }}"
-              data-staffid="{{ schedule.staff_id|default:'-' }}" data-date="{{ schedule.date }}"
-              data-session="{{ schedule.session|default:'-' }}" data-hallno="{{ schedule.hall_no }}">
+
+            <!-- Delete Button -->
+            <button type="button" class="delete-btn text-red-600 underline"
+              data-id-delete="{{ schedule.serial_number }}" data-staffid="{{ schedule.staff_id|default:'-' }}"
+              data-date="{{ schedule.date }}" data-session="{{ schedule.session|default:'-' }}"
+              data-hallno="{{ schedule.hall_no }}">
               Delete
             </button>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="12" class="text-center text-gray-500 py-4">No schedule records found.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="14" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">No schedule records found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+
+
+
 <!-- Delete Confirmation Modal -->
 <div id="deleteModal" class="modal">
   <div class="modal-content">
@@ -143,6 +186,8 @@
 </div>
 
 
+
+
 <!-- Edit Modal -->
 <div id="editModal" class="custom-modal hidden">
   <div class="custom-modal-content">
@@ -163,23 +208,22 @@
 
       <select id="staffSelect" name="staff-edit">
         <option value="">-- Select Staff --</option>
-        <option value="S101" id="staff-edit">S101</option>
+        <!-- <option value="S101" id="staff-edit">S101</option>
         <option value="S102" id="staff-edit">S102</option>
-        <option value="S103" id="staff-edit">S103</option>
+        <option value="S103" id="staff-edit">S103</option> -->
       </select>
 
-      <div class="custom-modal-buttons">
-        <button id="confirmEditBtn" class="confirm-btn" type="submit">Confirm</button>
-        <button id="cancelEditBtn" class="cancel-btn">Cancel</button>
-      </div>
+     <div class="custom-modal-buttons">
+  <button id="confirmEditBtn" class="confirm-btn" type="submit">Confirm</button>
+  <button id="cancelEditBtn" class="cancel-btn" type="button">Cancel</button>
+</div>
+
 
     </form>
 
 
   </div>
 </div>
-
-
 
 <script src="{% static 'js/view_schedule.js' %}"></script>
 <style>
@@ -333,10 +377,6 @@
     background-color: #757575;
   }
 
-
-
-
-
   .custom-modal {
     display: none;
     position: fixed;
@@ -383,11 +423,42 @@
     border-radius: 4px;
     cursor: pointer;
   }
+  
+  /* Ensure the table header stays fixed during scroll */
+  thead.sticky th {
+    background-color: #f3f4f6;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: inset 0 -1px 0 #e5e7eb;
+  }
+  
+  /* Custom scrollbar for the table */
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #c5c5c5;
+    border-radius: 4px;
+  }
+  
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
 </style>
 
-
-
-<script>
+<!-- <script>
   const getStaffUrl = "{% url 'get_available_staff' %}";
+</script> -->
+<script>
+    // Set global variables that your external JS can access
+    window.getStaffUrl = "{% url 'get_available_staff' %}";
+    console.log('Staff URL set:', window.getStaffUrl); // For debugging
 </script>
 {% endblock %}

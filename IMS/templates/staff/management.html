@@ -13,15 +13,7 @@
         <h1 class="text-3xl font-bold text-gray-800">Staff Management</h1>
         <p class="mt-2 text-sm text-gray-600">Manage staff records</p>
     </div> -->
-<div class="flex justify-end mb-4">
-    <a href="{% url 'staff:download_staff_data' %}"
-       class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm sm:text-base font-medium transition-all duration-200 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 shadow-sm hover:shadow-md flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-        </svg>
-        Download Staff Data
-    </a>
-</div>
+
 
 
 <!-- Upload Card -->
@@ -74,18 +66,32 @@
         </div>
 
         <!-- Left-aligned Button (Updated Section) -->
-        <div class="pt-4 flex justify-start">
-            <button type="submit" 
-                class="bg-blue-600 hover:bg-blue-700 
-                text-white px-5 py-2.5 rounded-lg text-sm sm:text-base
-                font-medium transition-all duration-200
-                focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                shadow-sm hover:shadow-md flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                </svg>
-                Upload & Process
-            </button>
+        <div class="pt-4 flex justify-start space-x-4">
+    <!-- Upload & Process -->
+    <button type="submit" 
+        class="bg-blue-600 hover:bg-blue-700 
+        text-white px-5 py-2.5 rounded-lg text-sm sm:text-base
+        font-medium transition-all duration-200
+        focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+        shadow-sm hover:shadow-md flex items-center justify-center w-56">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+        </svg>
+        Upload & Process
+    </button>
+
+    <!-- Download Staff Data -->
+    <a href="{% url 'staff:download_staff_data' %}"
+       class="bg-green-600 hover:bg-green-700 text-white 
+       px-5 py-2.5 rounded-lg text-sm sm:text-base font-medium 
+       transition-all duration-200 focus:ring-2 focus:ring-green-500 
+       focus:ring-offset-2 shadow-sm hover:shadow-md flex items-center justify-center w-56">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+        Download Staff Data
+    </a>
+</div>
         </div>
     </form>
 </div>
