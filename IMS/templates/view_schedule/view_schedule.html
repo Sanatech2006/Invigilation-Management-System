@@ -225,6 +225,11 @@
   </div>
 </div>
 
+
+<script>
+  window.getStaffUrl = "{% url 'get_available_staff' %}";
+</script>
+
 <script src="{% static 'js/view_schedule.js' %}"></script>
 <style>
   /* Modal background */
@@ -456,9 +461,9 @@
 <!-- <script>
   const getStaffUrl = "{% url 'get_available_staff' %}";
 </script> -->
-<script>
+<!-- <script>
     // Set global variables that your external JS can access
     window.getStaffUrl = "{% url 'get_available_staff' %}";
     console.log('Staff URL set:', window.getStaffUrl); // For debugging
-</script>
+</script> -->
 {% endblock %}
