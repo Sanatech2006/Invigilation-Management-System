@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Duty Schedule{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <h1 class="text-3xl font-bold mb-6 text-gray-900">My Duty Schedule</h1>
+
+  {% if schedule %}
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 shadow-sm rounded-lg border border-gray-300">
+        <thead class="bg-blue-600">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Date</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Time</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Exam</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Hall</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Additional Notes</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for duty in schedule %}
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ duty.date }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ duty.time }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ duty.exam_name }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ duty.hall_name }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ duty.notes|default:"-" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-gray-700 text-lg">No duty schedules assigned.</p>
+  {% endif %}
+</div>
+{% endblock %}

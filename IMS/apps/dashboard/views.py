@@ -6,9 +6,16 @@ from apps.exam_dates.models import ExamDate
 from django.db.models import Sum, Count
 from django.utils import timezone
 import json
+from django.shortcuts import redirect
+from apps.common.decorators import role_required
 
 class DashboardView(View):
-    def get(self, request):
+     def get(self, request):
+        role = request.session.get('role')
+        # Allow roles 1, 2, 3, 4 to access dashboard
+        if role not in [1, 2, 3, 4]:
+            return redirect('login')
+
         exam_dates = ExamDate.objects.all().order_by('date')
 
         category_order = ['AIDED', 'SFM', 'SFW']
@@ -43,5 +50,6 @@ class DashboardView(View):
             'chart_category_with_count': zip(ordered_staff_categories, ordered_staff_counts),
             'chart_session_with_total': zip(ordered_session_categories, ordered_session_totals),
         }
+        context['user_role'] = role
 
         return render(request, 'dashboard/dashboard.html', context)

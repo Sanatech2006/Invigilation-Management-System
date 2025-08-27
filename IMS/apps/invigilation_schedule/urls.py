@@ -11,4 +11,5 @@ urlpatterns = [
     path("api/filter-options/", views.get_filter_options, name="get_filter_options"),
     path("api/filtered-schedule/", views.get_filtered_schedule, name="get_filtered_schedule"),
     path('get_available_staff/', views.get_available_staff, name='get_available_staff'),
+    path('get-eligible-staff/', views.get_eligible_staff, name='get_eligible_staff'),
 ]

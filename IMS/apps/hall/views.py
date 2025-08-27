@@ -574,18 +574,28 @@ def assign_staff(request):
         return redirect('generate_schedule')
 
     # Step 1: Randomize staff order
-    active_staff = list(Staff.objects.filter(is_active=True))
-    total_staff = len(active_staff)
-    unique_randoms = random.sample(range(1, total_staff + 1), total_staff)
+    # active_staff = list(Staff.objects.filter(is_active=True))
+    # total_staff = len(active_staff)
+    # unique_randoms = random.sample(range(1, total_staff + 1), total_staff)
 
-    for staff, rand_val in zip(active_staff, unique_randoms):
-        staff.random = rand_val
-        staff.save(update_fields=['random'])
+    # for staff, rand_val in zip(active_staff, unique_randoms):
+    #     staff.random = rand_val
+    #     staff.save(update_fields=['random'])
 
     exam_dates = list(ExamDate.objects.all().order_by('date'))
     total_dates = len(exam_dates)
 
-    eligible_staff = Staff.objects.filter(is_active=True, session__gt=0).order_by('-session', 'random')
+    # eligible_staff = Staff.objects.filter(is_active=True, session__gt=0).order_by('-session', 'random')
+    # eligible_staff = Staff.objects.filter(is_active=True, session__gt=0).order_by('-session')
+    from django.db.models import Count
+
+    eligible_staff = (
+        Staff.objects
+        .filter(is_active=True, session__gt=0)
+        .annotate(dept_size=Count('dept_name'))
+        .order_by('-session', '-dept_size')
+    )
+
 
     # 🔧 Helper: Get matched slots with progressive fallback
     def get_matched_slots(staff):
@@ -786,6 +796,7 @@ def assign_staff(request):
 
         elif remaining_assignments < total_dates:
             selected_dates = random.sample(exam_dates, remaining_assignments)
+            # selected_dates = exam_dates[:remaining_assignments]
             session_tracker = {'1': 0, '2': 0}
             assigned_departments = set()
 
@@ -847,13 +858,28 @@ def assign_staff(request):
                 staff_id__isnull=True,
                 hall_dept_category=dept_category
             ).count()
-            
+# SAQ
             if unassigned_count > 0:
                 assignments_made = reduce_unassigned_slots(dept_category)
                 print(
                     f"{dept_category}: Optimization assigned {assignments_made} slots. "
                     f"{unassigned_count - assignments_made} still unassigned."
                 )
+        categories = ['AIDED', 'SFM', 'SFW']
+        for category in categories:
+            total_category_slots = InvigilationSchedule.objects.filter(hall_dept_category=category).count()
+            assigned_category_slots = InvigilationSchedule.objects.filter(
+            hall_dept_category=category, staff_id__isnull=False
+            ).count()
+            unassigned_category_slots = total_category_slots - assigned_category_slots
+        
+            print(f"{category}: Assigned {assigned_category_slots}/{total_category_slots} slots.")
+            messages.success(request, f"{category}: Assigned {assigned_category_slots}/{total_category_slots} slots.")
+
+        total_slots = InvigilationSchedule.objects.count()
+        unassigned_slots = InvigilationSchedule.objects.filter(staff_id__isnull=True).count()
+        print(f"Total unassigned slots = {unassigned_slots}/{total_slots}")
+        messages.info(request, f"Total unassigned slots = {unassigned_slots}/{total_slots}")
     
     return redirect('generate_schedule')
 

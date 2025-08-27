@@ -330,6 +330,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const editModal = document.getElementById("editModal");
     const cancelEditBtn = document.getElementById("cancelEditBtn");
     const confirmEditBtn = document.getElementById("confirmEditBtn");
+    
 
     //   const getStaffUrl = "/get_available_staff"; // Update if needed
     const getStaffUrl = window.getStaffUrl;
@@ -390,32 +391,119 @@ document.addEventListener("DOMContentLoaded", function () {
             el.addEventListener("change", fetchFilteredData);
         });
 
+
+    // ✅ Function to delete a schedule
+// ✅ Function to clear staff assignment (not delete entire row)
+function clearStaffAssignment(serialNumber, staffId, date, hallNo, session) {
+    // Convert date from "July 28, 2025" to "2025-07-28" format
+    function formatDateForBackend(dateString) {
+        const months = {
+            'January': '01', 'February': '02', 'March': '03', 'April': '04',
+            'May': '05', 'June': '06', 'July': '07', 'August': '08',
+            'September': '09', 'October': '10', 'November': '11', 'December': '12'
+        };
+        
+        const parts = dateString.split(' ');
+        if (parts.length === 3) {
+            const month = months[parts[0]];
+            const day = parts[1].replace(',', '').padStart(2, '0');
+            const year = parts[2];
+            return `${year}-${month}-${day}`;
+        }
+        
+        return dateString;
+    }
+    
+    const formattedDate = formatDateForBackend(date);
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('serial_number', serialNumber);
+    formData.append('staff_id', staffId);
+    formData.append('date', formattedDate);
+    formData.append('hall_no', hallNo);
+    formData.append('session', session);
+    
+    console.log("Clearing staff assignment:", {serialNumber, formattedDate, hallNo, session});
+    
+    // Send request to backend
+    fetch('/view-schedule/clear_staff/', {  // Update this endpoint
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCSRFToken(),
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update the row instead of removing it
+            const rows = tableBody.querySelectorAll('tr');
+            rows.forEach(row => {
+                const deleteBtn = row.querySelector('.delete-btn');
+                if (deleteBtn && deleteBtn.getAttribute('data-id-delete') === serialNumber) {
+                    // Clear only the staff-related cells (columns 6-10)
+                    for (let i = 6; i <= 10; i++) {
+                        const cell = row.querySelector(`td:nth-child(${i})`);
+                        if (cell) cell.textContent = '-';
+                    }
+                }
+            });
+            
+            alert('Staff assignment cleared successfully!');
+        } else {
+            alert('Error clearing staff assignment: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error clearing staff assignment');
+    });
+}
+
+    // ✅ Function to get CSRF token (required for Django)
+    function getCSRFToken() {
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+        return cookieValue;
+    }
+
     // ✅ Event delegation for edit/delete buttons
     table.addEventListener("click", function (e) {
-        const target = e.target;
+    const target = e.target;
 
-        // 🗑️ DELETE
-        if (target.classList.contains("delete-btn")) {
-            const serial = target.getAttribute("data-id-delete");
-            const staffId = target.getAttribute("data-staffid");
-            const date = target.getAttribute("data-date");
-            const hallNo = target.getAttribute("data-hallno");
-            const session = target.getAttribute("data-session");
+    // 🗑️ DELETE
+    if (target.classList.contains("delete-btn")) {
+        const serial = target.getAttribute("data-id-delete");
+        let staffId = target.getAttribute("data-staffid");
+        const date = target.getAttribute("data-date");
+        const hallNo = target.getAttribute("data-hallno");
+        const session = target.getAttribute("data-session");
+        
+        // Convert '-' to empty string for backend
+        if (staffId === '-' || staffId === 'null') staffId = '';
 
-            document.getElementById("SerialID").textContent = serial;
-            document.getElementById("modalStaffId").textContent = staffId;
-            document.getElementById("modalDate").textContent = date;
-            document.getElementById("modalHallNo").textContent = hallNo;
-            document.getElementById("modalSession").textContent = session;
+        document.getElementById("SerialID").textContent = serial;
+        document.getElementById("modalStaffId").textContent = staffId || '-';
+        document.getElementById("modalDate").textContent = date;
+        document.getElementById("modalHallNo").textContent = hallNo;
+        document.getElementById("modalSession").textContent = session || '-';
 
-            document.getElementById("inputSerialNumber").value = serial;
-            document.getElementById("inputStaffId").value = staffId;
-            document.getElementById("inputDate").value = date;
-            document.getElementById("inputHallNo").value = hallNo;
-            document.getElementById("inputSession").value = session;
+        document.getElementById("inputSerialNumber").value = serial;
+        document.getElementById("inputStaffId").value = staffId;
+        document.getElementById("inputDate").value = date;
+        document.getElementById("inputHallNo").value = hallNo;
+        document.getElementById("inputSession").value = session;
 
-            deleteModal.style.display = "flex";
-        }
+        deleteModal.style.display = "flex";
+        
+        // Store the deletion data in a variable instead of on the button
+        window.pendingDeleteData = {
+            serial, staffId, date, hallNo, session
+        };
+    }
 
         // EDIT
         if (target.classList.contains("edit-btn")) {
@@ -462,22 +550,33 @@ document.addEventListener("DOMContentLoaded", function () {
             editModal.style.display = "block";
         }
     });
-
+    
     // Cancel buttons
     cancelDelete?.addEventListener("click", () => deleteModal.style.display = "none");
     cancelEditBtn?.addEventListener("click", () => editModal.style.display = "none");
 
-    // Confirm edit (optional alert)
-    confirmEditBtn?.addEventListener("click", function () {
-        const staffId = document.getElementById("staffSelect").value;
-        if (!staffId) {
-            alert("Please select a staff ID");
-            return;
+    const deleteForm = document.getElementById("deleteForm");
+if (deleteForm) {
+    deleteForm.addEventListener("submit", function(e) {
+        e.preventDefault(); // Prevent default form submission
+        
+        if (window.pendingDeleteData) {
+            clearStaffAssignment(  // Changed from deleteSchedule
+                window.pendingDeleteData.serial, 
+                window.pendingDeleteData.staffId, 
+                window.pendingDeleteData.date, 
+                window.pendingDeleteData.hallNo, 
+                window.pendingDeleteData.session
+            );
+            deleteModal.style.display = "none";
         }
-        alert(`Reassigned to Staff ID: ${staffId}`);
-        editModal.style.display = "none";
     });
-});
+} else {
+    console.error("Delete form not found!");
+}});
+
+
+
 
 
 
@@ -499,11 +598,12 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     };
 
-    // Get references
+    // Get references - ADD THE NEW FILTER
     const elements = {
         dateFilter: document.getElementById('filter-date'),
         deptCategoryFilter: document.getElementById('filter-dept-category'),
         hallDeptFilter: document.getElementById('filter-hall-dept'),
+        hallDeptCategoryFilter: document.getElementById('filter-hall-dept-category'), // NEW
         tableBody: document.querySelector('tbody'),
         showingCount: document.querySelector('.record-count'),
         scheduleRows: document.querySelectorAll('tbody tr')
@@ -553,6 +653,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             populateSelect(elements.hallDeptFilter, hallDepartments);
             
+            // For hall department category, extract from table (12th column)
+            const hallDeptCategories = extractUniqueValuesFromColumn(12); // 12th column for hall_dept_category
+            console.log('[DEBUG] Extracted hall department categories from table:', hallDeptCategories);
+            populateSelect(elements.hallDeptCategoryFilter, hallDeptCategories);
+            
         } catch (error) {
             console.error('[ERROR] Failed to load from API, using table data:', error);
             
@@ -560,10 +665,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const dates = extractUniqueValuesFromColumn(2); // 2nd column for date
             const deptCategories = extractUniqueValuesFromColumn(11); // 11th column for dept category
             const hallDepartments = extractUniqueValuesFromColumn(5); // 5th column for hall department
+            const hallDeptCategories = extractUniqueValuesFromColumn(12); // 12th column for hall_dept_category
             
             populateSelect(elements.dateFilter, dates);
             populateSelect(elements.deptCategoryFilter, deptCategories);
             populateSelect(elements.hallDeptFilter, hallDepartments);
+            populateSelect(elements.hallDeptCategoryFilter, hallDeptCategories);
         }
     }
 
@@ -588,7 +695,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log(`[DEBUG] Populated ${select.id} with ${values.length} options`);
     }
 
-    // Apply filters to table rows
+    // Apply filters to table rows - UPDATED TO INCLUDE NEW FILTER
     function applyFilters() {
         console.log('[DEBUG] Applying filters');
 
@@ -596,6 +703,7 @@ document.addEventListener('DOMContentLoaded', function() {
             date: elements.dateFilter.value.toLowerCase().trim(),
             deptCategory: elements.deptCategoryFilter.value.toLowerCase().trim(),
             hallDept: elements.hallDeptFilter.value.toLowerCase().trim(),
+            hallDeptCategory: elements.hallDeptCategoryFilter.value.toLowerCase().trim(), // NEW
         };
 
         console.log('[DEBUG] Current filters:', filters);
@@ -607,12 +715,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 date: row.querySelector('td:nth-child(2)')?.textContent.toLowerCase().trim() || '',
                 deptCategory: row.querySelector('td:nth-child(11)')?.textContent.toLowerCase().trim() || '',
                 hallDept: row.querySelector('td:nth-child(5)')?.textContent.toLowerCase().trim() || '',
+                hallDeptCategory: row.querySelector('td:nth-child(12)')?.textContent.toLowerCase().trim() || '', // NEW
             };
 
             const matchesAllFilters = (
                 (!filters.date || rowData.date === filters.date) &&
                 (!filters.deptCategory || rowData.deptCategory === filters.deptCategory) &&
-                (!filters.hallDept || rowData.hallDept === filters.hallDept)
+                (!filters.hallDept || rowData.hallDept === filters.hallDept) &&
+                (!filters.hallDeptCategory || rowData.hallDeptCategory === filters.hallDeptCategory) // NEW
             );
 
             row.style.display = matchesAllFilters ? '' : 'none';
@@ -625,8 +735,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Event listeners
-    [elements.dateFilter, elements.deptCategoryFilter, elements.hallDeptFilter].forEach(filter => {
+    // Event listeners - ADD THE NEW FILTER
+    [elements.dateFilter, elements.deptCategoryFilter, elements.hallDeptFilter, elements.hallDeptCategoryFilter].forEach(filter => {
         filter.addEventListener('change', function() {
             console.log(`[DEBUG] ${this.id} changed to "${this.value}"`);
             applyFilters();
@@ -640,8 +750,72 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('[DEBUG] Date options:', Array.from(elements.dateFilter.options).map(opt => opt.value));
             console.log('[DEBUG] Dept category options:', Array.from(elements.deptCategoryFilter.options).map(opt => opt.value));
             console.log('[DEBUG] Hall dept options:', Array.from(elements.hallDeptFilter.options).map(opt => opt.value));
+            console.log('[DEBUG] Hall dept category options:', Array.from(elements.hallDeptCategoryFilter.options).map(opt => opt.value)); // NEW
             applyFilters();
         }, 100);
     });
 });
 
+// Search functionality for the schedule table
+// Live search functionality for the schedule table
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const table = document.getElementById('schedule-table');
+    const tableBody = table.querySelector('tbody');
+    const rows = tableBody.querySelectorAll('tr');
+    const showingCount = document.getElementById('showingCount');
+
+    function performSearch() {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        if (searchTerm === '') {
+            // Show all rows if search is empty
+            rows.forEach(row => {
+                row.style.display = '';
+                visibleCount++;
+            });
+            showingCount.textContent = `Showing all records`;
+            return;
+        }
+
+        // Search through each row
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            let matchFound = false;
+
+            // Check each cell in the row for the search term
+            cells.forEach(cell => {
+                if (cell.textContent.toLowerCase().includes(searchTerm)) {
+                    matchFound = true;
+                }
+            });
+
+            // Show or hide the row based on search results
+            if (matchFound) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        showingCount.textContent = `Showing ${visibleCount} of ${rows.length} records`;
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', performSearch);
+    
+    clearSearchBtn.addEventListener('click', function() {
+        searchInput.value = '';
+        performSearch();
+    });
+
+    // Search on Enter key press (optional)
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+});

@@ -9,7 +9,7 @@ import sys
 from django.shortcuts import redirect
 from django.shortcuts import render
 from .models import InvigilationSchedule
-from ..staff.models import Staff 
+from apps.staff.models import Staff
 from django.views.decorators.http import require_GET
 from datetime import datetime
 
@@ -142,6 +142,7 @@ def get_filtered_schedule(request):
     date = request.GET.get("date")
     dept_category = request.GET.get("dept_category")
     hall_department = request.GET.get("hall_department")
+    
 
     qs = InvigilationSchedule.objects.all()
 

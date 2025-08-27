@@ -46,6 +46,11 @@ INSTALLED_APPS = [
     'apps.invigilation_settings',
     'apps.exam_dates', 
     'apps.invigilation_schedule',
+    'apps.manual_assignment',
+    'apps.login',
+    'apps.common',
+    'apps.reports',
+    "django_extensions",
     # 'apps.scheduling',
     # 'apps.reports',
     # 'apps.core',
@@ -73,6 +78,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.common.context_processors.user_role',
             ],
         },
     },
@@ -90,8 +96,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'ims',
         'USER': 'postgres',
-        # 'PASSWORD': 'saq123',
-        'PASSWORD': 'Postgres',
+        'PASSWORD': 'saq123',
+        # 'PASSWORD': 'Postgres',
         'HOST': 'localhost', 
         'PORT': '5432',
     }
@@ -139,6 +145,18 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = BASE_DIR / "staticfiles"  # For production
 
+
+LOGIN_URL = '/login/'
+
+
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_DOMAIN = None
+SESSION_COOKIE_PATH = '/'
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -147,3 +165,5 @@ import sys
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
+
+

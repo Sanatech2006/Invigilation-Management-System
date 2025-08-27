@@ -21,3 +21,12 @@ document.addEventListener('click', function(event) {
         mobileButton.setAttribute('aria-expanded', 'false');
     }
 });
+
+
+function openLogoutModal() {
+  document.getElementById('logoutModal').style.display = 'block';
+}
+
+function closeLogoutModal() {
+  document.getElementById('logoutModal').style.display = 'none';
+}

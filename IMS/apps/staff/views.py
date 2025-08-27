@@ -5,8 +5,9 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from django.db import transaction
-from .models import Staff, Department, Designation
+from .models import  Department, Designation
 from .forms import StaffUploadForm
+from apps.staff.models import Staff
 from django.db.models.functions import Trim
 from datetime import datetime
 import traceback
@@ -146,7 +147,7 @@ def staff_management(request):
                     required_columns = [
                         'staff_id', 'name', 'staff_category', 'designation',
                         'dept_category', 'dept_name', 'mobile', 'email',
-                        'date_of_joining', 'session', 'fixed_session'
+                        'date_of_joining', 'session', 'fixed_session','role'
                     ]
                     
                     missing = [col for col in required_columns if col not in df.columns]
@@ -165,17 +166,17 @@ def staff_management(request):
                         staff_id = str(row['staff_id']).strip()
                         
                         try:
-                            # Validate required fields
+    # Validate required fields
                             if not staff_id:
                                 row_errors.append("Missing staff ID")
                                 raise ValueError("Missing staff ID")
-                            
+
                             # Get/create designation
                             designation_name = str(row['designation']).strip()
                             if not designation_name:
                                 row_errors.append("Missing designation")
                                 raise ValueError("Missing designation")
-                            
+
                             designation, _ = Designation.objects.get_or_create(
                                 name=designation_name,
                                 defaults={'category': str(row.get('dept_category', 'Teaching')).strip()}
@@ -193,21 +194,34 @@ def staff_management(request):
                                 'date_of_joining': str(row['date_of_joining']).strip() if pd.notna(row['date_of_joining']) else None,
                                 'session': int(float(str(row['session']).strip() or -1)),
                                 'fixed_session': int(float(str(row['fixed_session']).strip() or 0)),
-                                'is_active': True
+                                'is_active': True,
                             }
+
+                            # Safely add role field
+                            role_value = row.get('role', None)
+                            if role_value is not None and not pd.isna(role_value):
+                                try:
+                                    staff_data['role'] = int(float(role_value))
+                                except (ValueError, TypeError):
+                                    # Optionally log error or set default role here
+                                    raise ValueError(f"Invalid role value '{role_value}' for staff_id {staff_id}")
+                            else:
+                                # Optional: omit role or assign default if needed
+                                pass
                             
-                            # Create/update record
-                            Staff.objects.update_or_create(
-                                staff_id=staff_id,
-                                defaults=staff_data
-                            )
+                            # Set password as staff_id (if needed)
+                            staff_data['password'] = staff_id
+                            
+                            # Single create/update call
+                            Staff.objects.update_or_create(staff_id=staff_id, defaults=staff_data)
                             success_count += 1
-                            
+
                         except Exception as e:
                             error_msg = f"{str(e)}: {', '.join(row_errors)}" if row_errors else str(e)
                             error_rows.append(f"Row {index+2} (ID: {staff_id}): {error_msg}")
                             logger.error(f"Error in row {index+2}: {error_msg}\n{traceback.format_exc()}")
                             continue
+
                     
                     # Final report
                     msg = f"Successfully processed {success_count}/{len(df)} records"
@@ -385,7 +399,7 @@ def staff_management(request):
                     required_columns = [
                         'staff_id', 'name', 'staff_category', 'designation',
                         'dept_category', 'dept_name', 'mobile', 'email',
-                        'date_of_joining', 'session', 'fixed_session'
+                        'date_of_joining', 'session', 'fixed_session','role'
                     ]
                     
                     missing = [col for col in required_columns if col not in df.columns]
@@ -434,6 +448,15 @@ def staff_management(request):
                                 'fixed_session': int(float(str(row['fixed_session']).strip() or 0)),
                                 'is_active': True
                             }
+                            role_value = row.get('role', None)
+                            if role_value is not None and not pd.isna(role_value):
+                                try:
+                                    staff_data['role'] = int(float(role_value))
+                                except (ValueError, TypeError) as e:
+                                    raise ValueError(f"Invalid role value '{role_value}' for staff_id {staff_id}: {str(e)}")
+                            else:
+                                # If no role provided, optional: skip or set default here
+                                pass
                             
                             # Create/update record
                             Staff.objects.update_or_create(
@@ -482,12 +505,12 @@ def download_staff_data(request):
     ws.title = "Staff Data"
 
     # Header row
-    headers = ["Staff ID", "Name", "Staff Type", "Designation", "Dept Category", "Dept Name", "Mobile"]
+    headers = ["Staff ID", "Name", "Staff Type", "Designation", "Dept Category", "Dept Name","Role", "Mobile" ]
     ws.append(headers)
 
     # Fetch staff records
     staff_qs = Staff.objects.all().values_list(
-        "staff_id", "name", "staff_category", "designation", "dept_category", "dept_name", "mobile"
+        "staff_id", "name", "staff_category", "designation", "dept_category", "dept_name","role", "mobile"
     )
 
     for row in staff_qs:

@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Invigilation System - Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+  <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+    <h2 class="text-2xl font-semibold mb-6 text-center">Login</h2>
+
+    {% if messages %}
+      <div class="mb-4">
+        {% for message in messages %}
+          <div class="text-red-600 text-sm">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}" novalidate>
+      {% csrf_token %}
+      
+      <label for="staff_id" class="block text-gray-700 font-semibold mb-2">Staff ID</label>
+      <input
+        type="text"
+        id="staff_id"
+        name="staff_id"
+        required
+        placeholder="Enter your Staff ID"
+        class="w-full px-4 py-2 mb-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+
+      <label for="password" class="block text-gray-700 font-semibold mb-2">Password</label>
+<div class="relative h-12">
+  <input
+    type="password"
+    id="password"
+    name="password"
+    required
+    placeholder="Enter your Password"
+    class="w-full px-4 py-2 mb-6 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  <button type="button" onclick="togglePasswordVisibility()" 
+    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 focus:outline-none">
+    <!-- Eye icon SVG here -->
+    <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path id="eyeOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path id="eyeOpenPath" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+    </svg>
+  </button>
+</div>
+
+      <button
+        type="submit"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-md transition"
+      >
+        Login
+      </button>
+    </form>
+  </div>
+ <script src="{% static 'js/login.js' %}"></script>
+</body>
+</html>

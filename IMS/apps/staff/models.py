@@ -1,8 +1,9 @@
 from django.db import models
 from django.core.validators import validate_email, RegexValidator
+from django.contrib.auth.models import User
 
 class Department(models.Model):
-    app_label = 'staff'
+    # app_label = 'staff'
     """Department model to store department types and names"""
     DEPT_TYPE_CHOICES = [
         ('AIDED', 'Aided'),
@@ -17,7 +18,7 @@ class Department(models.Model):
         return self.name 
 
 class Designation(models.Model):
-    app_label = 'staff'
+    # app_label = 'staff'
     """Designation model"""
     name = models.CharField(max_length=100, unique=True)
     category = models.CharField(max_length=50) 
@@ -26,7 +27,7 @@ class Designation(models.Model):
         return self.name 
 
 class Staff(models.Model):
-    app_label = 'staff'
+    # app_label = 'staff'
     """Main staff model"""
     dept_name = models.CharField(
         max_length=100,
@@ -66,9 +67,25 @@ class Staff(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+
+    role = models.IntegerField(
+    null=True,
+    blank=True,
+    help_text="Role of the user: 1=Admin, 2=Squad, 3=HOD, 4=Staff"
+)
+
+
+    password = models.CharField(
+    max_length=128,
+    help_text="Password for login (stored in plain text for now)"
+)
+
     
     class Meta:
-        app_label = 'staff'
+        db_table = 'staff_staff'
+        # app_label = 'apps.staff'
         verbose_name_plural = "Staff"
         ordering = ['name']
     

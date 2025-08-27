@@ -17,19 +17,33 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from apps.invigilation_schedule import views as invigilation_views
+from django.conf import settings
+from django.conf.urls.static import static
+from apps.login.views import login_view
+from apps.login.views import logout_view
+
 
 urlpatterns = [
+    path('', login_view, name='home'),
     path('admin/', admin.site.urls),
-     path('', include('apps.dashboard.urls')),
-     path('staff/', include('apps.staff.urls')),
-     path('student/', include('apps.student.urls')),
-     path('hall/', include('apps.hall.urls')),
-      path('exam-dates/', include('apps.exam_dates.urls', namespace='exam_dates')),
-     path('', include('invigilation_settings.urls')),
-     path('view-schedule/', include('apps.view_schedule.urls')),
+    path('dashboard/', include('apps.dashboard.urls',namespace='dashboard')),
+    path('staff/', include('apps.staff.urls')),
+    path('student/', include('apps.student.urls')),
+    path('hall/', include('apps.hall.urls')),
+    path('exam-dates/', include('apps.exam_dates.urls', namespace='exam_dates')),
+    path('', include('invigilation_settings.urls')),
+    path('view-schedule/', include('apps.view_schedule.urls')),
     path('api/schedule/', invigilation_views.schedule_api, name='schedule_api'),
-      path('exam-dates/', include('apps.exam_dates.urls')),
+    path('manual-assignment/', include('apps.manual_assignment.urls')),
+    path('', include('apps.login.urls')),  
+    path('reports/', include(('reports.urls', 'reports'), namespace='reports')),
+    path('logout/', logout_view, name='logout'),
+    
     
 
     # Add other apps here
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
