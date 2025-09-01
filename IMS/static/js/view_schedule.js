@@ -819,3 +819,107 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+//SWAP Function 
+
+document.addEventListener('DOMContentLoaded', () => {
+  const swapBtn = document.getElementById('swap-button');
+  const checkboxes = document.querySelectorAll('input.swap-checkbox');
+  let selected = new Set();
+
+  // Initialize button disabled state
+  swapBtn.disabled = true;
+  swapBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+
+  // Listen for changes on all swap checkboxes
+  checkboxes.forEach(chk => {
+    chk.addEventListener('change', e => {
+      if (e.target.checked) selected.add(e.target.value);
+      else selected.delete(e.target.value);
+
+      if (selected.size === 2) {
+        swapBtn.disabled = false;
+        swapBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+        swapBtn.classList.add('bg-blue-600', 'cursor-pointer');
+
+        // Disable checkboxes not selected
+        checkboxes.forEach(box => {
+          if (!selected.has(box.value)) box.disabled = true;
+        });
+      } else {
+        swapBtn.disabled = true;
+        swapBtn.classList.remove('bg-blue-600', 'cursor-pointer');
+        swapBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+
+        // Enable all checkboxes
+        checkboxes.forEach(box => (box.disabled = false));
+      }
+    });
+  });
+
+  // Swap button click handler
+  swapBtn.addEventListener('click', () => {
+    if (selected.size !== 2) return;
+
+    if (!confirm('Are you sure you want to swap the selected slots?')) return;
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    const params = new URLSearchParams();
+selected.forEach(id => params.append('slot_ids[]', id));
+
+fetch('/hall/swap_slots/', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded',
+    'X-CSRFToken': csrfToken,
+  },
+  body: params.toString(),
+})
+
+    .then(resp => resp.json())
+    .then(data => {
+      alert(data.message);
+      if (data.success) window.location.reload();
+    })
+    .catch(() => alert('Error occurred while swapping.'));
+  });
+});
+
+//double session filter
+
+document.addEventListener('DOMContentLoaded', () => {
+  const doubleSessionFilter = document.getElementById('filter-double-session');
+  const tableRows = document.querySelectorAll('#schedule-table tbody tr');
+  const showingCount = document.getElementById('showingCount') || document.querySelector('.record-count');
+
+  doubleSessionFilter.addEventListener('change', () => {
+    const selectedValue = doubleSessionFilter.value; // '', 'true', 'false'
+
+    let visibleCount = 0;
+    const totalCount = tableRows.length;
+
+    tableRows.forEach(row => {
+      const doubleSessionText = row.querySelector('td:nth-last-child(3)').textContent.trim().toLowerCase();
+
+      if (!selectedValue) {
+        row.style.display = '';
+        visibleCount++;
+      } else if ((selectedValue === 'true' && doubleSessionText === 'yes') ||
+                 (selectedValue === 'false' && doubleSessionText === 'no')) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    if (showingCount) {
+      if (visibleCount === totalCount) {
+        showingCount.textContent = `Showing all ${totalCount} records`;
+      } else {
+        showingCount.textContent = `Showing ${visibleCount} of ${totalCount} records`;
+      }
+    }
+  });
+});

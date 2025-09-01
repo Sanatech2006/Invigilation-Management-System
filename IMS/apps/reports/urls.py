@@ -1,13 +1,11 @@
-# reports/urls.py
-app_name = 'reports'
 from django.urls import path
 from . import views
 
+  # optional but recommended namespace
+
 urlpatterns = [
-    path('own-schedule/', views.own_schedule, name='own_schedule'),
-    path('visiting-staff/', views.visiting_staff, name='visiting_staff'),
-    path('department-staff-out/', views.department_staff_out, name='department_staff_out'),
-    path('squad-schedule/', views.squad_schedule, name='squad_schedule'),
-    path('schedule-report/', views.schedule_report, name='schedule_report'),
-    path('squad-report/', views.squad_report, name='squad_report'),
+    path('reports/', views.reports_view, name='reports'),
+    path('hod/', views.hod_view, name='hod_reports'),  
+    path('reports/admin/', views.admin_view, name='admin_reports'),
+    # Add other report-specific paths here
 ]

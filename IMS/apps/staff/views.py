@@ -416,7 +416,14 @@ def staff_management(request):
                     for index, row in df.iterrows():
                         row_errors = []
                         staff_id = str(row['staff_id']).strip()
-                        
+                        try:
+                            existing_staff = Staff.objects.get(staff_id=staff_id)
+                            existing_password = existing_staff.password
+                        except Staff.DoesNotExist:
+                            existing_password = None
+
+                        password_to_use = existing_password if existing_password is not None else staff_id
+
                         try:
                             # Validate required fields
                             if not staff_id:
@@ -433,7 +440,8 @@ def staff_management(request):
                                 name=designation_name,
                                 defaults={'category': str(row.get('dept_category', 'Teaching')).strip()}
                             )
-                            
+
+                            password_to_use = existing_password if existing_password is not None else staff_id                   
                             # Prepare data - reading dates as strings
                             staff_data = {
                                 'name': str(row['name']).strip(),
@@ -446,8 +454,11 @@ def staff_management(request):
                                 'date_of_joining': str(row['date_of_joining']).strip() if pd.notna(row['date_of_joining']) else None,
                                 'session': int(float(str(row['session']).strip() or -1)),
                                 'fixed_session': int(float(str(row['fixed_session']).strip() or 0)),
-                                'is_active': True
+                                'is_active': True,
+                                'password': password_to_use,
                             }
+
+                            Staff.objects.update_or_create(staff_id=staff_id, defaults=staff_data)
                             role_value = row.get('role', None)
                             if role_value is not None and not pd.isna(role_value):
                                 try:

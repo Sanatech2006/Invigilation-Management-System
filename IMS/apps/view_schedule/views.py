@@ -5,8 +5,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import json
 from django.forms.models import model_to_dict
-
-
 from apps.invigilation_schedule.models import InvigilationSchedule
 import openpyxl
 from django.http import HttpResponse
@@ -24,7 +22,9 @@ def view_schedule(request):
     
     # Initialize context with all required data
     context = {
-    'schedules': InvigilationSchedule.objects.all(),
+    'schedules': InvigilationSchedule.objects.all().order_by(
+        'dept_category', 'date',  'hall_department', 'hall_no'
+    ),
     'dates': InvigilationSchedule.objects.dates('date', 'day').distinct(),
     'sessions': InvigilationSchedule.objects.values_list('session', flat=True).distinct(),
     'hall_numbers': InvigilationSchedule.objects.values_list('hall_no', flat=True).distinct(),
@@ -40,15 +40,6 @@ def view_schedule(request):
     'dept_categories': InvigilationSchedule.objects.values_list('dept_category', flat=True).distinct(),
     'double_sessions': InvigilationSchedule.objects.values_list('double_session', flat=True).distinct(),
 }
-
-    
-    # Debug output
-    # print(f"Found {len(context['schedules'])} schedules")  # Debug
-    # print(f"Found {len(context['staff_names'])} staff names")  # Debug
-    # Temporary debug - add right before return
-    # print("All schedules from DB:")
-    # for s in context['schedules']:
-    #  print(f"{s.serial_number} | {s.date} | {s.name}")
     
     return render(request, 'view_schedule/view_schedule.html', context)
 
@@ -96,7 +87,6 @@ def download_schedule_excel(request):
     wb.save(response)
     return response
 
-
 def filter_schedule(request):
     date = request.GET.get('date')
     hall_department = request.GET.get('hall_department')
@@ -134,11 +124,6 @@ def filter_schedule(request):
         })
 
     return JsonResponse({'schedules': data})
-
-
-
-# from django.shortcuts import redirect
-# from .models import InvigilationSchedule
 
 from django.shortcuts import redirect
 from datetime import datetime

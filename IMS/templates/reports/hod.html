@@ -1,0 +1,268 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<h1 class="text-4xl font-bold mb-8 text-center text-gray-800">{{ welcome_message }}</h1>
+
+<!-- Summary Section -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+  <div id="cardStaffDetails" class="p-6 bg-blue-100 rounded-xl shadow-lg text-center hover:shadow-xl transition cursor-pointer">
+    <h2 class="text-lg font-semibold text-gray-700">Total Staff</h2>
+    <p class="text-4xl font-bold text-blue-700 mt-2">{{ total_staff }}</p>
+  </div>
+  <div id="cardHallDetails" class="p-6 bg-green-100 rounded-xl shadow-lg text-center hover:shadow-xl transition cursor-pointer">
+    <h2 class="text-lg font-semibold text-gray-700">Total Halls</h2>
+    <p class="text-4xl font-bold text-green-700 mt-2">{{ total_halls }}</p>
+  </div>
+  <div id="cardHallSchedule" class="p-6 bg-yellow-100 rounded-xl shadow-lg text-center hover:shadow-xl transition cursor-pointer">
+    <h2 class="text-lg font-semibold text-gray-700">Sessions Scheduled</h2>
+    <p class="text-4xl font-bold text-yellow-700 mt-2">{{ total_sessions }}</p>
+  </div>
+</div>
+
+
+<div class="mb-6 text-center">
+  <input type="text" id="globalSearchInput" placeholder="Search all tables..."
+    class="border border-gray-300 rounded px-4 py-2 w-80 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+  <button id="globalSearchBtn"
+    class="ml-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Search</button>
+</div>
+
+
+<!-- Buttons to toggle tables -->
+<div class="flex space-x-4 justify-center mb-8">
+  <button id="btnMySchedule" data-target="mySchedule"
+  class="tab-btn px-4 py-2 bg-gray-200 text-black font-bold rounded shadow hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+  My Schedule
+</button>
+
+<button id="btnStaffDetails" data-target="staffDetails"
+  class="tab-btn px-4 py-2 bg-gray-200 text-black font-bold rounded shadow hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+  Staff Details
+</button>
+
+<button id="btnStaffSchedule" data-target="staffSchedule"
+  class="tab-btn px-4 py-2 bg-gray-200 text-black font-bold rounded shadow hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+  Staff Schedule
+</button>
+
+<button id="btnHallDetails" data-target="hallDetails"
+  class="tab-btn px-4 py-2 bg-gray-200 text-black font-bold rounded shadow hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+  Hall Details
+</button>
+
+<button id="btnHallSchedule" data-target="hallSchedule"
+  class="tab-btn px-4 py-2 bg-gray-200 text-black font-bold rounded shadow hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+  Hall Schedule
+</button>
+
+</div>
+
+<div id="reportInstructions" class="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-8 text-gray-800 rounded-lg shadow-lg">
+  <h2 class="text-3xl font-extrabold mb-6 text-yellow-700">Instructions</h2>
+  <ul class="list-disc pl-10 space-y-4 text-left text-gray-700">
+    <li class="hover:bg-yellow-100 p-3 rounded transition-all duration-200">
+      <b class="font-semibold text-yellow-800">My Schedule (What is my duty?):</b>
+      <span class="ml-2">Displays the invigilation schedule of the HOD/Coordinator/MID.</span>
+    </li>
+    <li class="hover:bg-yellow-100 p-3 rounded transition-all duration-200">
+      <b class="font-semibold text-yellow-800">Staff Details (Who are in my department?):</b>
+      <span class="ml-2">Provides information about the staff members working in the department.</span>
+    </li>
+    <li class="hover:bg-yellow-100 p-3 rounded transition-all duration-200">
+      <b class="font-semibold text-yellow-800">Staff Schedule (Where is my staff?):</b>
+      <span class="ml-2">Presents the invigilation schedules of staff members to other departments.</span>
+    </li>
+    <li class="hover:bg-yellow-100 p-3 rounded transition-all duration-200">
+      <b class="font-semibold text-yellow-800">Hall Details (Which halls are scheduled for CIA tests in my department?):</b>
+      <span class="ml-2">Displays information about the halls scheduled for CIA tests in the department.</span>
+    </li>
+    <li class="hover:bg-yellow-100 p-3 rounded transition-all duration-200">
+      <b class="font-semibold text-yellow-800">Hall Schedule (Who is assigned to my hall?):</b>
+      <span class="ml-2">Shows the invigilation schedules of staff members from other departments who are allotted to the department’s halls.</span>
+    </li>
+  </ul>
+</div>
+
+
+
+<!-- Tables wrapped into containers with unique IDs -->
+
+<div id="mySchedule" class="table-container hidden">
+
+  <!-- My Schedule Table -->
+  <h2 class="text-2xl font-semibold mb-4 text-gray-700">My Schedule</h2>
+  <div class="overflow-x-auto rounded-xl shadow-lg mb-10">
+    <table class="w-full border-collapse bg-white text-sm text-left">
+      <thead class="bg-gradient-to-r from-blue-100 to-blue-200 text-gray-800 uppercase text-xs font-semibold tracking-wider">
+        <tr>
+          <th class="px-6 py-3 text-center">S.no</th>
+          <th class="px-6 py-3 text-center">Date</th>
+          <th class="px-6 py-3 text-center">Session</th>
+          <th class="px-6 py-3 text-center">Hall No</th>
+          <th class="px-6 py-3 text-center">Hall Department</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for sched in my_schedule %}
+        <tr class="hover:bg-gray-50 text-center">
+          <td class="px-6 py-3">{{ forloop.counter }}</td>
+          <td class="px-6 py-3">{{ sched.date }}</td>
+          <td class="px-6 py-3">{{ sched.session }}</td>
+          <td class="px-6 py-3">{{ sched.hall_no }}</td>
+          <td class="px-6 py-3">{{ sched.hall_department }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-6 py-4 text-center text-gray-500">No schedule found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div id="staffSchedule" class="table-container hidden">
+  <h2 class="text-2xl font-semibold mb-4 text-gray-700">Staff Schedule</h2>
+  <div class="overflow-x-auto rounded-xl shadow-lg mb-10">
+    <table class="w-full border-collapse bg-white text-sm text-left">
+      <thead class="bg-gradient-to-r from-pink-100 to-pink-200 text-gray-800 uppercase text-xs font-semibold tracking-wider">
+        <tr>
+          <th class="px-6 py-3 text-center">S.no</th>
+          <th class="px-6 py-3 text-center">Staff Name</th>
+          <th class="px-6 py-3 text-center">Date</th>
+          <th class="px-6 py-3 text-center">Session</th>
+          <th class="px-6 py-3 text-center">Hall No</th>
+          <th class="px-6 py-3 text-center">Department</th>
+          <th class="px-6 py-3 text-center">Mobile No</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for schedule in staff_schedule %}
+        <tr class="hover:bg-gray-50 text-center">
+          <td class="px-6 py-3">{{ forloop.counter }}</td>
+          <td class="px-6 py-3">{{ schedule.staff_name }}</td>
+          <td class="px-6 py-3">{{ schedule.date }}</td>
+          <td class="px-6 py-3">{{ schedule.session }}</td>
+          <td class="px-6 py-3">{{ schedule.hall_no }}</td>
+          <td class="px-6 py-3">{{ schedule.hall_department }}</td>
+          <td class="px-6 py-3">{{ schedule.staff_mobile }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="px-6 py-4 text-center text-gray-500">No staff schedules found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<div id="staffDetails" class="table-container hidden">
+  <!-- Staff Details Table -->
+  <h2 class="text-2xl font-semibold mb-4 text-gray-700">Staff Details</h2>
+  <div class="overflow-x-auto rounded-xl shadow-lg mb-10">
+    <table class="w-full border-collapse bg-white text-sm text-left">
+      <thead
+        class="bg-gradient-to-r from-green-100 to-green-200 text-gray-800 uppercase text-xs font-semibold tracking-wider">
+        <tr>
+          <th class="px-6 py-3 text-center">S.no</th>
+          <th class="px-6 py-3 text-center">Staff ID</th>
+          <th class="px-6 py-3 text-center">Staff Name</th>
+          <th class="px-6 py-3 text-center">DOJ</th>
+          <th class="px-6 py-3 text-center">Mobile No</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for staff in staff_details %}
+        <tr class="hover:bg-gray-50 text-center">
+          <td class="px-6 py-3">{{ forloop.counter }}</td>
+          <td class="px-6 py-3">{{ staff.staff_id }}</td>
+          <td class="px-6 py-3">{{ staff.name }}</td>
+          <td class="px-6 py-3">{{ staff.date_of_joining }}</td>
+          <td class="px-6 py-3">{{ staff.mobile }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-6 py-4 text-center text-gray-500">No staff found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="hallDetails" class="table-container hidden">
+  <!-- Hall Details Table -->
+  <h2 class="text-2xl font-semibold mb-4 text-gray-700">Hall Details</h2>
+  <div class="overflow-x-auto rounded-xl shadow-lg mb-10">
+    <table class="w-full border-collapse bg-white text-sm text-left">
+      <thead
+        class="bg-gradient-to-r from-yellow-100 to-yellow-200 text-gray-800 uppercase text-xs font-semibold tracking-wider">
+        <tr>
+          <th class="px-6 py-3 text-center">S.no</th>
+          <th class="px-6 py-3 text-center">Hall No</th>
+          <th class="px-6 py-3 text-center">Strength</th>
+          <th class="px-6 py-3 text-center">Staff per Session</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for hall in hall_details %}
+        <tr class="hover:bg-gray-50 text-center">
+          <td class="px-6 py-3">{{ forloop.counter }}</td>
+          <td class="px-6 py-3">{{ hall.hall_no }}</td>
+          <td class="px-6 py-3">{{ hall.strength }}</td>
+          <td class="px-6 py-3">{{ hall.staff_required }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3" class="px-6 py-4 text-center text-gray-500">No halls found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="hallSchedule" class="table-container hidden">
+  <!-- Hall Schedule Table -->
+  <h2 class="text-2xl font-semibold mb-4 text-gray-700">Hall Schedule</h2>
+  <div class="overflow-x-auto rounded-xl shadow-lg mb-10">
+    <table class="w-full border-collapse bg-white text-sm text-left">
+      <thead
+        class="bg-gradient-to-r from-indigo-100 to-indigo-200 text-gray-800 uppercase text-xs font-semibold tracking-wider">
+        <tr>
+          <th class="px-6 py-3 text-center">S.no</th>
+          <th class="px-6 py-3 text-center">Hall No</th>
+          <th class="px-6 py-3 text-center">Date</th>
+          <th class="px-6 py-3 text-center">Session</th>
+          <th class="px-6 py-3 text-center">Staff Name</th>
+          <th class="px-6 py-3 text-center">Department</th>
+          <th class="px-6 py-3 text-center">Mobile No</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        {% for schedule in hall_schedule %}
+        <tr class="hover:bg-gray-50 text-center">
+          <td class="px-6 py-3">{{ forloop.counter }}</td>
+          <td class="px-6 py-3">{{ schedule.hall_no }}</td>
+          <td class="px-6 py-3">{{ schedule.date }}</td>
+          <td class="px-6 py-3">{{ schedule.session }}</td>
+          <td class="px-6 py-3">{{ schedule.staff_name }}</td>
+          <td class="px-6 py-3">{{ schedule.staff_dept }}</td>
+          <td class="px-6 py-3">{{ schedule.staff_mobile }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="px-6 py-4 text-center text-gray-500">No hall schedules found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="{% static 'js/reports_search.js' %}"></script>
+<script src="{% static 'js/hod_view.js' %}"></script>
+{% endblock %}

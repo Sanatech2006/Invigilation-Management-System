@@ -13,7 +13,6 @@ from apps.staff.models import Staff
 from django.views.decorators.http import require_GET
 from datetime import datetime
 
-
 def generate_schedule(request):
     if request.method == 'POST':
         try:
@@ -136,14 +135,12 @@ def get_filter_options(request):
         "hall_departments": list(hall_departments),
     })
 
-
 # API endpoint to fetch filtered schedule data
 def get_filtered_schedule(request):
     date = request.GET.get("date")
     dept_category = request.GET.get("dept_category")
     hall_department = request.GET.get("hall_department")
     
-
     qs = InvigilationSchedule.objects.all()
 
     if date:
@@ -156,52 +153,6 @@ def get_filtered_schedule(request):
     # return only required fields
     data = list(qs.values("id", "date", "dept_category", "hall_department"))
     return JsonResponse(data, safe=False)
-
-# @require_GET
-# def get_available_staff(request):
-#     # Get filter parameters
-#     date = request.GET.get('date')
-#     session = request.GET.get('session')
-#     hall_department = request.GET.get('hall_department')
-#     hall_category = request.GET.get('hall_category')
-    
-#     print(f"Checking availability for: date={date}, session={session}")
-    
-#     from .models import InvigilationSchedule, Staff
-    
-#     # FIRST: Get all staff who are generally available
-#     all_available_staff = Staff.objects.filter(is_available=True)
-#     print(f"All generally available staff: {[(s.staff_id, s.name) for s in all_available_staff]}")
-    
-#     # SECOND: Check which of these staff are already scheduled for this date/session
-#     busy_staff_ids = []
-#     for staff in all_available_staff:
-#         # Check if this specific staff is already scheduled for the same date and session
-#         is_already_scheduled = InvigilationSchedule.objects.filter(
-#             date=date,
-#             session=session,
-#             staff_id=InvigilationSchedule.staff_id  # Check this specific staff ID
-#         ).exists()
-        
-#         if is_already_scheduled:
-#             busy_staff_ids.append(staff.staff_id)
-#             print(f"Staff {staff.staff_id} is already scheduled on {date} session {session}")
-    
-#     print(f"Busy staff IDs: {busy_staff_ids}")
-    
-#     # FINALLY: Exclude staff who are already scheduled
-#     truly_available_staff = all_available_staff.exclude(staff_id__in=busy_staff_ids)
-#     print(f"Truly available staff: {[(s.staff_id, s.name) for s in truly_available_staff]}")
-    
-#     staff_list = [
-#         {
-#             'staff_id': staff.staff_id,
-#             'name': staff.name
-#         }
-#         for staff in truly_available_staff
-#     ]
-    
-#     return JsonResponse({'staff': staff_list})
 
 @require_GET
 def get_available_staff(request):

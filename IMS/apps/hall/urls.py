@@ -4,6 +4,7 @@ from .views import generate_schedule
 from .views import export_schedule_excel
 from .views import assign_staff
 from .views import generate_session
+from .views import swap_slots 
 
 urlpatterns = [
     path('management/', views.hall_management, name='hall_management'),  # Changed to hall_management
@@ -15,5 +16,5 @@ urlpatterns = [
     path('generate_session/', generate_session, name='generate_session'),
     path('download-room-data/', views.download_room_data, name='download_room_data'),
     path("download-staff-unallotted/", views.download_staff_unallotted, name="download_staff_unallotted"),
-
+    path('swap_slots/', swap_slots, name='swap_slots'),
 ] 

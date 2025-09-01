@@ -15,11 +15,18 @@
       <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
         Add Staff
       </a>
-    </div>
+       <button id="swap-button" disabled
+        class="bg-gray-400 text-black font-semibold px-4 py-2 rounded border border-gray-600 shadow-md opacity-70 cursor-not-allowed"
+        title="Select exactly two checkboxes to activate Swap">
+  Swap
+</button>
+
   </div>
+</div>
 
   <!-- Filters -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+  <!-- Filters -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
   <!-- Date -->
   <div>
     <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
@@ -30,7 +37,7 @@
       {% endfor %}
     </select>
   </div>
-  
+
   <!-- Department Category -->
   <div>
     <label class="block text-sm font-medium text-gray-700 mb-1">Department Category</label>
@@ -41,7 +48,7 @@
       {% endfor %}
     </select>
   </div>
-  
+
   <!-- Hall Department -->
   <div>
     <label class="block text-sm font-medium text-gray-700 mb-1">Hall Department</label>
@@ -52,7 +59,7 @@
       {% endfor %}
     </select>
   </div>
-  
+
   <!-- Hall Dept Category -->
   <div>
     <label class="block text-sm font-medium text-gray-700 mb-1">Hall Dept Category</label>
@@ -63,7 +70,19 @@
       {% endfor %}
     </select>
   </div>
+
+  <!-- Double Session (Added inside grid) -->
+  <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Double Session</label>
+    <select id="filter-double-session" class="w-full border rounded px-3 py-2">
+      <option value="">All</option>
+      <option value="true">Yes</option>
+      <option value="false">No</option>
+    </select>
+  </div>
 </div>
+
+
 
 
 
@@ -100,7 +119,7 @@
          <tr data-date="{{ schedule.date }}" 
     data-dept-category="{{ schedule.dept_category }}" 
     data-hall-department="{{ schedule.hall_department }}">
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Serial No</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">S. No</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Schedule Date</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Session</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Hall No</th>
@@ -113,7 +132,11 @@
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Dept Category</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Hall Dept Category</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Double Session</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Actions</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Swap</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">
+  Actions
+</th>
+
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
@@ -121,7 +144,8 @@
           <tr data-date="{{ schedule.date }}" 
               data-dept-category="{{ schedule.dept_category }}" 
               data-hall-department="{{ schedule.hall_department }}">
-            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.serial_number }}</td>
+            <!-- <td class="px-6 py-4 whitespace-nowrap">{{ schedule.serial_number }}</td> -->
+             <td class="px-6 py-4 whitespace-nowrap">{{ forloop.counter }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ schedule.date }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ schedule.session|default:"-" }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_no }}</td>
@@ -135,6 +159,11 @@
             <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_dept_category|default:"-" }}</td>
             <td class="px-6 py-4 whitespace-nowrap">{% if schedule.double_session %}Yes{% else %}No{% endif %}</td>
             <td class="px-6 py-4 whitespace-nowrap">
+  <input type="checkbox" class="swap-checkbox" value="{{ schedule.serial_number }}">
+</td>
+
+            <td class="px-6 py-4 whitespace-nowrap">
+              
               <!-- <button type="button" class="edit-btn text-blue-600 underline" data-id-edit="{{ schedule.serial_number }}"
                 data-edit="{{ schedule.date }}" data-hallno="{{ schedule.hall_no }}"
                 data-session="{{ schedule.session|default:'-' }}" hall-department="{{schedule.hall_department}}" hall-category="{{schedule.hall_dept_category}}">
@@ -264,6 +293,10 @@
 <script>
   window.getStaffUrl = "{% url 'get_available_staff' %}";
 </script>
+<script>
+  window.swapUrl = "{% url 'swap_slots' %}";
+</script>
+
 
 <script src="{% static 'js/view_schedule.js' %}"></script>
 <style>

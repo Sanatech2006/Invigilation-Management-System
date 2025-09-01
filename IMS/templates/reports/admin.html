@@ -1,0 +1,67 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+<h1 class="text-4xl font-bold mb-8 text-center text-gray-800">Admin Reports Dashboard</h1>
+
+<!-- Summary Cards -->
+<div id="adminSummaryCards" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+  <!-- Example Card -->
+  <div class="p-6 bg-blue-100 rounded-xl shadow-lg text-center hover:shadow-xl transition">
+    <h2 class="text-lg font-semibold text-gray-700">Total Staff</h2>
+    <p class="text-4xl font-bold text-blue-700 mt-2">{{ total_staff }}</p>
+  </div>
+  <!-- Add cards for Total Halls, Total Sessions Scheduled, Unassigned Sessions/Halls -->
+</div>
+
+<!-- Filters for reports (visible where needed) -->
+<div id="adminFilters" class="mb-6 flex flex-wrap gap-4 justify-center">
+  <!-- Example filter control -->
+  <select id="filterDate" class="border rounded px-3 py-2">
+    <option value="">All Dates</option>
+    {% for date in all_dates %}
+    <option value="{{ date }}">{{ date }}</option>
+    {% endfor %}
+  </select>
+  <!-- Repeat for Department, Session, Hall No as needed -->
+</div>
+
+<!-- Sectioned Reports with Unique IDs -->
+<div id="adminSectionOverall" class="mb-10">
+  <h2 class="text-xl font-bold mb-4">Overall Summary</h2>
+  <table class="w-full border-collapse bg-white text-sm text-left">
+    {# Your summary, rows from backend context #}
+  </table>
+</div>
+
+<div id="adminSectionDeptWise" class="mb-10">
+  <h2 class="text-xl font-bold mb-4">Department-Wise Summary</h2>
+  <table>…</table>
+</div>
+
+<div id="adminSectionStaffWorkload" class="mb-10">
+  <h2 class="text-xl font-bold mb-4">Staff Workload Distribution</h2>
+  <table>…</table>
+</div>
+
+<div id="adminSectionHallUtil" class="mb-10">
+  <h2 class="text-xl font-bold mb-4">Hall Utilization Report</h2>
+  <table>…</table>
+</div>
+
+<div id="adminSectionConflicts" class="mb-10">
+  <h2 class="text-xl font-bold mb-4">Conflict / Overlap Report</h2>
+  <table>…</table>
+</div>
+
+<div id="adminSectionMaster" class="mb-10">
+  <h2 class="text-xl font-bold mb-4">Master Invigilation Schedule (College-Wide)</h2>
+  <table>…</table>
+</div>
+
+<!-- Add navigation/tabs if you want each section to be toggled -->
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/admin_view.js' %}"></script>
+{% endblock %}

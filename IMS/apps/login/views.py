@@ -31,11 +31,6 @@ def login_view(request):
 
     return render(request, 'login/login.html')
 
-
-
-
-
-
 def logout_view(request):
     request.session.flush()  # Clear all session data
     return redirect('login')

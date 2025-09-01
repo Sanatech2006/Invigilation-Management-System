@@ -25,6 +25,7 @@ from apps.login.views import logout_view
 
 urlpatterns = [
     path('', login_view, name='home'),
+    
     path('admin/', admin.site.urls),
     path('dashboard/', include('apps.dashboard.urls',namespace='dashboard')),
     path('staff/', include('apps.staff.urls')),
