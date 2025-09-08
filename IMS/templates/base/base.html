@@ -14,6 +14,9 @@
     <link href="{% static 'css/dist/output.css' %}" rel="stylesheet">
     
     <link href="{% static 'css/src/components.css' %}" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
     <style>
         .sidebar-link:hover {
             background-color: #e5e7eb; /* Tailwind gray-200 */
@@ -37,109 +40,93 @@
 
     
     <div id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <h4>ExamEase</h4>
-        </div>
-        <nav class="sidebar-nav">
-    {% if user_role == 1 %}
-        <!-- Role 1: Show all menus -->
+    <div class="sidebar-header">
+        <h4>IMS</h4>
+    </div>
+    <nav class="sidebar-nav">
+        {% if user_role == 1 %}
+        <!-- Role 1 (Admin): Show all menus -->
         <a href="{% url 'dashboard:dashboard' %}"
-           class="sidebar-link {% if request.path == '/' %}active-nav-item{% endif %}">
+           class="sidebar-link menu-item dashboard-menu {% if request.path == '/' %}active-nav-item{% endif %}">
             <i class="sidebar-icon fas fa-tachometer-alt"></i> Dashboard
         </a>
         <a href="{% url 'staff:staff-management' %}" 
-           class="sidebar-link {% if 'staff' in request.path %}active-nav-item{% endif %}">
+           class="sidebar-link menu-item {% if 'staff' in request.path %}active-nav-item{% endif %}">
             <i class="sidebar-icon fas fa-users"></i> Staff Management
         </a>
         <a href="{% url 'hall_management' %}" 
-           class="sidebar-link {% if 'hall/management' in request.path %}active-nav-item{% endif %}"
->
+           class="sidebar-link menu-item {% if 'hall/management' in request.path %}active-nav-item{% endif %}">
             <i class="sidebar-icon fas fa-school"></i> Hall Management
         </a>
-        
         <a href="{% url 'exam_dates:index' %}" 
-           class="sidebar-link {% if 'exam-dates' in request.path %}active-nav-item{% endif %}">
+           class="sidebar-link menu-item {% if 'exam-dates' in request.path %}active-nav-item{% endif %}">
             <i class="sidebar-icon fas fa-calendar-alt"></i> Exam Dates
         </a>
-       
         <a href="{% url 'generate_schedule' %}" 
-           class="sidebar-link {% if 'generate-schedule' in request.path %}active-nav-item{% endif %}">
+           class="sidebar-link menu-item {% if 'generate-schedule' in request.path %}active-nav-item{% endif %}">
             <i class="sidebar-icon fas fa-cogs"></i> Generate Schedule
         </a>
         <a href="{% url 'view_schedule' %}" 
-           class="sidebar-link {% if 'view-schedule' in request.path %}active-nav-item{% endif %}">
+           class="sidebar-link menu-item {% if 'view-schedule' in request.path %}active-nav-item{% endif %}">
             <i class="sidebar-icon fas fa-eye"></i> View Schedule
         </a>
         <a href="{% url 'manual_assignment:manual_assignment' %}" 
-           class="sidebar-link {% if 'manual-assignment' in request.path %}active-nav-item{% endif %}">
+           class="sidebar-link menu-item {% if 'manual-assignment' in request.path %}active-nav-item{% endif %}">
             <i class="sidebar-icon fas fa-sliders-h"></i> Manual Assignment
+        </a>
+        <a href="{% url 'reports:admin_reports' %}" 
+           class="sidebar-link menu-item {% if 'reports' in request.path %}active-nav-item{% endif %}">
+            <i class="sidebar-icon fas fa-chart-bar"></i> Reports
+        </a>
+        <a href="{% url 'settings:settings_home' %}" 
+           class="sidebar-link menu-item {% if 'settings' in request.path and 'invigilation_settings' not in request.path %}active-nav-item{% endif %}">
+            <i class="sidebar-icon fas fa-sliders-h"></i> Settings
+        </a>
+        {% endif %}
+
+        {% if user_role == 2 %}
+        <!-- Role 2 menu -->
+        <a href="{% url 'dashboard:dashboard' %}" 
+           class="sidebar-link menu-item dashboard-menu {% if request.path == '/' %}active-nav-item{% endif %}">
+            <i class="sidebar-icon fas fa-tachometer-alt"></i> Dashboard
         </a>
         
         <a href="{% url 'reports:reports' %}" 
-   class="sidebar-link {% if 'reports' in request.path %}active-nav-item{% endif %}">
+           class="sidebar-link menu-item {% if 'reports' in request.path %}active-nav-item{% endif %}">
+            <i class="sidebar-icon fas fa-chart-bar"></i> Reports
+        </a>
+        {% elif user_role == 3 %}
+        <!-- Role 3 menu -->
+        <a href="{% url 'dashboard:dashboard' %}" 
+           class="sidebar-link menu-item dashboard-menu {% if request.path == '/' %}active-nav-item{% endif %}">
+            <i class="sidebar-icon fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a href="{% url 'reports:hod_reports' %}" 
+           class="sidebar-link menu-item {% if 'reports' in request.path %}active-nav-item{% endif %}">
+            <i class="sidebar-icon fas fa-chart-bar"></i> Reports
+        </a>
+        {% elif user_role == 4 %}
+        <!-- Role 4 (HOD) menu -->
+        <a href="{% url 'dashboard:dashboard' %}" 
+           class="sidebar-link menu-item dashboard-menu {% if request.path == '/' %}active-nav-item{% endif %}">
+            <i class="sidebar-icon fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a href="{% url 'reports:reports' %}" 
+   id="reports-menu-item"
+   class="sidebar-link menu-item {% if 'reports' in request.path %}active-nav-item{% endif %}">
     <i class="sidebar-icon fas fa-chart-bar"></i> Reports
 </a>
-<!-- <a href="#" 
-           class="sidebar-link {% if 'settings' in request.path and 'invigilation_settings' not in request.path %}active-nav-item{% endif %}"
->
-            <i class="sidebar-icon fas fa-sliders-h"></i> Settings
-        </a>
-<a href="{% url 'student_upload' %}" 
-           class="sidebar-link {% if 'student-upload' in request.path %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-user-graduate"></i> Student Management
-        </a>
 
-        
-        <a href="#" 
-           class="sidebar-link {% if 'user-management' in request.path %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-users-cog"></i> User Management
-        </a>
-         <a href="/invigilation_settings/" 
-           class="sidebar-link {% if 'invigilation_settings' in request.path %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-user-shield"></i> Invigilation Settings
-        </a> -->
         {% endif %}
 
-    {% if user_role == 2 %}
-  <!-- Role 2 menu -->
-  <a href="{% url 'dashboard:dashboard' %}" class="sidebar-link {% if request.path == '/' %}active-nav-item{% endif %}">
-    <i class="sidebar-icon fas fa-tachometer-alt"></i> Dashboard
-  </a>
-  <a href="{% url 'reports:reports' %}" class="sidebar-link {% if 'reports' in request.path %}active-nav-item{% endif %}">
-    <i class="sidebar-icon fas fa-chart-bar"></i> Reports
-  </a>
-  <!-- logout link here -->
-{% elif user_role == 3 %}
-  <!-- Role 3 menu -->
-  <a href="{% url 'dashboard:dashboard' %}" class="sidebar-link {% if request.path == '/' %}active-nav-item{% endif %}">
-    <i class="sidebar-icon fas fa-tachometer-alt"></i> Dashboard
-  </a>
-  <a href="{% url 'reports:hod_reports' %}" class="sidebar-link {% if 'reports' in request.path %}active-nav-item{% endif %}">
-    <i class="sidebar-icon fas fa-chart-bar"></i> Reports
-  </a>
-  <!-- logout link here -->
-{% elif user_role == 4 %}
-  <!-- Role 4 (HOD) menu -->
-  <a href="{% url 'dashboard:dashboard' %}" class="sidebar-link {% if request.path == '/' %}active-nav-item{% endif %}">
-    <i class="sidebar-icon fas fa-tachometer-alt"></i> Dashboard
-  </a>
-  <a href="{% url 'reports:reports' %}" class="sidebar-link {% if 'reports' in request.path %}active-nav-item{% endif %}">
-    <i class="sidebar-icon fas fa-chart-bar"></i> Reports
-  </a>
-  <!-- logout link here -->
-{% endif %}
-
-
-    <div class="sidebar-logout">
-        <a href="{% url 'logout' %}" 
-           class="sidebar-link logout" 
-           onclick="openLogoutModal();">
-            <i class="sidebar-icon fas fa-sign-out-alt"></i> Logout
-        </a>
-    </div>
-</nav>
-
+        <div class="sidebar-logout">
+            <a href="{% url 'logout' %}" class="sidebar-link logout" onclick="openLogoutModal();">
+                <i class="sidebar-icon fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </nav>
 </div>
+
 
 <div id="logoutModal" class="modal" tabindex="-1" role="dialog" style="display:none;">
   <div class="modal-dialog" role="document">

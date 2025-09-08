@@ -6,6 +6,6 @@ from . import views
 urlpatterns = [
     path('reports/', views.reports_view, name='reports'),
     path('hod/', views.hod_view, name='hod_reports'),  
-    path('reports/admin/', views.admin_view, name='admin_reports'),
+    path('admin/', views.admin_view, name='admin_reports'),
     # Add other report-specific paths here
 ]

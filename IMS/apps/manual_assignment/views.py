@@ -124,7 +124,7 @@ def assign_staff_to_slot(request):
         except Exception as e:
             return JsonResponse({
                 'success': False,
-                'message': f'Error: {str(e)}'
+                'message': f'{str(e)}'
             })
     
     return JsonResponse({

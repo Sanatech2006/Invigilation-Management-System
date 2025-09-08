@@ -2,64 +2,128 @@
 {% load static %}
 
 {% block content %}
-<h1 class="text-4xl font-bold mb-8 text-center text-gray-800">Admin Reports Dashboard</h1>
+
 
 <!-- Summary Cards -->
-<div id="adminSummaryCards" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-  <!-- Example Card -->
-  <div class="p-6 bg-blue-100 rounded-xl shadow-lg text-center hover:shadow-xl transition">
-    <h2 class="text-lg font-semibold text-gray-700">Total Staff</h2>
-    <p class="text-4xl font-bold text-blue-700 mt-2">{{ total_staff }}</p>
+<div id="adminSummaryCards" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem;">
+  <div class="p-4 rounded-lg shadow text-center hover:shadow-lg transition cursor-pointer text-sm" 
+       style="background: linear-gradient(to right, #60a5fa, #2563eb); color: white;">
+    <h3 class="font-semibold">Total Staff</h3>
+    <p class="text-3xl font-bold mt-1">{{ total_staff }}</p>
   </div>
-  <!-- Add cards for Total Halls, Total Sessions Scheduled, Unassigned Sessions/Halls -->
+
+  <div class="p-4 bg-green-100 rounded-lg shadow text-center hover:shadow-lg transition cursor-pointer text-sm">
+    <h3 class="font-semibold text-gray-700">Total Halls</h3>
+    <p class="text-3xl font-bold text-green-700 mt-1">{{ total_halls }}</p>
+  </div>
+
+ <div class="p-4 rounded-lg shadow text-center hover:shadow-lg transition cursor-pointer text-sm" 
+       style="background: linear-gradient(to right, #facc15, #eab308); color: black;">
+    <h3 class="font-semibold">Total Sessions Scheduled</h3>
+    <p class="text-3xl font-bold mt-1">{{ total_sessions }}</p>
+  </div>
+
+  <div class="p-4 bg-red-100 rounded-lg shadow text-center hover:shadow-lg transition cursor-pointer text-sm">
+    <h3 class="font-semibold text-gray-700">Unassigned Halls</h3>
+    <p class="text-3xl font-bold text-red-600 mt-1">{{ unassigned_sessions }}</p>
+  </div>
+  <div class="p-4 bg-red-100 rounded-lg shadow text-center hover:shadow-lg transition cursor-pointer text-sm">
+    <h3 class="font-semibold text-gray-700">Total Unassigned Staff</h3>
+    <p class="text-3xl font-bold text-red-600 mt-1">{{ unassigned_staff_count }}</p>
+  </div>
 </div>
 
-<!-- Filters for reports (visible where needed) -->
-<div id="adminFilters" class="mb-6 flex flex-wrap gap-4 justify-center">
-  <!-- Example filter control -->
-  <select id="filterDate" class="border rounded px-3 py-2">
-    <option value="">All Dates</option>
-    {% for date in all_dates %}
-    <option value="{{ date }}">{{ date }}</option>
-    {% endfor %}
-  </select>
-  <!-- Repeat for Department, Session, Hall No as needed -->
-</div>
 
 <!-- Sectioned Reports with Unique IDs -->
-<div id="adminSectionOverall" class="mb-10">
-  <h2 class="text-xl font-bold mb-4">Overall Summary</h2>
-  <table class="w-full border-collapse bg-white text-sm text-left">
-    {# Your summary, rows from backend context #}
-  </table>
+<div id="adminSectionOverall" class="mb-10 mt-10">
+  <h2 class="text-2xl font-bold mb-6 text-gray-800">Conflict Report</h2>
+  <div class="overflow-x-auto">
+    <table class="min-w-full border border-gray-300 shadow-md rounded-lg overflow-hidden">
+      <thead class="bg-gradient-to-r from-indigo-200 to-indigo-400">
+        <tr>
+          <th class="px-6 py-3 text-left text-gray-800 font-semibold uppercase tracking-wider">Category</th>
+          <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">Staff ID</th>
+          <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">Name</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white">
+        {% for row in conflict_report_rows %}
+          {% if row.conflicts and row.conflicts|length > 0 %}
+            {% for staff in row.conflicts %}
+              <tr class="hover:bg-red-100 transition">
+                <td class="border px-6 py-3">{{ row.category }}</td>
+                <td class="border px-6 py-3 text-center font-bold text-red-700">{{ staff.staff_id }}</td>
+                <td class="border px-6 py-3 text-center font-bold text-red-700">{{ staff.name }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td class="border px-6 py-3">{{ row.category }}</td>
+              <td class="border px-6 py-3 text-center text-gray-400" colspan="2">No conflicts</td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
+
 
 <div id="adminSectionDeptWise" class="mb-10">
-  <h2 class="text-xl font-bold mb-4">Department-Wise Summary</h2>
-  <table>…</table>
+  <h2 class="text-2xl font-bold mb-6 text-gray-800">Sessions Report</h2>
+  <div class="overflow-x-auto">
+    <table class="min-w-full border border-gray-300 shadow-md rounded-lg overflow-hidden">
+      <thead class="bg-gradient-to-r from-gray-200 to-gray-300">
+        <tr>
+          <th class="px-6 py-3 text-left text-gray-700 font-semibold uppercase tracking-wider">Category</th>
+          <th class="px-6 py-3 text-center text-gray-700 font-semibold uppercase tracking-wider">Assigned</th>
+          <th class="px-6 py-3 text-center text-gray-700 font-semibold uppercase tracking-wider">Unassigned</th>
+          <th class="px-6 py-3 text-center text-gray-700 font-semibold uppercase tracking-wider">Total</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white">
+        {% for row in sessions_report %}
+        <tr class="hover:bg-gray-100 transition-colors duration-200">
+          <td class="border px-6 py-3">{{ row.category }}</td>
+          <td class="border px-6 py-3 text-center text-green-700 font-medium">{{ row.assigned }}</td>
+          <td class="border px-6 py-3 text-center text-red-600 font-medium">{{ row.unassigned }}</td>
+          <td class="border px-6 py-3 text-center font-bold text-indigo-700">{{ row.total }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
+
 
 <div id="adminSectionStaffWorkload" class="mb-10">
-  <h2 class="text-xl font-bold mb-4">Staff Workload Distribution</h2>
-  <table>…</table>
+  <h2 class="text-2xl font-bold mb-6 text-gray-800">Staff Report</h2>
+  <div class="overflow-x-auto">
+    <table class="min-w-full border border-gray-300 shadow-md rounded-lg overflow-hidden">
+      <thead class="bg-gradient-to-r from-teal-200 to-teal-400">
+        <tr>
+          <th class="px-6 py-3 text-left text-gray-800 font-semibold uppercase tracking-wider">Category</th>
+          <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">Assigned</th>
+          <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">Unassigned</th>
+          <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">Total</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white">
+        {% for row in staff_report %}
+        <tr class="hover:bg-gray-100 transition">
+          <td class="border px-6 py-3">{{ row.category }}</td>
+          <td class="border px-6 py-3 text-center text-green-700 font-medium">{{ row.assigned }}</td>
+          <td class="border px-6 py-3 text-center text-red-600 font-medium">{{ row.unassigned }}</td>
+          <td class="border px-6 py-3 text-center font-bold text-indigo-700">{{ row.total }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
-<div id="adminSectionHallUtil" class="mb-10">
-  <h2 class="text-xl font-bold mb-4">Hall Utilization Report</h2>
-  <table>…</table>
-</div>
 
-<div id="adminSectionConflicts" class="mb-10">
-  <h2 class="text-xl font-bold mb-4">Conflict / Overlap Report</h2>
-  <table>…</table>
-</div>
 
-<div id="adminSectionMaster" class="mb-10">
-  <h2 class="text-xl font-bold mb-4">Master Invigilation Schedule (College-Wide)</h2>
-  <table>…</table>
-</div>
-
-<!-- Add navigation/tabs if you want each section to be toggled -->
 {% endblock %}
 
 {% block extra_js %}

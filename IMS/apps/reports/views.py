@@ -4,9 +4,9 @@ from django.db.models import Count, Q
 from apps.invigilation_schedule.models import InvigilationSchedule
 from apps.staff.models import Staff
 from apps.hall.models import Room 
-
-
-
+from django.db.models import OuterRef, Subquery, Count, IntegerField, F, Sum
+from django.db.models.functions import Coalesce
+from collections import defaultdict
 from django.shortcuts import render, redirect
 from apps.staff.models import Staff
 from apps.invigilation_schedule.models import InvigilationSchedule
@@ -177,15 +177,25 @@ def hod_view(request):
 
     return render(request, 'reports/hod.html', context)
 def admin_view(request):
-    # Overall Summary
     total_staff = Staff.objects.count()
     total_halls = Room.objects.count()
     total_sessions = InvigilationSchedule.objects.count()
     unassigned_sessions = InvigilationSchedule.objects.filter(staff_id__isnull=True).count()
     unassigned_halls = Room.objects.filter(staff_allotted="Not Allotted").count()
 
-    # Department-Wise Summary
-    from django.db.models import Count, Sum, Q
+    assigned_sessions_subquery = InvigilationSchedule.objects.filter(
+        staff_id=OuterRef('staff_id')
+    ).values('staff_id').annotate(
+        cnt=Count('serial_number')
+    ).values('cnt')
+
+    staff_with_counts = Staff.objects.annotate(
+        assigned_count=Coalesce(Subquery(assigned_sessions_subquery, output_field=IntegerField()), 0)
+    ).filter(
+        assigned_count__lt=F('session')
+    )
+
+    unassigned_staff_count = staff_with_counts.count()
 
     departments = Staff.objects.values('dept_name').annotate(
         staff_count=Count('id', distinct=True),
@@ -196,16 +206,12 @@ def admin_view(request):
         sessions_scheduled=Sum('required_session'),
     )
 
-    # Map department -> halls/counts for quick reference
     hall_dept_map = {h['dept_name']: h for h in hall_dept}
     dept_summary = []
     for idx, dept in enumerate(departments, 1):
         name = dept['dept_name']
         halls = hall_dept_map.get(name, {}).get('halls_allotted', 0)
         sessions = hall_dept_map.get(name, {}).get('sessions_scheduled', 0)
-        # Count unassigned sessions for each department
-        dept_rooms = Room.objects.filter(dept_name=name)
-        room_halls = list(dept_rooms.values_list('hall_no', flat=True))
         unassigned = InvigilationSchedule.objects.filter(
             hall_department=name, staff_id__isnull=True
         ).count()
@@ -218,7 +224,6 @@ def admin_view(request):
             "unassigned_sessions": unassigned
         })
 
-    # Staff Workload Distribution
     all_staff = Staff.objects.all().order_by('dept_name', 'name')
     staff_workload = []
     for idx, staff in enumerate(all_staff, 1):
@@ -234,7 +239,6 @@ def admin_view(request):
             "mobile_no": staff.mobile
         })
 
-    # Hall Utilization Report
     all_halls = Room.objects.all().order_by('hall_no')
     hall_utilization = []
     for idx, hall in enumerate(all_halls, 1):
@@ -250,7 +254,6 @@ def admin_view(request):
             "department": hall.dept_name
         })
 
-    # Conflict / Overlap Report
     conflicts = []
     qs = InvigilationSchedule.objects.values(
         'staff_id', 'date', 'session'
@@ -274,11 +277,40 @@ def admin_view(request):
             "session": conflict['session'],
             "assigned_halls": ', '.join(map(str, conflicting_halls))
         })
+    conflicts_qs = (
+    InvigilationSchedule.objects
+    .values('staff_id', 'date', 'session')
+    .annotate(hall_count=Count('hall_no'))
+    .filter(hall_count__gt=1, staff_id__isnull=False)
+)
 
-    # Master Invigilation Schedule (College-Wide)
+    staff_ids_with_conflict = set([c['staff_id'] for c in conflicts_qs])
+
+    conflict_staff = (
+        Staff.objects
+        .filter(staff_id__in=staff_ids_with_conflict)
+        .values('staff_id', 'name', 'dept_category')
+    )
+
+    conflict_report = defaultdict(list)
+    for staff in conflict_staff:
+        conflict_report[staff['dept_category']].append({
+            'staff_id': staff['staff_id'],
+            'name': staff['name'],
+            'dept_category': staff['dept_category'],
+        })
+
+    # Format for template (list by category)
+    conflict_report_rows = []
+    for category in ['AIDED', 'SFM', 'SFW']:
+        staff_list = conflict_report.get(category, [])
+        conflict_report_rows.append({
+            'category': category,
+            'conflicts': staff_list
+        })
     master_schedule = InvigilationSchedule.objects.select_related(None).order_by('date', 'session', 'hall_no')
-    master_rows = []
     staff_map = {s.staff_id: s for s in Staff.objects.filter(staff_id__in=master_schedule.values_list('staff_id', flat=True))}
+    master_rows = []
     for idx, entry in enumerate(master_schedule, 1):
         staff_obj = staff_map.get(entry.staff_id)
         master_rows.append({
@@ -291,16 +323,62 @@ def admin_view(request):
             "mobile_no": staff_obj.mobile if staff_obj else '-',
         })
 
+    # Sessions Report
+    categories = ['AIDED', 'SFM', 'SFW']
+    sessions_report = []
+    for category in categories:
+        total_cat = InvigilationSchedule.objects.filter(hall_dept_category=category).count()
+        assigned_cat = InvigilationSchedule.objects.filter(hall_dept_category=category).exclude(staff_id__isnull=True).count()
+        unassigned_cat = total_cat - assigned_cat
+        sessions_report.append({
+            'category': category,
+            'assigned': assigned_cat,
+            'unassigned': unassigned_cat,
+            'total': total_cat,
+        })
+
+    # Staff Report
+    staff_report = []
+    for category in categories:
+        staff_in_cat = Staff.objects.filter(dept_category=category, is_active=True)
+        total_staff_cat = staff_in_cat.count()
+
+        assigned_sessions_subquery = InvigilationSchedule.objects.filter(
+            staff_id=OuterRef('staff_id')
+        ).values('staff_id').annotate(
+            cnt=Count('serial_number')
+        ).values('cnt')
+
+        staff_with_counts = staff_in_cat.annotate(
+            assigned_count=Coalesce(Subquery(assigned_sessions_subquery, output_field=IntegerField()), 0)
+        )
+
+        unassigned_staff_count_cat = staff_with_counts.filter(assigned_count__lt=F('session')).count()
+        assigned_staff_count_cat = total_staff_cat - unassigned_staff_count_cat
+
+        staff_report.append({
+            'category': category,
+            'assigned': assigned_staff_count_cat,
+            'unassigned': unassigned_staff_count_cat,
+            'total': total_staff_cat,
+        })
+
     context = {
         "total_staff": total_staff,
         "total_halls": total_halls,
         "total_sessions": total_sessions,
         "unassigned_sessions": unassigned_sessions,
         "unassigned_halls": unassigned_halls,
+        "unassigned_staff_count": unassigned_staff_count,
         "dept_summary": dept_summary,
         "staff_workload": staff_workload,
         "hall_utilization": hall_utilization,
         "conflicts": conflicts,
         "master_schedule": master_rows,
+        "sessions_report": sessions_report,
+        "staff_report": staff_report,
+        "conflict_report_rows": conflict_report_rows,
+
     }
+
     return render(request, "reports/admin.html", context)

@@ -38,7 +38,9 @@ urlpatterns = [
     path('manual-assignment/', include('apps.manual_assignment.urls')),
     path('', include('apps.login.urls')),  
     path('reports/', include(('reports.urls', 'reports'), namespace='reports')),
+    path('settings/', include('apps.settings.urls')),
     path('logout/', logout_view, name='logout'),
+    
     
     
 

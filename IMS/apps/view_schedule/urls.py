@@ -12,7 +12,7 @@ urlpatterns = [
     path('staff_edit_session/', staff_edit_session, name='staff_edit_session'),
     path('get-available-staff/', get_available_staff, name='get_available_staff'),
     path('filter-options/', views.filter_options, name='filter_options'),
-     path('clear_staff/', views.clear_staff_assignment, name='clear_staff_assignment'),
-    
+    path('clear_staff/', views.clear_staff_assignment, name='clear_staff_assignment'),
+   
 
 ]

@@ -17,4 +17,10 @@ urlpatterns = [
     path('download-room-data/', views.download_room_data, name='download_room_data'),
     path("download-staff-unallotted/", views.download_staff_unallotted, name="download_staff_unallotted"),
     path('swap_slots/', swap_slots, name='swap_slots'),
+    path('api/list_hall_numbers/', views.list_hall_numbers, name='list_hall_numbers'),
+    path('api/get_hall_details/', views.get_hall_details, name='get_hall_details'),
+    path('api/delete/', views.delete_hall, name='delete_hall'),
+    path('api/update-hall/', views.update_hall, name='update_hall'),
+    path('api/add-hall/', views.add_hall, name='add_hall'),
+
 ] 

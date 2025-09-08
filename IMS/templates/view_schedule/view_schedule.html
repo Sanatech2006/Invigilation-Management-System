@@ -12,9 +12,7 @@
         class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
         Download Excel
       </a>
-      <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-        Add Staff
-      </a>
+      
        <button id="swap-button" disabled
         class="bg-gray-400 text-black font-semibold px-4 py-2 rounded border border-gray-600 shadow-md opacity-70 cursor-not-allowed"
         title="Select exactly two checkboxes to activate Swap">
@@ -251,7 +249,6 @@
 
 
 
-
 <!-- Edit Modal -->
 <div id="editModal" class="custom-modal hidden">
   <div class="custom-modal-content">
@@ -267,27 +264,27 @@
       <input type="text" name="date-edit" id="hall-date-edit" readonly hidden>
       <input type="text" name="hallno-edit" id="hall-no-edit" readonly hidden>
       <input type="text" name="session-edit" id="hall-session-edit" readonly hidden>
-      <input type="text" name="serial-no-edit" id="hall-serial-edit" readonly >
-      <!-- <input type="text" name="staff-edit" id="hall-date-edit" readonly> -->
+      <input type="text" name="serial-no-edit" id="hall-serial-edit" readonly>
 
       <select id="staffSelect" name="staff-edit">
         <option value="">-- Select Staff --</option>
-        <!-- <option value="S101" id="staff-edit">S101</option>
-        <option value="S102" id="staff-edit">S102</option>
-        <option value="S103" id="staff-edit">S103</option> -->
+        <!-- Populate options dynamically -->
       </select>
 
-     <div class="custom-modal-buttons">
-  <button id="confirmEditBtn" class="confirm-btn" type="submit">Confirm</button>
-  <button id="cancelEditBtn" class="cancel-btn" type="button">Cancel</button>
-</div>
-
-
+      <div class="custom-modal-buttons">
+        <button id="confirmEditBtn" class="confirm-btn" type="submit">Confirm</button>
+        <button id="cancelEditBtn" class="cancel-btn" type="button">Cancel</button>
+      </div>
     </form>
-
-
   </div>
 </div>
+
+
+
+
+
+
+
 
 
 <script>

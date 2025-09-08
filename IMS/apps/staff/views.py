@@ -11,6 +11,9 @@ from apps.staff.models import Staff
 from django.db.models.functions import Trim
 from datetime import datetime
 import traceback
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -534,3 +537,196 @@ def download_staff_data(request):
     response['Content-Disposition'] = 'attachment; filename=staff_data.xlsx'
     wb.save(response)
     return response
+
+@csrf_exempt
+def add_staff(request):
+    if request.method == 'POST':
+        if request.content_type == 'application/json':
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                return JsonResponse({'success': False, 'error': 'Malformed JSON.'})
+            staff_id = data.get('staff_id')
+            name = data.get('name')
+            staff_category = data.get('staff_category')
+            designation_name = data.get('designation')  # get name here
+            dept_category = data.get('dept_category')
+            dept_name = data.get('dept_name')
+            mobile = data.get('mobile')
+            email = data.get('email')
+            date_joining = data.get('date_of_joining')
+            role = data.get('role')
+            fixed_session = data.get('fixed_session')
+        else:
+            staff_id = request.POST.get('staff_id')
+            name = request.POST.get('name')
+            staff_category = request.POST.get('staff_category')
+            designation_name = request.POST.get('designation')
+            dept_category = request.POST.get('dept_category')
+            dept_name = request.POST.get('dept_name')
+            mobile = request.POST.get('mobile')
+            email = request.POST.get('email')
+            date_joining = request.POST.get('date_of_joining')
+            role = request.POST.get('role')
+            fixed_session = request.POST.get('fixed_session')
+
+        if not all([staff_id, name, dept_name]):
+            return JsonResponse({'success': False, 'error': 'Please fill in all required fields.'})
+
+        if Staff.objects.filter(staff_id=staff_id).exists():
+            return JsonResponse({'success': False, 'error': 'Staff ID already exists'})
+
+        # Lookup or create Designation object
+        designation = None
+        if designation_name:
+            designation, _ = Designation.objects.get_or_create(name=designation_name)
+
+        date_of_joining = data.get('date_of_joining')
+
+        if date_of_joining:
+            try:
+                date_of_joining = datetime.strptime(date_of_joining, '%Y-%m-%d').date()
+            except ValueError:
+                return JsonResponse({'success': False, 'error': 'Invalid date format'})
+
+        try:
+            role = int(role) if role else 0
+        except ValueError:
+            return JsonResponse({'success': False, 'error': 'Invalid numeric value for role'})
+
+        try:
+            Staff.objects.create(
+                staff_id=staff_id,
+                name=name,
+                staff_category=staff_category,
+                designation=designation,
+                dept_category=dept_category,
+                dept_name=dept_name,
+                mobile=mobile,
+                email=email,
+                date_of_joining=date_of_joining,
+                role=role,
+                fixed_session=fixed_session,
+                is_active=True
+            )
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    else:
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+    
+def search_staff(request):
+    q = request.GET.get('q', '')
+    staffs = Staff.objects.filter(
+        Q(staff_id__icontains=q) | Q(name__icontains=q)
+    ).values('staff_id', 'name')[:20]
+
+    results = [
+        {"id": staff['staff_id'], "text": f"{staff['staff_id']} – {staff['name']}"}
+        for staff in staffs
+    ]
+    return JsonResponse({"results": results})
+
+#edit staff
+
+def get_staff_details(request):
+    staff_id = request.GET.get('staff_id', '').strip()
+    if not staff_id:
+        return JsonResponse({'success': False, 'error': 'Missing staff_id'})
+
+    try:
+        staff = Staff.objects.get(staff_id=staff_id)
+
+        # Safe date formatting handling
+        doj = staff.date_of_joining
+        if isinstance(doj, str):
+            date_of_joining = doj  # already string, no formatting needed
+        elif hasattr(doj, 'strftime'):
+            date_of_joining = doj.strftime('%Y-%m-%d')
+        else:
+            date_of_joining = ''
+
+        data = {
+            'name': staff.name or '',
+            'staff_category': staff.staff_category or '',
+            'designation': getattr(staff.designation, 'name', '') if staff.designation else '',
+            'dept_category': staff.dept_category or '',
+            'dept_name': staff.dept_name or '',
+            'mobile': staff.mobile or '',
+            'email': staff.email or '',
+            'date_of_joining': date_of_joining,
+            'role': staff.role if staff.role is not None else '',
+            'fixed_session': staff.fixed_session if staff.fixed_session is not None else '',
+            'session': staff.session if staff.session is not None else '',
+        }
+
+        return JsonResponse({'success': True, 'staff': data})
+
+    except Staff.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Staff not found'})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+def test_api(request):
+    return JsonResponse({'status': 'ok'})
+
+
+@csrf_exempt  # Or handle CSRF properly with middleware and token header from JS
+def update_staff(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid HTTP method'})
+
+    try:
+        data = json.loads(request.body)
+        staff_id = data.get('staff_id')
+        staff = Staff.objects.get(staff_id=staff_id)
+
+        staff.name = data.get('name', staff.name)
+        staff.staff_category = data.get('staff_category', staff.staff_category)
+
+        designation_name = data.get('designation')
+        if designation_name:
+            try:
+                designation_obj = Designation.objects.get(name=designation_name)
+                staff.designation = designation_obj
+            except Designation.DoesNotExist:
+                return JsonResponse({'success': False, 'error': f'Designation "{designation_name}" not found.'})
+
+        staff.dept_category = data.get('dept_category', staff.dept_category)
+        staff.dept_name = data.get('dept_name', staff.dept_name)
+        staff.mobile = data.get('mobile', staff.mobile)
+        staff.email = data.get('email', staff.email)
+        staff.date_of_joining = data.get('date_of_joining', staff.date_of_joining)
+        staff.role = data.get('role', staff.role)
+        staff.fixed_session = data.get('fixed_session', staff.fixed_session)
+        staff.session = data.get('session', staff.session)
+        staff.save()
+        return JsonResponse({'success': True})
+
+    except Staff.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Staff not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+#delete staff
+
+@csrf_exempt  # Use with CSRF token in headers as above or adjust accordingly
+def delete_staff(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+    try:
+        data = json.loads(request.body)
+        staff_id = data.get('staff_id')
+        if not staff_id:
+            return JsonResponse({'success': False, 'error': 'No staff_id provided'})
+
+        staff = Staff.objects.get(staff_id=staff_id)
+        staff.delete()
+        return JsonResponse({'success': True})
+    except Staff.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Staff not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

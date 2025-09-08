@@ -22,6 +22,8 @@ from django.http import HttpResponse
 from django.db import transaction
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 from .slot_optimizer import reduce_unassigned_slots
 from .reduce_unassigned_slots import reduce_unassigned_slots
@@ -82,9 +84,9 @@ def hall_management(request):
             # Delete existing rooms BEFORE processing new data
             if Room.objects.exists():  # Safety check
                 deleted_count = Room.objects.all().delete()[0]
-            print("SUCCESS: File read successfully")  # Debug
-            print("Columns in file:", df.columns.tolist())  # Debug
-            print("First row sample:", df.iloc[0].to_dict() if not df.empty else "Empty DataFrame")  # Debug
+            # print("SUCCESS: File read successfully")  # Debug
+            # print("Columns in file:", df.columns.tolist())  # Debug
+            # print("First row sample:", df.iloc[0].to_dict() if not df.empty else "Empty DataFrame")  # Debug
 
             processed = 0
             for _, row in df.iterrows():
@@ -316,6 +318,8 @@ def assign_staff(request):
         .annotate(dept_size=Count('dept_name'))
         .order_by('-session', '-dept_size')
     )
+    # To track (staff_id, date, session) tuples already assigned during this run
+    assigned_slots_set = set()
 
 
     # 🔧 Helper: Get matched slots with progressive fallback
@@ -450,6 +454,16 @@ def assign_staff(request):
                     if key in assigned_slots_set:
                         continue  # Skip duplicate assignment
   # skip duplicate slot
+                    # Universal clash check (insert just before assignment to this slot)
+                    clash_key = (staff.staff_id, slot.date, slot.session)
+                    if clash_key in assigned_slots_set:
+                        continue  # Already assigned in this run
+                    if InvigilationSchedule.objects.filter(
+                        staff_id=staff.staff_id,
+                        date=slot.date,
+                        session=slot.session
+                    ).exclude(pk=slot.pk).exists():
+                        continue  # Already assigned in DB
 
                     slot.staff_id = staff.staff_id
                     slot.name = staff.name
@@ -458,6 +472,14 @@ def assign_staff(request):
                     slot.dept_category = staff.dept_category
                     slot.dept_name = staff.dept_name  # ADDED: Include dept_name
                     slot.save()
+                    already_assigned_same_session = InvigilationSchedule.objects.filter(
+                        staff_id=staff.staff_id,
+                        date=slot.date,
+                        session=slot.session
+                    ).exclude(hall_no=slot.hall_no).exists()
+                    if already_assigned_same_session:
+                        continue  # skip this slot, avoid double booking
+
                     assigned_slots_set.add(key)
                     matched_slots = matched_slots.exclude(pk=slot.pk)
 
@@ -467,6 +489,17 @@ def assign_staff(request):
                 slot = get_overflow_slot(staff, matched_slots)
                 if not slot:
                     break
+                clash_key = (staff.staff_id, slot.date, slot.session)
+                if clash_key in assigned_slots_set:
+                        matched_slots = matched_slots.exclude(pk=slot.pk)
+                        continue
+                if InvigilationSchedule.objects.filter(
+                        staff_id=staff.staff_id,
+                        date=slot.date,
+                        session=slot.session
+                    ).exclude(pk=slot.pk).exists():
+                        matched_slots = matched_slots.exclude(pk=slot.pk)
+                        continue
 
                 key = (staff.staff_id, slot.date, slot.session, slot.hall_no)
 
@@ -484,6 +517,16 @@ def assign_staff(request):
                 ).exists():
                     matched_slots = matched_slots.exclude(pk=slot.pk)
                     continue
+                # Universal clash check (insert just before assignment to this slot)
+                clash_key = (staff.staff_id, slot.date, slot.session)
+                if clash_key in assigned_slots_set:
+                    continue  # Already assigned in this run
+                if InvigilationSchedule.objects.filter(
+                    staff_id=staff.staff_id,
+                    date=slot.date,
+                    session=slot.session
+                ).exclude(pk=slot.pk).exists():
+                    continue  # Already assigned in DB
                 slot.staff_id = staff.staff_id
                 slot.name = staff.name
                 slot.designation = str(staff.designation)
@@ -535,7 +578,16 @@ def assign_staff(request):
                     key = (staff.staff_id, slot.date, slot.session, slot.hall_no)
                     if key in assigned_slots_set:
                         continue  # skip duplicate slot
-
+                    # Universal clash check (insert just before assignment to this slot)
+                    clash_key = (staff.staff_id, slot.date, slot.session)
+                    if clash_key in assigned_slots_set:
+                        continue  # Already assigned in this run
+                    if InvigilationSchedule.objects.filter(
+                        staff_id=staff.staff_id,
+                        date=slot.date,
+                        session=slot.session
+                    ).exclude(pk=slot.pk).exists():
+                        continue  # Already assigned in DB
                     slot.staff_id = staff.staff_id
                     slot.name = staff.name
                     slot.designation = str(staff.designation)
@@ -600,6 +652,16 @@ def assign_staff(request):
                 ).exists()
                     if duplicate_assignment:
                         continue  # skip duplicate slot
+                    # Universal clash check (insert just before assignment to this slot)
+                    clash_key = (staff.staff_id, slot.date, slot.session)
+                    if clash_key in assigned_slots_set:
+                        continue  # Already assigned in this run
+                    if InvigilationSchedule.objects.filter(
+                        staff_id=staff.staff_id,
+                        date=slot.date,
+                        session=slot.session
+                    ).exclude(pk=slot.pk).exists():
+                        continue  # Already assigned in DB
 
                     slot.staff_id = staff.staff_id
                     slot.name = staff.name
@@ -836,3 +898,128 @@ def swap_slots(request):
         return JsonResponse({'success': False, 'message': 'One or both selected slots do not exist.'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': f'Error during swap: {str(e)}'})
+
+# add hall and edit hall
+
+def search_hall(request):
+    q = request.GET.get('q', '')
+    halls = Room.objects.filter(
+        Q(hall_no__icontains=q) | Q(dept_name__icontains=q)
+    ).values('hall_no', 'dept_category', 'dept_name', 'hall_department')[:50]
+
+    results = [
+        {"id": hall["hall_no"], "text": f"{hall['hall_no']} - {hall['dept_name']}"}
+        for hall in halls
+    ]
+    return JsonResponse({"results": results})
+
+def list_hall_numbers(request):
+    halls = Room.objects.all().values('hall_no').distinct().order_by('hall_no')
+    hall_nums = [hall['hall_no'] for hall in halls]
+    return JsonResponse({"success": True, "hall_numbers": hall_nums})
+
+def get_hall_details(request):
+    hall_no = request.GET.get('hall_no', '').strip()
+    if not hall_no:
+        return JsonResponse({"success": False, "error": "Missing hall_no"})
+
+    # Get schedule record for hall details
+    schedule = InvigilationSchedule.objects.filter(hall_no=hall_no).first()
+    if not schedule:
+        return JsonResponse({'success': False, 'error': 'Hall schedule not found'})
+
+    # Get room record for strength
+    try:
+        room = Room.objects.get(hall_no=hall_no)
+        strength = room.strength
+    except Room.DoesNotExist:
+        strength = None  # or set default value if you prefer
+
+    data = {
+        'hall_department': schedule.hall_department,
+        'dept_category': schedule.dept_category,
+        'dept_name': schedule.dept_name,
+        'strength': strength,
+    }
+    return JsonResponse({'success': True, 'hall': data})
+    
+@csrf_exempt  # use only if CSRF token not passed
+@csrf_exempt
+def delete_hall(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    try:
+        data = json.loads(request.body)
+        hall_no = data.get('hall_no')
+        hall = Room.objects.get(hall_no=hall_no)
+        hall.delete()
+        return JsonResponse({'success': True})
+    except Room.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Hall not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+    
+@csrf_exempt
+def update_hall(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    
+    try:
+        data = json.loads(request.body)
+        hall_no = data.get('hall_no')
+        schedule = InvigilationSchedule.objects.filter(hall_no=hall_no).first()
+        if not schedule:
+            return JsonResponse({'success': False, 'error': 'Hall schedule not found'})
+
+        schedule.hall_department = data.get('hall_department', schedule.hall_department)
+        schedule.dept_category = data.get('dept_category', schedule.dept_category)
+        schedule.dept_name = data.get('dept_name', schedule.dept_name)
+        schedule.save()
+        try:
+            room = Room.objects.get(hall_no=hall_no)
+            room.strength = data.get('strength', room.strength)
+            room.save()
+        except Room.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Room for hall not found'})
+
+        return JsonResponse({'success': True})
+    
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})     
+
+#add hall
+
+@csrf_exempt
+def add_hall(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+    try:
+        data = json.loads(request.body)
+        hall_no = data.get('hall_no')
+        dept_category = data.get('dept_category')
+        dept_name = data.get('dept_name')
+        strength = data.get('strength')
+
+        if not hall_no:
+            return JsonResponse({'success': False, 'error': 'Hall number is required'})
+
+        if Room.objects.filter(hall_no=hall_no).exists():
+            return JsonResponse({'success': False, 'error': 'Hall number already exists'})
+
+        room = Room.objects.create(
+            hall_no=hall_no,
+            dept_category=dept_category,
+            dept_name=dept_name,
+            strength=int(strength) if strength else 0,
+        )
+        room.save()
+
+        # If you want to store hall_department, you can create or update InvigilationSchedule here or elsewhere
+
+        return JsonResponse({'success': True, 'message': 'Hall added successfully'})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

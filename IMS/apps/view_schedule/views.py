@@ -384,3 +384,5 @@ def clear_staff_assignment(request):
     except Exception as e:
         print(f"Error: {str(e)}")
         return JsonResponse({'success': False, 'message': str(e)})
+
+

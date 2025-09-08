@@ -9,6 +9,21 @@ document.addEventListener("DOMContentLoaded", function () {
     const shiftSelect = document.getElementById("modalShiftSelect");
     const sessionSelect = document.getElementById("modalSessionSelect");
     const datesTableBody = document.getElementById("datesTableBody");
+        function openDateModal() {
+        dateModal.classList.remove("hidden");
+        dateModal.classList.add("flex", "items-center", "justify-center");
+    }
+    function closeDateModal() {
+        dateModal.classList.add("hidden");
+        dateModal.classList.remove("flex", "items-center", "justify-center");
+    }
+
+    openModalBtn.addEventListener("click", openDateModal);
+    cancelModalBtn.addEventListener("click", () => {
+        clearModalFields();
+        closeDateModal();
+    });
+
 
     // Open modal
     openModalBtn.addEventListener("click", () => {
@@ -25,62 +40,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Save modal
     saveModalBtn.addEventListener("click", () => {
-        const dateValue = dateInput.value;
-        const dayNumberValue = dayNumberInput.value;
-        if (!dateValue || !dayNumberValue || !shiftValue || !sessionValue) {
-            alert("Please fill in all fields.");
-            return;
-        }
-
-        // Create a new row in the table (until backend is connected)
-        const newRow = document.createElement("tr");
-        newRow.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${dayNumberValue}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${dateValue}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">-</td>
-        `;
-        datesTableBody.appendChild(newRow);
-
-        // Optional: Send to backend using fetch (Django view not yet written)
-        /*
-        fetch('/your-endpoint-url/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken() // define getCSRFToken() if using CSRF protection
-            },
-            body: JSON.stringify({
-                day_number: dayNumberValue,
-                date: dateValue,
-                shift: shiftValue,
-                session: sessionValue
-            })
-        }).then(response => response.json())
-          .then(data => {
-              // Handle response
-          });
-        */
-
-        clearModalFields();
-        dateModal.classList.add("hidden");
-        dateModal.classList.remove("flex");
-    });
-
-    function clearModalFields() {
-        dateInput.value = "";
-        dayNumberInput.value = "";
-        shiftSelect.value = "";
-        sessionSelect.value = "";
-    }
-});
-
-
-document.getElementById("saveModalBtn").addEventListener("click", () => {
-    const dateValue = document.getElementById("modalDateInput").value;
-    const dayNoValue = document.getElementById("modalDayNumber").value;
-
-    if (!dateValue || !dayNoValue) {
-        alert("Please fill in both Date and Day Number.");
+    const dateValue = dateInput.value;
+    if (!dateValue) {
+        alert("Please fill in the Date field.");
         return;
     }
 
@@ -91,9 +53,60 @@ document.getElementById("saveModalBtn").addEventListener("click", () => {
             "X-CSRFToken": getCSRFToken(),
         },
         body: JSON.stringify({
-            date: dateValue,
-            day_no: dayNoValue,
+            date: dateValue
         }),
+    })
+    .then(response => {
+        if (!response.ok) throw new Error("Failed to save");
+        return response.json();
+    })
+
+        // Create a new row in the table (until backend is connected)
+        const newRow = document.createElement("tr");
+        newRow.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${dayNumberValue}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${dateValue}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">-</td>
+        `;
+        datesTableBody.appendChild(newRow);
+
+        
+
+        clearModalFields();
+        dateModal.classList.add("hidden");
+        dateModal.classList.remove("flex");
+    });
+
+    function clearModalFields() {
+    if (dateInput) dateInput.value = "";
+    if (dayNumberInput) dayNumberInput.value = "";
+    if (shiftSelect) shiftSelect.value = "";
+    if (sessionSelect) sessionSelect.value = "";
+}
+
+});
+
+
+document.getElementById("saveModalBtn").addEventListener("click", () => {
+    const dateValue = document.getElementById("modalDateInput").value;
+    const dayNoValue = document.getElementById("modalDayNumber").value;
+
+    if (!dateValue) {
+  alert("Please fill in the Date field.");
+  return;
+}
+
+
+    fetch("/exam_dates/save/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCSRFToken(),
+        },
+        body: JSON.stringify({
+  date: dateValue
+}),
+
     })
     .then(response => {
         if (!response.ok) throw new Error("Failed to save");
