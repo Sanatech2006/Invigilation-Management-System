@@ -11,6 +11,8 @@ from django.shortcuts import render, redirect
 from apps.staff.models import Staff
 from apps.invigilation_schedule.models import InvigilationSchedule
 from apps.hall.models import Room  # Assuming Room is your hall model
+from apps.exam_dates.models import ExamDate
+
 
 
 def reports_view(request):
@@ -362,7 +364,31 @@ def admin_view(request):
             'unassigned': unassigned_staff_count_cat,
             'total': total_staff_cat,
         })
+        categories = ['AIDED', 'SFM', 'SFW']
 
+    # Dates Report: assigned sessions per dept_category by date
+    dates = ExamDate.objects.all().order_by('date')
+    dates_report = []
+    for idx, exam_date in enumerate(dates, 1):
+        counts = (InvigilationSchedule.objects
+                  .filter(date=exam_date.date, staff_id__isnull=False)
+                  .values('hall_dept_category')
+                  .annotate(assigned_sessions=Count('serial_number')))
+
+        dept_counts = {cat: 0 for cat in categories}
+        for c in counts:
+            cat = c['hall_dept_category']
+            if cat in dept_counts:
+                dept_counts[cat] = c['assigned_sessions']
+
+        dates_report.append({
+            's_no': idx,
+            'date': exam_date.date,
+            'AIDED': dept_counts['AIDED'],
+            'SFM': dept_counts['SFM'],
+            'SFW': dept_counts['SFW'],
+        })
+        
     context = {
         "total_staff": total_staff,
         "total_halls": total_halls,
@@ -378,6 +404,7 @@ def admin_view(request):
         "sessions_report": sessions_report,
         "staff_report": staff_report,
         "conflict_report_rows": conflict_report_rows,
+        "dates_report": dates_report,
 
     }
 

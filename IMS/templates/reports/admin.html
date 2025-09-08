@@ -122,6 +122,34 @@
   </div>
 </div>
 
+<div id="adminSectionDatesReport" class="mb-10">
+  <h2 class="text-2xl font-bold mb-6 text-gray-800">Dates Report</h2>
+  <div class="overflow-x-auto">
+    <table class="min-w-full border border-gray-300 shadow-md rounded-lg overflow-hidden">
+      <thead class="bg-gradient-to-r from-yellow-200 to-yellow-400">
+        <tr>
+          <th class="px-6 py-3 text-left text-gray-800 font-semibold uppercase tracking-wider">S No</th>
+          <th class="px-6 py-3 text-left text-gray-800 font-semibold uppercase tracking-wider">Date</th>
+          <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">AIDED</th>
+          <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">SFM</th>
+          <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">SFW</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white">
+        {% for row in dates_report %}
+        <tr class="hover:bg-yellow-50 transition">
+          <td class="border px-6 py-3 font-medium text-gray-700">{{ row.s_no }}</td>
+          <td class="border px-6 py-3 font-medium text-gray-700">{{ row.date }}</td>
+          <td class="border px-6 py-3 text-center text-green-700 font-medium">{{ row.AIDED }}</td>
+          <td class="border px-6 py-3 text-center text-blue-700 font-medium">{{ row.SFM }}</td>
+          <td class="border px-6 py-3 text-center text-red-600 font-medium">{{ row.SFW }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 
 
 {% endblock %}
