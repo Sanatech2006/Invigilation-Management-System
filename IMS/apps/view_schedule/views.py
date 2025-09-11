@@ -129,56 +129,6 @@ from django.shortcuts import redirect
 from datetime import datetime
 from apps.invigilation_schedule.models import InvigilationSchedule
 
-# def session_staff_delete(request):
-#     if request.method == "POST":
-#         staff_id = request.POST.get("staff_id")
-#         date_str = request.POST.get("date")
-#         hall_no = request.POST.get("hall_no")
-#         session = request.POST.get("session")
-#         SessionSerial = request.POST.get("SessionSerial", "")
-
-#         print("Staff ID:", staff_id)
-#         print("Date:", date_str)
-#         print("Hall No:", hall_no)
-#         print("Session:", session)
-
-#         # ✅ Validate and convert SessionSerial
-#         if SessionSerial and SessionSerial.isdigit():
-#             serial_number = int(SessionSerial)
-#             print("Serial:", serial_number)
-#         else:
-#             print("❌ SessionSerial is missing or invalid:", SessionSerial)
-#             return redirect("view_schedule")
-
-#         # 📅 Convert date
-#         try:
-#             date_obj = datetime.strptime(date_str, "%b. %d, %Y").date()
-#         except ValueError:
-#             try:
-#                 date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
-#             except ValueError:
-#                 print("❌ Invalid date format:", date_str)
-#                 return redirect("view_schedule")
-
-#         # 🛠️ Update matching record
-#         updated = InvigilationSchedule.objects.filter(
-#             serial_number=serial_number,
-#             staff_id=staff_id,
-#             date=date_obj,
-#             hall_no=hall_no,
-#             session=session
-#         ).update(
-#             staff_id=None,
-#             designation=None,
-#             name=None,
-#             dept_category=None,
-#             double_session=False,
-#             staff_category=None
-#         )
-
-#         print(f"✅ Cleared {updated} schedule record(s)")
-
-#     return redirect("view_schedule")
 
 def get_available_staff(request):
     try:

@@ -367,27 +367,43 @@ def admin_view(request):
         categories = ['AIDED', 'SFM', 'SFW']
 
     # Dates Report: assigned sessions per dept_category by date
+    categories = ['AIDED', 'SFM', 'SFW']
     dates = ExamDate.objects.all().order_by('date')
     dates_report = []
     for idx, exam_date in enumerate(dates, 1):
-        counts = (InvigilationSchedule.objects
-                  .filter(date=exam_date.date, staff_id__isnull=False)
-                  .values('hall_dept_category')
-                  .annotate(assigned_sessions=Count('serial_number')))
+            # Total sessions per department category for this date
+            total_counts = (
+                InvigilationSchedule.objects
+                .filter(date=exam_date.date)
+                .values('hall_dept_category')
+                .annotate(total_sessions=Count('serial_number'))
+            )
+            assigned_counts = (
+                InvigilationSchedule.objects
+                .filter(date=exam_date.date, staff_id__isnull=False)
+                .values('hall_dept_category')
+                .annotate(assigned_sessions=Count('serial_number'))
+            )
 
-        dept_counts = {cat: 0 for cat in categories}
-        for c in counts:
-            cat = c['hall_dept_category']
-            if cat in dept_counts:
-                dept_counts[cat] = c['assigned_sessions']
+            # Build dictionaries for quick lookup
+            total_dict = {c['hall_dept_category']: c['total_sessions'] for c in total_counts}
+            assigned_dict = {c['hall_dept_category']: c['assigned_sessions'] for c in assigned_counts}
 
-        dates_report.append({
-            's_no': idx,
-            'date': exam_date.date,
-            'AIDED': dept_counts['AIDED'],
-            'SFM': dept_counts['SFM'],
-            'SFW': dept_counts['SFW'],
-        })
+            # Prepare per-date/per-category result with assigned, unassigned, and total
+            row = {
+                's_no': idx,
+                'date': exam_date.date,
+            }
+            for cat in categories:
+                total = total_dict.get(cat, 0)
+                assigned = assigned_dict.get(cat, 0)
+                unassigned = total - assigned
+                row[cat] = {
+                    'assigned': assigned,
+                    'unassigned': unassigned,
+                    'total': total,
+                }
+            dates_report.append(row)
         
     context = {
         "total_staff": total_staff,

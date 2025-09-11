@@ -15,6 +15,22 @@
                transition:0.3s;">
     Change Password
 </button>
+<button id="upload-schedule-btn" 
+            class="btn btn-secondary" 
+            style="background:linear-gradient(90deg,#10b981,#059669);
+                   color:#fff;
+                   padding:10px 20px;
+                   border:none;
+                   border-radius:8px;
+                   font-size:16px;
+                   font-weight:600;
+                   cursor:pointer;
+                   box-shadow:0 4px 6px rgba(0,0,0,0.1);
+                   transition:0.3s;">
+        Upload Schedule
+    </button>
+    <input type="file" id="upload-schedule-file" style="display:none" accept=".xlsx,.xls,.csv" />
+
 
 <!-- Change Password Modal -->
 <div id="change-password-modal" 
@@ -112,6 +128,10 @@
     const changePasswordUrl = "{% url 'settings:change_password' %}";
     const csrftoken = "{{ csrf_token }}";
 </script>
+<script>
+    const uploadScheduleUrl = "{% url 'settings:upload_schedule' %}";
+</script>
+
 
 
 <script src="{% static 'js/settings.js' %}"></script>

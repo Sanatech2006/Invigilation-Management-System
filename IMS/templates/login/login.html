@@ -3,83 +3,112 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Invigilation System - Login</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Invigilation System - Login</title>
+	<script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<style>
-  @keyframes blink {
+<body class="min-h-screen flex">
 
-    0%,
-    50%,
-    100% {
-      opacity: 1;
-    }
+	<!-- Left Branding Panel -->
+	<div
+		class="hidden lg:flex w-1/2 bg-gradient-to-br from-indigo-800 via-purple-800 to-indigo-700 text-white flex-col justify-center items-center relative overflow-hidden p-10">
+		<div class="absolute inset-0 opacity-20 pointer-events-none">
+			<div class="absolute w-96 h-96 bg-purple-500 rounded-full blur-3xl top-[-80px] left-[-80px] animate-pulse">
+			</div>
+			<div
+				class="absolute w-80 h-80 bg-indigo-500 rounded-full blur-3xl bottom-[-60px] right-[-60px] animate-pulse delay-200">
+			</div>
+		</div>
+		<!-- Logos -->
+		<div class="flex items-center gap-6 mb-8 relative z-10">
+			<img src="{% static 'images/logos.png' %}" alt="College Logo" class="h-32 w-32 rounded-lg shadow-lg">
+			<img src="{% static 'images/75logo.png' %}" alt="75 Years Logo" class="h-32 w-32 rounded-full shadow-lg">
+		</div>
+		<!-- College Info -->
+		<h1 class="text-3xl font-bold mb-2 text-center drop-shadow-md">JAMAL MOHAMED COLLEGE</h1>
+		<p class="text-md text-gray-200 text-center mb-2 uppercase font-semibold"> ( Autonomous )</p>
+		<p class="text-md text-gray-200 text-center leading-relaxed mb-2">
+			Accredited with <span class="text-yellow-300 font-semibold">A++ Grade by NAAC</span> (4th Cycle) with CGPA
+			<span class="font-bold">3.69</span>/4.0
+		</p>
+		<p class="text-md text-gray-200 text-center mb-4 font-semibold"> Tiruchirappalli - 620 020.</p>
+		<p class="text-lg font-semibold text-center px-24 py-3 bg-white/10 rounded-xl 
+        shadow-md border border-white/20 backdrop-blur-sm hover:bg-white/20 transition-all duration-300">
+			Invigilation Management System</p>
+	</div>
 
-    25%,
-    75% {
-      opacity: 0;
-    }
-  }
+	<!-- Right Login Panel -->
+	<div class="flex w-full lg:w-1/2 justify-center items-center bg-gray-50 relative p-10">
+		<!-- Login Card -->
+		<div
+			class="relative z-10 bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl w-full max-w-md p-10 border border-gray-200">
+			<!-- Header -->
+			<h2 class="text-3xl font-extrabold text-gray-800 text-center mb-6">Login</h2>
+			<p class="text-gray-500 text-center mb-8">Enter your staff credentials</p>
+			<!-- Form -->
+			<form method="post" action="{% url 'login' %}" class="space-y-6" novalidate>
+				{% csrf_token %}
+				<!-- Staff ID -->
+				<div>
+					<label for="staff_id" class="block text-md font-medium text-gray-700 mb-3">Staff ID :</label>
+					<input type="text" id="staff_id" name="staff_id" required placeholder="Enter your Staff ID"
+						class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-gray-700 placeholder-gray-400 shadow-sm transition" />
+				</div>
+				<!-- Password -->
+				<div>
+					<label for="password" class="block text-md font-medium text-gray-700 mb-3">Password :</label>
+					<div class="relative">
+						<input type="password" id="password" name="password" required placeholder="Enter your password"
+							class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-gray-700 placeholder-gray-400 shadow-sm transition" />
+						<span class="absolute inset-y-0 right-4 flex items-center text-gray-500 cursor-pointer"
+							onclick="togglePassword()">
+							<i id="eyeIcon" class="fas fa-eye"></i>
+						</span>
+					</div>
+				</div>
+				<!-- Error Messages -->
+				{% if messages %}
+				<div>
+					{% for message in messages %}
+					<p class="text-red-600 text-sm text-center">{{ message }}</p>
+					{% endfor %}
+				</div>
+				{% endif %}
+				<!-- Submit Button -->
+				<button type="submit"
+					class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg transition-transform transform hover:scale-[1.02]">
+					Login
+				</button>
+			</form>
+			<!-- Footer -->
+			<p class="text-xs text-gray-500 text-center mt-6">
+				© 2025 Jamal Mohamed College · All Rights Reserved
+			</p>
+		</div>
+	</div>
 
-  .animate-blink {
-    animation: blink 7s infinite;
-  }
-</style>
+	<!-- FontAwesome -->
+	<script src="https://kit.fontawesome.com/your-kit-id.js" crossorigin="anonymous"></script>
 
-<body
-  class="bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-700 flex items-center justify-center min-h-screen">
-  <div class="bg-white rounded-lg shadow-lg w-full max-w-5xl flex overflow-hidden h-96">
-    <!-- Left Side -->
-    <div class="w-1/2 bg-gray-100 flex flex-col items-center justify-center p-6">
-      <div class="flex items-center justify-center space-x-4 mb-6">
-        <img src="{% static 'images/logos.png' %}" alt="College Logo" class="h-20 w-20 shadow-md">
-        <div class="text-center">
-          <h1 class="text-xl font-bold text-gray-800">JAMAL MOHAMED COLLEGE (Autonomous)</h1>
-          <p class="text-gray-600">Tiruchirappalli - 620020</p>
-        </div>
-        <img src="{% static 'images/75logo.png' %}" alt="75 Years Logo" class="h-20 w-20 rounded-full shadow-md">
-      </div>
-      <h2 class="text-2xl font-semibold text-indigo-700 mt-10">Invigilation Management System</h2>
-    </div>
-    <div class="w-1/2 p-8 flex flex-col justify-center">
-      <form method="post" action="{% url 'login' %}" novalidate>
-        {% csrf_token %}
-        <h2 class="text-2xl font-semibold mb-6 text-center animate-blink">Welcome !</h2>
-        <input type="text" id="staff_id" name="staff_id" required placeholder="Enter Staff ID"
-          class="w-full py-2 mb-4 border-0 border-b-2 border-gray-500 focus:outline-none" />
-        <div class="relative h-12">
-          <input type="password" id="password" name="password" required placeholder="Enter Password"
-            class="w-full py-2 mb-6 border-0 border-b-2 border-gray-500 focus:outline-none" />
-          <button type="button" onclick="togglePasswordVisibility()"
-            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 focus:outline-none">
-            <!-- Eye icon SVG here -->
-            <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path id="eyeOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path id="eyeOpenPath" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
-        </div>
-        {% if messages %}
-        <div class="">
-          {% for message in messages %}
-          <div class="text-red-600 text-sm text-center mt-2">{{ message }}</div>
-          {% endfor %}
-        </div>
-        {% endif %}
-        <button type="submit"
-          class="w-full bg-blue-600 hover:bg-blue-700 text-white mt-10 font-semibold py-2 rounded-md transition">
-          Login
-        </button>
-      </form>
-    </div>
-  </div>
-  <script src="{% static 'js/login.js' %}"></script>
+	<!-- Password Toggle -->
+	<script>
+		function togglePassword() {
+			const pwd = document.getElementById("password");
+			const eye = document.getElementById("eyeIcon");
+			if (pwd.type === "password") {
+				pwd.type = "text";
+				eye.classList.remove("fa-eye");
+				eye.classList.add("fa-eye-slash");
+			} else {
+				pwd.type = "password";
+				eye.classList.remove("fa-eye-slash");
+				eye.classList.add("fa-eye");
+			}
+		}
+	</script>
+
 </body>
 
 </html>

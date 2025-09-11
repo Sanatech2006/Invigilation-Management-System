@@ -70,10 +70,10 @@
            class="sidebar-link menu-item {% if 'view-schedule' in request.path %}active-nav-item{% endif %}">
             <i class="sidebar-icon fas fa-eye"></i> View Schedule
         </a>
-        <a href="{% url 'manual_assignment:manual_assignment' %}" 
-           class="sidebar-link menu-item {% if 'manual-assignment' in request.path %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-sliders-h"></i> Manual Assignment
-        </a>
+<a href="{% url 'manual_assignment:manual_assignment' %}" 
+   class="sidebar-link menu-item {% if 'manual-assignment' in request.path %}active-nav-item{% endif %}">
+    <i class="sidebar-icon fas fa-tasks"></i> Manual Assignment
+</a>
         <a href="{% url 'reports:admin_reports' %}" 
            class="sidebar-link menu-item {% if 'reports' in request.path %}active-nav-item{% endif %}">
             <i class="sidebar-icon fas fa-chart-bar"></i> Reports

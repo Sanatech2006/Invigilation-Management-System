@@ -127,28 +127,52 @@
   <div class="overflow-x-auto">
     <table class="min-w-full border border-gray-300 shadow-md rounded-lg overflow-hidden">
       <thead class="bg-gradient-to-r from-yellow-200 to-yellow-400">
-        <tr>
-          <th class="px-6 py-3 text-left text-gray-800 font-semibold uppercase tracking-wider">S No</th>
-          <th class="px-6 py-3 text-left text-gray-800 font-semibold uppercase tracking-wider">Date</th>
-          <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">AIDED</th>
-          <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">SFM</th>
-          <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">SFW</th>
-        </tr>
-      </thead>
+  <tr>
+    <th class="px-6 py-3 text-left text-gray-800 font-semibold uppercase tracking-wider" rowspan="2">S No</th>
+    <th class="px-6 py-3 text-left text-gray-800 font-semibold uppercase tracking-wider" rowspan="2">Date</th>
+    <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider" colspan="3">AIDED</th>
+    <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider" colspan="3">SFM</th>
+    <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider" colspan="3">SFW</th>
+  </tr>
+  <tr>
+    <!-- For each category: Assigned / Unassigned / Total -->
+    <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">Assigned</th>
+    <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">Unassigned</th>
+    <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">Total</th>
+    <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">Assigned</th>
+    <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">Unassigned</th>
+    <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">Total</th>
+    <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">Assigned</th>
+    <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">Unassigned</th>
+    <th class="px-6 py-3 text-center text-gray-800 font-semibold uppercase tracking-wider">Total</th>
+  </tr>
+</thead>
+
       <tbody class="bg-white">
-        {% for row in dates_report %}
-        <tr class="hover:bg-yellow-50 transition">
-          <td class="border px-6 py-3 font-medium text-gray-700">{{ row.s_no }}</td>
-          <td class="border px-6 py-3 font-medium text-gray-700">{{ row.date }}</td>
-          <td class="border px-6 py-3 text-center text-green-700 font-medium">{{ row.AIDED }}</td>
-          <td class="border px-6 py-3 text-center text-blue-700 font-medium">{{ row.SFM }}</td>
-          <td class="border px-6 py-3 text-center text-red-600 font-medium">{{ row.SFW }}</td>
-        </tr>
-        {% endfor %}
+       {% for row in dates_report %}
+<tr class="hover:bg-yellow-50 transition">
+  <td class="border px-6 py-3 font-medium text-gray-700">{{ row.s_no }}</td>
+  <td class="border px-6 py-3 font-medium text-gray-700">{{ row.date }}</td>
+  <!-- AIDED -->
+  <td class="border px-6 py-3 text-center text-green-700 font-medium">{{ row.AIDED.assigned }}</td>
+  <td class="border px-6 py-3 text-center text-red-600 font-medium">{{ row.AIDED.unassigned }}</td>
+  <td class="border px-6 py-3 text-center font-medium">{{ row.AIDED.total }}</td>
+  <!-- SFM -->
+  <td class="border px-6 py-3 text-center text-green-700 font-medium">{{ row.SFM.assigned }}</td>
+  <td class="border px-6 py-3 text-center text-red-600 font-medium">{{ row.SFM.unassigned }}</td>
+  <td class="border px-6 py-3 text-center font-medium">{{ row.SFM.total }}</td>
+  <!-- SFW -->
+  <td class="border px-6 py-3 text-center text-green-700 font-medium">{{ row.SFW.assigned }}</td>
+  <td class="border px-6 py-3 text-center text-red-600 font-medium">{{ row.SFW.unassigned }}</td>
+  <td class="border px-6 py-3 text-center font-medium">{{ row.SFW.total }}</td>
+</tr>
+{% endfor %}
+
       </tbody>
     </table>
   </div>
 </div>
+
 
 
 

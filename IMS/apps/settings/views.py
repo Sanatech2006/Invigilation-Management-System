@@ -7,7 +7,11 @@ from apps.staff.models import Staff
 from django.views.decorators.http import require_POST
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+from ..invigilation_schedule.models import InvigilationSchedule
 import logging
+from datetime import datetime
+import pandas as pd
+
 
 
 def settings_home(request):
@@ -50,3 +54,89 @@ def change_password_no_auth(request):
 
     return JsonResponse({'success': True, 'message': 'Password changed successfully'})
 
+@csrf_exempt  # Replace with proper auth and CSRF in production
+def upload_schedule(request):
+    if request.method != "POST" or 'file' not in request.FILES:
+        return JsonResponse({'success': False, 'message': 'No file uploaded'}, status=400)
+
+    file = request.FILES['file']
+
+    try:
+        df = pd.read_excel(file)
+    except Exception:
+        return JsonResponse({'success': False, 'message': 'Invalid Excel file'}, status=400)
+
+    # Expected columns with possible aliases for flexible header mapping
+    column_aliases = {
+        "S.No": ["S.No", "S. No", "Sr. No", "Serial No", "SNo"],
+        "Date": ["Date", "Schedule Date", "Exam Date"],
+        "Session": ["Session", "Exam Session"],
+        "Hall No": ["Hall No", "Hall Number", "Hall"],
+        "Hall Department": ["Hall Department", "Hall Dept", "HallDepartment"],
+        "Staff Department": ["Staff Department", "Staff Dept", "Dept Name"],
+        "Staff ID": ["Staff ID", "StaffID", "Staff Id"],
+        "Name": ["Name", "Staff Name", "Staff"],
+        "Designation": ["Designation", "Staff Designation"],
+        "Staff Category": ["Staff Category", "Category"],
+        "Dept Category": ["Dept Category", "Department Category"],
+        "Hall Dept Category": ["Hall Dept Category", "Hall Dept Cat"],
+    }
+
+    # Normalize columns for flexible matching
+    df_cols_lower = {col.lower(): col for col in df.columns}
+    rename_map = {}
+    for expected_col, aliases in column_aliases.items():
+        found_col = None
+        for alias in aliases:
+            alias_lower = alias.lower()
+            if alias_lower in df_cols_lower:
+                found_col = df_cols_lower[alias_lower]
+                break
+        if not found_col:
+            return JsonResponse({'success': False, 'message': f'Missing column "{expected_col}"'}, status=400)
+        rename_map[found_col] = expected_col
+    df = df.rename(columns=rename_map)
+
+    # Validate and convert Date column to datetime.date
+    try:
+        df["Date"] = pd.to_datetime(df["Date"]).dt.date
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Invalid Date column: {str(e)}'}, status=400)
+
+    # Delete existing schedules matching these dates to avoid duplicates
+    dates_in_file = df["Date"].unique()
+    InvigilationSchedule.objects.filter(date__in=dates_in_file).delete()
+
+    schedule_objects = []
+    success_count = 0
+    errors = []
+
+    for i, row in df.iterrows():
+        try:
+            obj = InvigilationSchedule(
+                date=row["Date"],
+                session=str(row["Session"]).strip(),
+                hall_no=str(row["Hall No"]).strip(),
+                hall_department=str(row["Hall Department"]).strip(),
+                dept_name=str(row["Staff Department"]).strip(),
+                staff_id=str(row["Staff ID"]).strip(),
+                name=str(row["Name"]).strip(),
+                designation=str(row["Designation"]).strip(),
+                staff_category=str(row["Staff Category"]).strip(),
+                dept_category=str(row["Dept Category"]).strip(),
+                hall_dept_category=str(row["Hall Dept Category"]).strip(),
+                # Add other model fields here if needed
+            )
+            schedule_objects.append(obj)
+            success_count += 1
+        except Exception as e:
+            errors.append(f"Row {i+2}: {str(e)}")  # add 2 to account for header row and zero indexing
+
+    # Bulk create all schedule entries at once
+    InvigilationSchedule.objects.bulk_create(schedule_objects)
+
+    message = f"Successfully processed {success_count} records."
+    if errors:
+        message += f" Errors: {'; '.join(errors)}"
+
+    return JsonResponse({'success': True, 'message': message})

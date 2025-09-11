@@ -79,4 +79,51 @@ document.addEventListener('DOMContentLoaded', function() {
     updateReportsMenu();
 });
 
+document.addEventListener('DOMContentLoaded', function () {
+    const uploadBtn = document.getElementById('upload-schedule-btn');
+    const fileInput = document.getElementById('upload-schedule-file');
+
+    if (uploadBtn && fileInput) {
+        uploadBtn.addEventListener('click', function () {
+            fileInput.value = ""; // reset file input
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', function () {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch(uploadScheduleUrl, {
+                method: 'POST',
+                headers: {'X-CSRFToken': csrftoken},
+                body: formData,
+            })
+            .then(res => {
+                console.log("Upload response status:", res.status);
+                if (!res.ok) {
+                    return res.text().then(text => {
+                        console.error("Upload failed response text:", text);
+                        throw new Error(`Server responded with ${res.status}`);
+                    });
+                }
+                return res.json();
+            })
+            .then(data => {
+                console.log("Upload response data:", data);
+                alert(data.message || (data.success ? "Upload successful" : "Upload failed"));
+                if (data.success) {
+                    window.location.href = "#";
+                }
+            })
+            .catch(err => {
+                console.error("Upload error detail:", err);
+                alert('Upload failed. Please try again.');
+            });
+        });
+    }
+});
+
 
