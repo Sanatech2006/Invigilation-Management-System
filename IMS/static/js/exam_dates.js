@@ -97,7 +97,7 @@ document.getElementById("saveModalBtn").addEventListener("click", () => {
 }
 
 
-    fetch("/exam_dates/save/", {
+    fetch("/exam-dates/save/", {  
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -149,3 +149,60 @@ function getCSRFToken() {
     }
     return null;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const datesTableBody = document.getElementById('datesTableBody');
+
+    function loadExamDates() {
+       fetch('/exam-dates/list/')
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      const datesTableBody = document.getElementById('datesTableBody');
+      datesTableBody.innerHTML = '';
+      data.exam_dates.forEach(dateStr => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${dateStr}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">-</td>
+        `;
+        datesTableBody.appendChild(row);
+      });
+    }
+  })
+            .catch(() => {
+                datesTableBody.innerHTML = '<tr><td colspan="2" class="text-center text-sm text-red-500">Failed to load exam dates.</td></tr>';
+            });
+    }
+
+    // Call load on page load
+    loadExamDates();
+
+    // Optional: Define deleteDate function to handle deletion action if needed
+    window.deleteDate = function(id) {
+        if (!confirm('Delete this exam date?')) return;
+        fetch(`/exam-dates/delete/${id}/`, { method: 'POST', headers: {'X-CSRFToken': getCSRFToken()} })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Exam date deleted');
+                    loadExamDates();
+                } else {
+                    alert('Failed to delete date: ' + (data.error || 'Unknown error'));
+                }
+            });
+    };
+
+    // CSRF token helper
+    function getCSRFToken() {
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for(let cookie of cookies) {
+            cookie = cookie.trim();
+            if(cookie.startsWith(name + '=')) {
+                return decodeURIComponent(cookie.substring(name.length + 1));
+            }
+        }
+        return '';
+    }
+});

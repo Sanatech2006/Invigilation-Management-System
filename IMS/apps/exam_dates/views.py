@@ -4,6 +4,7 @@ from django.http import JsonResponse
 import json
 from .models import ExamDate
 from django.utils.dateparse import parse_date
+from django.views.decorators.http import require_GET
 def exam_dates_view(request):
     return render(request, 'exam_dates/exam_dates.html') 
 
@@ -32,3 +33,12 @@ def save_exam_date(request):
     
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
+
+@require_GET
+def get_exam_dates(request):
+    try:
+        exam_dates = ExamDate.objects.all().order_by('date')
+        dates_list = [ed.date.strftime("%Y-%m-%d") for ed in exam_dates]
+        return JsonResponse({"success": True, "exam_dates": dates_list})
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)

@@ -637,15 +637,19 @@ def get_staff_details(request):
 
     try:
         staff = Staff.objects.get(staff_id=staff_id)
+        print(f"Staff {staff_id} date_of_joining: {staff.date_of_joining}")
 
         # Safe date formatting handling
         doj = staff.date_of_joining
-        if isinstance(doj, str):
-            date_of_joining = doj  # already string, no formatting needed
-        elif hasattr(doj, 'strftime'):
-            date_of_joining = doj.strftime('%Y-%m-%d')
-        else:
-            date_of_joining = ''
+        date_of_joining = ''
+        if doj:
+            # If datetime.datetime, convert to date
+            if hasattr(doj, 'strftime'):
+                # Format strictly to 'YYYY-MM-DD'
+                date_of_joining = doj.strftime('%Y-%m-%d')
+            else:
+                # Fallback for other types (string?)
+                date_of_joining = str(doj).split(' ')[0]
 
         data = {
             'name': staff.name or '',
