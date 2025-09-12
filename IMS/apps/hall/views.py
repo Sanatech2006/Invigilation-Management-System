@@ -97,7 +97,7 @@ def hall_management(request):
                     
                     # Calculate staff_required based on strength
                     strength = int(row.get('strength', 0))
-                    staff_required = 1 if strength < 55 else 2
+                    staff_required = 1 if strength < 63 else 2
                     # Get days value from Excel (default to 1 if not provided)
                     days = int(row.get('days', 1))
                     

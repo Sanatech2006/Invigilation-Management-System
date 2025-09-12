@@ -3,7 +3,10 @@
 
 {% block content %}
 
-<h1 class="text-4xl font-bold mb-8 text-center text-gray-800">{{ welcome_message }}</h1>
+<h1 class="text-3xl font-bold mb-8 text-center text-gray-800">
+  {{ welcome_message|safe }}
+</h1>
+
 
 <!-- Summary Section -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">

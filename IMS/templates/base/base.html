@@ -1,163 +1,198 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-100">
+<html lang="en" class="h-full">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IMS - {% block title %}{% endblock %}</title>
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Font Awesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
 
     <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="{% static 'css/dist/output.css' %}" rel="stylesheet">
-    
     <link href="{% static 'css/src/components.css' %}" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
     <style>
-        .sidebar-link:hover {
-            background-color: #e5e7eb; /* Tailwind gray-200 */
-            color: #111827;           /* Tailwind gray-900 */
+        .blob {
+            position: absolute;
+            border-radius: 9999px;
+            opacity: 0.2;
+            animation: pulse 6s infinite;
         }
-        .active-nav-item {
-            background-color: #2563eb; /* Tailwind blue-600 */
-            color: white;
+
+        .blob1 {
+            width: 24rem;
+            height: 24rem;
+            top: -5rem;
+            left: -5rem;
+            background-color: #a855f7;
+        }
+
+        .blob2 {
+            width: 20rem;
+            height: 20rem;
+            bottom: -3.5rem;
+            right: -3.5rem;
+            background-color: #4f46e5;
+            animation-delay: 2s;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
         }
     </style>
-
-    {% block extra_css %}{% endblock %}
-    
 </head>
-<body class="h-full">
-    
-    <!-- Mobile menu button -->
-     <button id="mobile-menu-button" class="md:hidden fixed top-4 left-4 z-50 p-2 rounded-md text-gray-700 bg-white shadow-lg">
-        <i class="fas fa-bars text-xl"></i>
-    </button>
 
-    
-    <div id="sidebar" class="sidebar">
-    <div class="sidebar-header">
-        <h4>IMS</h4>
-    </div>
-    <nav class="sidebar-nav">
-        {% if user_role == 1 %}
-        <!-- Role 1 (Admin): Show all menus -->
-        <a href="{% url 'dashboard:dashboard' %}"
-           class="sidebar-link menu-item dashboard-menu {% if request.path == '/' %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-tachometer-alt"></i> Dashboard
-        </a>
-        <a href="{% url 'staff:staff-management' %}" 
-           class="sidebar-link menu-item {% if 'staff' in request.path %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-users"></i> Staff Management
-        </a>
-        <a href="{% url 'hall_management' %}" 
-           class="sidebar-link menu-item {% if 'hall/management' in request.path %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-school"></i> Hall Management
-        </a>
-        <a href="{% url 'exam_dates:index' %}" 
-           class="sidebar-link menu-item {% if 'exam-dates' in request.path %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-calendar-alt"></i> Exam Dates
-        </a>
-        <a href="{% url 'generate_schedule' %}" 
-           class="sidebar-link menu-item {% if 'generate-schedule' in request.path %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-cogs"></i> Generate Schedule
-        </a>
-        <a href="{% url 'view_schedule' %}" 
-           class="sidebar-link menu-item {% if 'view-schedule' in request.path %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-eye"></i> View Schedule
-        </a>
-<a href="{% url 'manual_assignment:manual_assignment' %}" 
-   class="sidebar-link menu-item {% if 'manual-assignment' in request.path %}active-nav-item{% endif %}">
-    <i class="sidebar-icon fas fa-tasks"></i> Manual Assignment
-</a>
-        <a href="{% url 'reports:admin_reports' %}" 
-           class="sidebar-link menu-item {% if 'reports' in request.path %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-chart-bar"></i> Reports
-        </a>
-        <a href="{% url 'settings:settings_home' %}" 
-           class="sidebar-link menu-item {% if 'settings' in request.path and 'invigilation_settings' not in request.path %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-sliders-h"></i> Settings
-        </a>
-        {% endif %}
+<body class="min-h-screen text-white overflow-x-hidden relative">
 
-        {% if user_role == 2 %}
-        <!-- Role 2 menu -->
-        <a href="{% url 'dashboard:dashboard' %}" 
-           class="sidebar-link menu-item dashboard-menu {% if request.path == '/' %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-tachometer-alt"></i> Dashboard
-        </a>
-        
-        <a href="{% url 'reports:reports' %}" 
-           class="sidebar-link menu-item {% if 'reports' in request.path %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-chart-bar"></i> Reports
-        </a>
-        {% elif user_role == 3 %}
-        <!-- Role 3 menu -->
-        <a href="{% url 'dashboard:dashboard' %}" 
-           class="sidebar-link menu-item dashboard-menu {% if request.path == '/' %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-tachometer-alt"></i> Dashboard
-        </a>
-        <a href="{% url 'reports:hod_reports' %}" 
-           class="sidebar-link menu-item {% if 'reports' in request.path %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-chart-bar"></i> Reports
-        </a>
-        {% elif user_role == 4 %}
-        <!-- Role 4 (HOD) menu -->
-        <a href="{% url 'dashboard:dashboard' %}" 
-           class="sidebar-link menu-item dashboard-menu {% if request.path == '/' %}active-nav-item{% endif %}">
-            <i class="sidebar-icon fas fa-tachometer-alt"></i> Dashboard
-        </a>
-        <a href="{% url 'reports:reports' %}" 
-   id="reports-menu-item"
-   class="sidebar-link menu-item {% if 'reports' in request.path %}active-nav-item{% endif %}">
-    <i class="sidebar-icon fas fa-chart-bar"></i> Reports
-</a>
+    <!-- Animated blobs -->
+    <!-- <div class="blob blob1"></div>
+    <div class="blob blob2"></div> -->
 
-        {% endif %}
-
-        <div class="sidebar-logout">
-            <a href="{% url 'logout' %}" class="sidebar-link logout" onclick="openLogoutModal();">
-                <i class="sidebar-icon fas fa-sign-out-alt"></i> Logout
+    <!-- Sidebar -->
+    <div
+        class="bg-gradient-to-br from-indigo-800 via-purple-800 to-indigo-700 fixed top-0 left-0 h-full w-64 bg-white/10 backdrop-blur-xl shadow-2xl z-50 flex flex-col p-6 transition-all">
+        <div class="text-2xl font-bold text-center mb-8">IMS</div>
+        <nav class="flex-1 flex flex-col">
+            {% if user_role == 1 %}
+            <a href="{% url 'dashboard:dashboard' %}"
+                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if request.path == '/' %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+                <i class="fas fa-tachometer-alt w-5 h-5"></i> Dashboard
             </a>
-        </div>
-    </nav>
-</div>
+            <a href="{% url 'staff:staff-management' %}"
+                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'staff' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+                <i class="fas fa-users w-5 h-5"></i> Staff Management
+            </a>
+            <a href="{% url 'hall_management' %}"
+                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'hall/management' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+                <i class="fas fa-school w-5 h-5"></i> Hall Management
+            </a>
+            <a href="{% url 'exam_dates:index' %}"
+                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'exam-dates' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+                <i class="fas fa-calendar-alt w-5 h-5"></i> Exam Dates
+            </a>
+            <a href="{% url 'generate_schedule' %}"
+                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'generate-schedule' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+                <i class="fas fa-cogs w-5 h-5"></i> Generate Schedule
+            </a>
+            <a href="{% url 'view_schedule' %}"
+                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'view-schedule' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+                <i class="fas fa-eye w-5 h-5"></i> View Schedule
+            </a>
+            <a href="{% url 'manual_assignment:manual_assignment' %}"
+                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'manual-assignment' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+                <i class="fas fa-tasks w-5 h-5"></i> Manual Assignment
+            </a>
+            <a href="{% url 'reports:admin_reports' %}"
+                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'reports' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+                <i class="fas fa-chart-bar w-5 h-5"></i> Reports
+            </a>
+            <a href="{% url 'settings:settings_home' %}"
+                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'settings' in request.path and 'invigilation_settings' not in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+                <i class="fas fa-sliders-h w-5 h-5"></i> Settings
+            </a>
+            {% endif %}
 
+            {% if user_role == 2 %}
+            <a href="{% url 'dashboard:dashboard' %}"
+                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if request.path == '/' %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+                <i class="fas fa-tachometer-alt w-5 h-5"></i> Dashboard
+            </a>
+            <a href="{% url 'reports:reports' %}"
+                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'reports' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+                <i class="fas fa-chart-bar w-5 h-5"></i> Reports
+            </a>
+            {% elif user_role == 3 %}
+            <a href="{% url 'dashboard:dashboard' %}"
+                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if request.path == '/' %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+                <i class="fas fa-tachometer-alt w-5 h-5"></i> Dashboard
+            </a>
+            <a href="{% url 'reports:hod_reports' %}"
+                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'reports' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+                <i class="fas fa-chart-bar w-5 h-5"></i> Reports
+            </a>
+            {% elif user_role == 4 %}
+            <a href="{% url 'dashboard:dashboard' %}"
+                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if request.path == '/' %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+                <i class="fas fa-tachometer-alt w-5 h-5"></i> Dashboard
+            </a>
+            <a href="{% url 'reports:reports' %}"
+                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'reports' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+                <i class="fas fa-chart-bar w-5 h-5"></i> Reports
+            </a>
+            {% endif %}
 
-<div id="logoutModal" class="modal" tabindex="-1" role="dialog" style="display:none;">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Confirm Logout</h5>
-        <button type="button" class="close" onclick="closeLogoutModal()" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <p>Are you sure you want to logout?</p>
-      </div>
-      <div class="modal-footer">
-        <a href="{% url 'logout' %}" class="btn btn-primary">Yes</a>
-        <button type="button" class="btn btn-secondary" onclick="closeLogoutModal()">Cancel</button>
-      </div>
+            <div class="">
+                <a href="{% url 'logout' %}" onclick="openLogoutModal()"
+                    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/20 hover:text-white">
+                    <i class="fas fa-sign-out-alt w-5 h-5"></i> Logout
+                </a>
+            </div>
+        </nav>
     </div>
-  </div>
-</div>
 
+    <!-- Topbar -->
+    <header class="md:ml-64 p-2 px-6 flex justify-between items-center  text-white">
+        <h1 class="text-2xl font-bold text-black">{% block page_title %}Dashboard{% endblock %}</h1>
+        <div class="flex items-center gap-4">
+            <span>{{ request.user.username }}</span>
+            <img src="{% static 'images/logos.png' %}s" class="w-10 h-10 rounded-full border" alt="User Avatar">
+        </div>
+    </header>
 
-
-    <main class="md:ml-64 p-4 md:p-6">
-        {% block content %}{% endblock %}
+    <!-- Main content -->
+    <main class="md:ml-64 p-6">
+        <div class="bg-white/90 backdrop-blur-lg text-gray-800 p-8 rounded-2xl shadow-2xl border border-gray-200">
+            {% block content %}{% endblock %}
+        </div>
     </main>
+
+    <!-- Logout Modal -->
+    <div id="logoutModal" class="hidden fixed inset-0 justify-center items-center bg-black/50 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h3 class="text-lg font-bold mb-4">Confirm Logout</h3>
+            <p class="mb-6">Are you sure you want to logout?</p>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeLogoutModal()"
+                    class="px-4 py-2 rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300 font-semibold">
+                    Cancel
+                </button>
+                <a href="{% url 'logout' %}"
+                    class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 font-semibold">
+                    Yes, Logout
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    </script>
 
     <script src="{% static 'js/sidebar.js' %}"></script>
     {% block extra_js %}{% endblock %}
-     {% block javascript %}{% endblock %}
-     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block javascript %}{% endblock %}
 
 </body>
+
 </html>

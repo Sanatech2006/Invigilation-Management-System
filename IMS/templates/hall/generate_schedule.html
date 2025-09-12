@@ -54,65 +54,57 @@
 
 
     <div class="mt-6 bg-white rounded-lg shadow-md p-6 mb-8 border border-gray-200">
-        <div class="flex flex-wrap justify-between gap-4">
-            <!-- Calculate Schedule Button -->
-            <form method="post">
-                {% csrf_token %}
-                <button type="submit" name="allocate_sessions"
-                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
-                    Calculate Schedule
-                </button>
-            </form>
-            <!-- Download Full Staff Data Button -->
-            <a href="{% url 'export_schedule_excel' %}"
-                class="flex-1 min-w-[200px] bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm font-medium flex items-center justify-center transition-colors duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Download Full Staff Data
-            </a>
-
-            <!-- Generate Schedule Button -->
-            <form method="post" action="{% url 'generate_session' %}" id="generateForm">
-                {% csrf_token %}
-                <button type="submit"
-                    class="flex-1 min-w-[200px] bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium transition-colors duration-200">
-                    Generate Schedule
-                </button>
-            </form>
-
-            <!-- Assign Staff Button -->
+    <div class="flex flex-nowrap gap-4">
+        
+        <!-- Calculate Schedule Button -->
+        <form method="post" class="flex-1 basis-1/5">
+            {% csrf_token %}
+            <button type="submit" name="allocate_sessions"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded text-sm transition-colors duration-200 truncate">
+                Calculate Schedule
             </button>
-            </form>
-            <form method="post" action="{% url 'assign_staff' %}" id="generateForm">
-                {% csrf_token %}
-                <button type="submit"
-                    class="flex-1 min-w-[200px] bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium transition-colors duration-200">
-                    Assign Staff
-                </button>
-            </form>
+        </form>
 
-            <form method="post" action="{% url 'download_staff_unallotted' %}" id="generateForm">
-                {% csrf_token %}
-                <button type="submit"
-                    class="flex-1 min-w-[200px] bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm font-medium transition-colors duration-200">
-                    Download Staff Unallotted 
-                </button>
-            </form>
+        <!-- Generate Schedule Button -->
+        <form method="post" action="{% url 'generate_session' %}" class="flex-1 basis-1/5">
+            {% csrf_token %}
+            <button type="submit"
+                class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium transition-colors duration-200 truncate">
+                Generate Schedule
+            </button>
+        </form>
 
+        <!-- Assign Staff Button -->
+        <form method="post" action="{% url 'assign_staff' %}" class="flex-1 basis-1/5">
+            {% csrf_token %}
+            <button type="submit"
+                class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium transition-colors duration-200 truncate">
+                Assign Staff
+            </button>
+        </form>
 
-            <!-- <form method="post" action="{% url 'assign_staff' %}">
-                {% csrf_token %}
-                <button type="submit" class="text-blue-400">
-                    Assign Staff
-                </button>
-            </form> -->
+        <!-- Download Full Staff Data Button -->
+        <a href="{% url 'export_schedule_excel' %}"
+            class="flex-1 basis-1/5 w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm font-medium flex items-center justify-center transition-colors duration-200 truncate">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Download Full Staff Data
+        </a>
 
-
-        </div>
+        <!-- Download Staff Unallotted Button -->
+        <form method="post" action="{% url 'download_staff_unallotted' %}" class="flex-1 basis-1/5">
+            {% csrf_token %}
+            <button type="submit"
+                class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm font-medium transition-colors duration-200 truncate">
+                Download Staff Unallotted
+            </button>
+        </form>
     </div>
+</div>
+
 
     <!-- Display allocation results -->
     {% if allocation_results %}

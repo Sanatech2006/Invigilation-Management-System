@@ -166,7 +166,9 @@ def hod_view(request):
         staff_schedule.append(item)
 
     context = {
-        'welcome_message': f"Welcome  {hod.name},    Department of {hod.dept_name}",
+        # 'welcome_message': f"Welcome  {hod.name},    Department of {hod.dept_name}",
+        'welcome_message': f"Welcome {hod.name}<br>Department of {hod.dept_name}",
+
         'total_staff': total_staff,
         'total_halls': total_halls,
         'total_sessions': total_sessions,

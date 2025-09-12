@@ -71,12 +71,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-    // File selection handler
-    const fileInput = document.querySelector('input[type="file"][name="file"]');
+    const fileInput = document.getElementById('fileInput');
     const fileNameDisplay = document.querySelector('.text-gray-500.text-sm');
-    
+
     if (fileInput && fileNameDisplay) {
-        fileInput.addEventListener('change', function(e) {
+        // Reset value so the same file can be picked again
+      
+
+        // Update display on change
+        fileInput.addEventListener('change', function() {
             if (this.files.length > 0) {
                 fileNameDisplay.textContent = this.files[0].name;
                 console.log("File selected:", this.files[0].name);
@@ -86,7 +89,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Filter functionality (keep your existing filter code)
+    // -------------------------------
+    // Filter functionality
+    // -------------------------------
     function applyFilters() {
         const searchTerm = document.getElementById('roomSearch').value.toLowerCase();
         const blockValue = document.getElementById('filter-block').value;
@@ -120,6 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('filter-dept-category')?.addEventListener('change', applyFilters);
     document.getElementById('filter-dept-name')?.addEventListener('change', applyFilters);
 });
+
 
 document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.querySelector('input[type="file"][name="file"]');
