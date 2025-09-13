@@ -14,142 +14,122 @@
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-    <style>
-        .blob {
-            position: absolute;
-            border-radius: 9999px;
-            opacity: 0.2;
-            animation: pulse 6s infinite;
-        }
-
-        .blob1 {
-            width: 24rem;
-            height: 24rem;
-            top: -5rem;
-            left: -5rem;
-            background-color: #a855f7;
-        }
-
-        .blob2 {
-            width: 20rem;
-            height: 20rem;
-            bottom: -3.5rem;
-            right: -3.5rem;
-            background-color: #4f46e5;
-            animation-delay: 2s;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.1);
-            }
-        }
-    </style>
 </head>
 
 <body class="min-h-screen text-white overflow-x-hidden relative">
 
-    <!-- Animated blobs -->
-    <!-- <div class="blob blob1"></div>
-    <div class="blob blob2"></div> -->
-
     <!-- Sidebar -->
     <div
-        class="bg-gradient-to-br from-indigo-800 via-purple-800 to-indigo-700 fixed top-0 left-0 h-full w-64 bg-white/10 backdrop-blur-xl shadow-2xl z-50 flex flex-col p-6 transition-all">
+        class="bg-gradient-to-br from-indigo-800 via-purple-700 to-indigo-700 fixed top-0 left-0 h-full w-64 backdrop-blur-xl shadow-2xl z-50 flex flex-col p-6">
         <div class="text-2xl font-bold text-center mb-8">IMS</div>
         <nav class="flex-1 flex flex-col">
+
             {% if user_role == 1 %}
             <a href="{% url 'dashboard:dashboard' %}"
-                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if request.path == '/' %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
-                <i class="fas fa-tachometer-alt w-5 h-5"></i> Dashboard
+               class="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-2 
+               {% if request.path == '/' %} bg-white/20 font-semibold shadow-lg {% else %} hover:bg-white/20 {% endif %}">
+               <i class="fas fa-tachometer w-5 h-5"></i> 
+                <span class="mb-1">Dashboard</span>
             </a>
             <a href="{% url 'staff:staff-management' %}"
-                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'staff' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+               class="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-2 
+               {% if 'staff' in request.path %} bg-white/20 font-semibold shadow-lg {% else %} hover:bg-white/20 {% endif %}">
                 <i class="fas fa-users w-5 h-5"></i> Staff Management
             </a>
             <a href="{% url 'hall_management' %}"
-                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'hall/management' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+               class="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-2 
+               {% if 'hall/management' in request.path %} bg-white/20 font-semibold shadow-lg {% else %} hover:bg-white/20 {% endif %}">
                 <i class="fas fa-school w-5 h-5"></i> Hall Management
             </a>
             <a href="{% url 'exam_dates:index' %}"
-                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'exam-dates' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+               class="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-2 
+               {% if 'exam-dates' in request.path %} bg-white/20 font-semibold shadow-lg {% else %} hover:bg-white/20 {% endif %}">
                 <i class="fas fa-calendar-alt w-5 h-5"></i> Exam Dates
             </a>
             <a href="{% url 'generate_schedule' %}"
-                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'generate-schedule' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+               class="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-2 
+               {% if 'generate-schedule' in request.path %} bg-white/20 font-semibold shadow-lg {% else %} hover:bg-white/20 {% endif %}">
                 <i class="fas fa-cogs w-5 h-5"></i> Generate Schedule
             </a>
             <a href="{% url 'view_schedule' %}"
-                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'view-schedule' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+               class="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-2 
+               {% if 'view-schedule' in request.path %} bg-white/20 font-semibold shadow-lg {% else %} hover:bg-white/20 {% endif %}">
                 <i class="fas fa-eye w-5 h-5"></i> View Schedule
             </a>
             <a href="{% url 'manual_assignment:manual_assignment' %}"
-                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'manual-assignment' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+               class="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-2 
+               {% if 'manual-assignment' in request.path %} bg-white/20 font-semibold shadow-lg {% else %} hover:bg-white/20 {% endif %}">
                 <i class="fas fa-tasks w-5 h-5"></i> Manual Assignment
             </a>
             <a href="{% url 'reports:admin_reports' %}"
-                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'reports' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
-                <i class="fas fa-chart-bar w-5 h-5"></i> Reports
+               class="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-2 
+               {% if 'reports' in request.path %} bg-white/20 font-semibold shadow-lg {% else %} hover:bg-white/20 {% endif %}">
+               <i class="fas fa-chart-bar w-5 h-5"></i> 
+                <span class="mb-1">Reports</span>
             </a>
             <a href="{% url 'settings:settings_home' %}"
-                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'settings' in request.path and 'invigilation_settings' not in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
+               class="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-2 
+               {% if 'settings' in request.path and 'invigilation_settings' not in request.path %} bg-white/20 font-semibold shadow-lg {% else %} hover:bg-white/20 {% endif %}">
                 <i class="fas fa-sliders-h w-5 h-5"></i> Settings
             </a>
             {% endif %}
 
             {% if user_role == 2 %}
             <a href="{% url 'dashboard:dashboard' %}"
-                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if request.path == '/' %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
-                <i class="fas fa-tachometer-alt w-5 h-5"></i> Dashboard
+               class="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-2 {% if request.path == '/' %} bg-white/20 font-semibold shadow-lg {% else %} hover:bg-white/20 {% endif %}">
+               <i class="fas fa-tachometer w-5 h-5"></i> 
+                <span class="mb-1">Dashboard</span>
             </a>
             <a href="{% url 'reports:reports' %}"
-                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'reports' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
-                <i class="fas fa-chart-bar w-5 h-5"></i> Reports
-            </a>
-            {% elif user_role == 3 %}
-            <a href="{% url 'dashboard:dashboard' %}"
-                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if request.path == '/' %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
-                <i class="fas fa-tachometer-alt w-5 h-5"></i> Dashboard
-            </a>
-            <a href="{% url 'reports:hod_reports' %}"
-                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'reports' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
-                <i class="fas fa-chart-bar w-5 h-5"></i> Reports
-            </a>
-            {% elif user_role == 4 %}
-            <a href="{% url 'dashboard:dashboard' %}"
-                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if request.path == '/' %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
-                <i class="fas fa-tachometer-alt w-5 h-5"></i> Dashboard
-            </a>
-            <a href="{% url 'reports:reports' %}"
-                class="flex items-center gap-3 px-4 py-3 text-white hover:bg-white/20 hover:text-white rounded-xl mb-2 {% if 'reports' in request.path %}bg-white/20 text-white font-semibold shadow-lg{% endif %}">
-                <i class="fas fa-chart-bar w-5 h-5"></i> Reports
+               class="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-2 {% if 'reports' in request.path %} bg-white/20 font-semibold shadow-lg {% else %} hover:bg-white/20 {% endif %}">
+               <i class="fas fa-chart-bar w-5 h-5"></i> 
+                <span class="mb-1">Reports</span>
             </a>
             {% endif %}
 
-            <div class="">
-                <a href="{% url 'logout' %}" onclick="openLogoutModal()"
-                    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/20 hover:text-white">
-                    <i class="fas fa-sign-out-alt w-5 h-5"></i> Logout
-                </a>
-            </div>
+            {% if user_role == 3 %}
+            <a href="{% url 'dashboard:dashboard' %}"
+               class="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-2 {% if request.path == '/' %} bg-white/20 font-semibold shadow-lg {% else %} hover:bg-white/20 {% endif %}">
+               <i class="fas fa-tachometer w-5 h-5"></i> 
+                <span class="mb-1">Dashboard</span>
+            </a>
+            <a href="{% url 'reports:hod_reports' %}"
+               class="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-2 {% if 'reports' in request.path %} bg-white/20 font-semibold shadow-lg {% else %} hover:bg-white/20 {% endif %}">
+                <i class="fas fa-chart-bar w-5 h-5"></i> 
+                <span class="mb-1">Reports</span>
+            </a>
+            {% endif %}
+
+            {% if user_role == 4 %}
+            <a href="{% url 'dashboard:dashboard' %}"
+               class="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-2 {% if request.path == '/' %} bg-white/20 font-semibold shadow-lg {% else %} hover:bg-white/20 {% endif %}">
+               <i class="fas fa-tachometer w-5 h-5"></i> 
+                <span class="mb-1">Dashboard</span>
+            </a>
+            <a href="{% url 'reports:reports' %}"
+               class="flex items-center gap-3 px-4 py-2.5 rounded-lg mb-2 {% if 'reports' in request.path %} bg-white/20 font-semibold shadow-lg {% else %} hover:bg-white/20 {% endif %}">
+               <i class="fas fa-chart-bar w-5 h-5"></i> 
+                <span class="mb-1">Reports</span>
+            </a>
+            {% endif %}
+
+            <!-- Logout -->
+            <a href="javascript:void(0)" onclick="openLogoutModal()"
+               class="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-white/20">
+                <i class="fas fa-sign-out-alt w-5 h-5"></i> 
+                <span class="mb-1">Logout</span>
+            </a>
         </nav>
     </div>
 
     <!-- Topbar -->
-    <header class="md:ml-64 p-2 px-6 flex justify-between items-center  text-white">
-        <h1 class="text-2xl font-bold text-black">{% block page_title %}Dashboard{% endblock %}</h1>
+    <!-- <header class="md:ml-64 p-4 flex justify-between items-center bg-white shadow text-gray-800">
+        <h1 class="text-xl font-bold">{% block page_title %}Dashboard{% endblock %}</h1>
         <div class="flex items-center gap-4">
             <span>{{ request.user.username }}</span>
-            <img src="{% static 'images/logos.png' %}s" class="w-10 h-10 rounded-full border" alt="User Avatar">
+            <img src="{% static 'images/logos.png' %}" class="w-10 h-10 rounded-full border" alt="User Avatar">
         </div>
-    </header>
+    </header> -->
 
     <!-- Main content -->
     <main class="md:ml-64 p-6">
@@ -161,15 +141,15 @@
     <!-- Logout Modal -->
     <div id="logoutModal" class="hidden fixed inset-0 justify-center items-center bg-black/50 z-50">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-            <h3 class="text-lg font-bold mb-4">Confirm Logout</h3>
-            <p class="mb-6">Are you sure you want to logout?</p>
+            <h3 class="text-lg font-bold mb-4 text-red-500 text-center">Confirm Logout</h3>
+            <p class="mb-6 text-black">Are you sure you want to logout ?</p>
             <div class="flex justify-end gap-3">
                 <button onclick="closeLogoutModal()"
-                    class="px-4 py-2 rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300 font-semibold">
+                        class="px-4 py-2 rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300 font-semibold">
                     Cancel
                 </button>
                 <a href="{% url 'logout' %}"
-                    class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 font-semibold">
+                   class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 font-semibold">
                     Yes, Logout
                 </a>
             </div>
@@ -178,21 +158,17 @@
 
     <script>
         function openLogoutModal() {
-            const modal = document.getElementById('logoutModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            document.getElementById('logoutModal').classList.remove('hidden');
+            document.getElementById('logoutModal').classList.add('flex');
         }
         function closeLogoutModal() {
-            const modal = document.getElementById('logoutModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            document.getElementById('logoutModal').classList.add('hidden');
+            document.getElementById('logoutModal').classList.remove('flex');
         }
     </script>
 
-    <script src="{% static 'js/sidebar.js' %}"></script>
     {% block extra_js %}{% endblock %}
     {% block javascript %}{% endblock %}
 
 </body>
-
 </html>
