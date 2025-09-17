@@ -37,7 +37,7 @@ def reports_view(request):
             elif role == 2:
                 welcome_message = f"WELCOME, Squad Team, {staff_name}"
             elif role == 4:
-                welcome_message = f"WELCOME, Staff Member, {staff_name}, {staff_id}"
+                welcome_message = f"WELCOME, {staff_name}, {staff_id}"
                 # Fetch invigilation schedule data for role 4
                 schedules = InvigilationSchedule.objects.filter(
                     staff_id=staff.staff_id
@@ -128,7 +128,7 @@ def hod_view(request):
         hall_dept_category=hod.dept_category  # add department category filter
     ).values(
         'hall_no', 'date', 'session', 'staff_id', 'hall_department'
-    ).order_by('date', 'hall_no')
+    ).order_by('date', 'hall_no', 'session')
 
     # Fetch staff info for related staff_ids
     staff_ids = {entry['staff_id'] for entry in hall_schedule_qs if entry['staff_id']}
