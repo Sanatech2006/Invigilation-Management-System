@@ -1,45 +1,55 @@
 {% extends 'base/base.html' %}
 {% load static %}
-
 {% block content %}
-<div class="bg-blue-100 p-4 rounded-md shadow-sm max-w-md">
-  <h2 class="text-xl font-semibold text-blue-700 tracking-wide">
-    {{ welcome_message }}
-  </h2>
+
+<div class="bg-blue-100 p-4 rounded-md shadow-sm mb-6">
+    <h2 class="text-xl font-semibold text-blue-700 tracking-wide">
+        {{ welcome_message }}
+    </h2>
 </div>
 
-
-
 {% if role == 4 %}
-    <div class="overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
-            <thead>
-                <tr class="bg-blue-600 text-white uppercase text-sm leading-normal">
-                    <th class="py-3 px-6 text-left">S.no</th>
-                    <th class="py-3 px-6 text-left">Date</th>
-                    <th class="py-3 px-6 text-left">Session</th>
-                    <th class="py-3 px-6 text-left">Hall No</th>
-                    <th class="py-3 px-6 text-left">Hall Department</th>
-                </tr>
-            </thead>
-            <tbody class="text-gray-700 text-sm font-light">
-                {% for schedule in schedules %}
-                    <tr class="border-b border-gray-200 hover:bg-gray-100 transition duration-300">
-                        <td class="py-3 px-6 text-left whitespace-nowrap">{{ forloop.counter }}</td>
-                        <td class="py-3 px-6 text-left whitespace-nowrap">{{ schedule.date }}</td>
-                        <td class="py-3 px-6 text-left whitespace-nowrap">{{ schedule.session }}</td>
-                        <td class="py-3 px-6 text-left whitespace-nowrap">{{ schedule.hall_no }}</td>
-                        <td class="py-3 px-6 text-left whitespace-nowrap">{{ schedule.hall_department }}</td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="5" class="py-3 px-6 text-center text-gray-500">No schedules found.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<div class="overflow-x-auto rounded-lg shadow-lg">
+    <table class="min-w-full border border-gray-200 rounded-lg overflow-hidden">
+        <thead class="bg-gradient-to-r from-blue-600 to-blue-500 text-white text-sm uppercase tracking-wider">
+            <tr>
+                <th class="py-3 px-6 text-center">S.no</th>
+                <th class="py-3 px-6 text-center">Date</th>
+                <th class="py-3 px-6 text-center">Session</th>
+                <th class="py-3 px-6 text-center">Hall No</th>
+                <th class="py-3 px-6 text-center">Hall Department</th>
+            </tr>
+        </thead>
+        <tbody class="text-gray-700 text-sm divide-y divide-gray-200">
+            {% for schedule in schedules %}
+            <tr class="hover:bg-blue-50 transition duration-200 ease-in-out transform hover:scale-[1.01]">
+                <td class="py-3 px-6 whitespace-nowrap font-medium text-gray-800">
+                    {{ forloop.counter }}
+                </td>
+                <td class="py-3 px-6 whitespace-nowrap">
+                    {{ schedule.date }}
+                </td>
+                <td class="py-3 px-6 whitespace-nowrap">
+                    {{ schedule.session }}
+                </td>
+                <td class="py-3 px-6 whitespace-nowrap font-semibold text-blue-600">
+                    {{ schedule.hall_no }}
+                </td>
+                <td class="py-3 px-6 whitespace-nowrap">
+                    {{ schedule.hall_department }}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="py-6 px-6 text-center text-gray-500">
+                    <i class="fas fa-calendar-alt text-3xl mb-2"></i><br />
+                    No schedules found.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endif %}
-
 
 {% endblock %}
