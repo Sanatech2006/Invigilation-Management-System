@@ -15,6 +15,10 @@ from ..invigilation_schedule.models import InvigilationSchedule
 from datetime import datetime
 from ..staff.models import Staff
 from django.http import JsonResponse
+from django.db.models import OuterRef, Subquery, IntegerField, Count, F
+from django.db.models.functions import Coalesce
+from django.views.decorators.http import require_GET
+from django.db.models.functions import Cast
 
 def view_schedule(request):
     print("\n===== VIEW SCHEDULE REQUEST =====")  # Debug
@@ -130,79 +134,118 @@ from datetime import datetime
 from apps.invigilation_schedule.models import InvigilationSchedule
 
 
+# def get_available_staff(request):
+#     try:
+#         # 1) Params from client (row staff dept_category must be passed here)
+#         date = request.GET.get('date')
+#         session = request.GET.get('session')
+#         target_category = request.GET.get('hall_category')  # this should carry the row's staff dept_category
+
+#         print('get_available_staff params:', date, session, target_category)
+
+#         # 2) Validate and normalize
+#         missing = [k for k, v in {'date': date, 'session': session, 'hall_category': target_category}.items() if not v]
+#         if missing:
+#             return JsonResponse({"error": f"Missing params: {', '.join(missing)}"}, status=400)
+
+#         norm_cat = (target_category or '').strip().lower()
+
+#         # 3) Busy staff at this exact date+session (exclude those already assigned)
+#         busy_ids = list(
+#             InvigilationSchedule.objects
+#             .filter(date=date, session=session)
+#             .exclude(staff_id__isnull=True)
+#             .values_list('staff_id', flat=True)
+#         )
+#         print('busy_ids count:', len(busy_ids))
+
+#         # 4) Strict same-category filter with normalization, and exclude busy staff
+#         staff_qs = (
+#             Staff.objects
+#             .annotate(dc_norm=Lower(Trim('dept_category')))
+#             .filter(is_active=True, dc_norm=norm_cat)
+#             .exclude(staff_id__in=busy_ids)
+#             .order_by('staff_id')
+#         )
+
+#         # Sanity: ensure we only have the target category
+#         cats = list(staff_qs.values_list('dept_category', flat=True).distinct())
+#         print('target category (normalized):', norm_cat, 'distinct categories in result:', cats)
+
+#         # 5) Return only id, name, and category for verification
+#         staff_list = list(staff_qs.values('staff_id', 'name', 'dept_category'))
+
+#         return JsonResponse({"staff": staff_list})
+
+#     except Exception as e:
+#         print("Error in get_available_staff:", str(e))
+#         import traceback
+#         traceback.print_exc()
+#         return JsonResponse({"error": "Internal server error"}, status=500)
+
+
+@require_GET
 def get_available_staff(request):
     try:
         date = request.GET.get('date')
         session = request.GET.get('session')
-        hall_department = request.GET.get('hall_department')
-        hall_category = request.GET.get('hall_category')
+        row_dept_category = request.GET.get('hall_category')
 
-        # print(f"Debug - Parameters: date={date}, session={session}, hall_department={hall_department}, hall_category={hall_category}")
-        print(f"Debug - Filtering assigned staff for Date: {date}, Session: {session}")
+        missing = [k for k, v in {'date': date, 'session': session, 'hall_category': row_dept_category}.items() if not v]
+        if missing:
+            return JsonResponse({"staff": [], "error": f"Missing params: {', '.join(missing)}"}, status=400)
 
-        if not date or not session or not hall_department or not hall_category:
-            return JsonResponse({"error": "Missing required parameters"}, status=400)
+        norm_cat = (row_dept_category or '').strip().lower()
 
-        parsed_date = datetime.strptime(date, "%Y-%m-%d").date()
-
-        # Get staff already assigned for this date and session
-        assigned_staff_ids_raw = InvigilationSchedule.objects.filter(
-            date=parsed_date,
-            session=session
-        ).values_list('staff_id', flat=True)
-
-        assigned_staff_ids = set(
-            sid.strip().upper()
-            for sid in assigned_staff_ids_raw
-            if sid and sid.strip()
+        # Busy at exact date+session
+        busy_ids = list(
+            InvigilationSchedule.objects
+            .filter(date=date, session=session)
+            .exclude(staff_id__isnull=True)
+            .values_list('staff_id', flat=True)
         )
 
-        print(f"Debug - Assigned staff IDs: {assigned_staff_ids}")
-
-        # First, get all staff that meet the basic criteria
-        base_staff = Staff.objects.filter(
-            is_active=True,
-            dept_category=hall_category
-        ).exclude(
-            staff_id__in=assigned_staff_ids
-        ).exclude(
-            dept_name=hall_department
+        # Same-category, active, not busy
+        base = (
+            Staff.objects
+            .annotate(dc_norm=Lower(Trim('dept_category')))
+            .filter(is_active=True, dc_norm=norm_cat)
+            .exclude(staff_id__in=busy_ids)
         )
 
-        print(f"Debug - Base staff count (before max sessions check): {base_staff.count()}")
+        # Capacity > 0 (DB cast)
+        db_filtered = (
+            base
+            .annotate(
+                fixed_session_int=Coalesce(Cast('fixed_session', IntegerField()), -1)
+            )
+            .filter(fixed_session_int__lte=-1)  # keep only fixed_session <= -1
+            .order_by('staff_id')
+        )
 
-        # Now filter out staff who have reached max sessions (count all their assigned sessions)
-        available_staff = []
-        for staff in base_staff:
-            # Count ALL sessions for this staff member in invigilation_schedule
-            session_count = InvigilationSchedule.objects.filter(
-                staff_id=staff.staff_id
-            ).count()
-            
-            print(f"Debug - Staff {staff.staff_id}: max_sessions={staff.session}, current_count={session_count}")
-            
-            # Only include if they haven't reached their max sessions
-            if session_count < staff.session:
-                available_staff.append(staff)
-            else:
-                print(f"Debug - Excluding {staff.staff_id} (reached max sessions: {session_count}/{staff.session})")
+        if db_filtered.exists():
+            staff = list(db_filtered.values('staff_id', 'name'))
+            return JsonResponse({"staff": staff})
 
-        print(f"Debug - Final available staff count: {len(available_staff)}")
+        # Python fallback if casting fails or returns none (handles non-numeric values safely)
+        eligible = []
+        for s in base.only('staff_id', 'name', 'fixed_session'):
+            # Coerce fixed_session to int with default -1; exclude if > -1
+            try:
+                fs = int(str(s.fixed_session).strip()) if s.fixed_session is not None else -1
+            except (ValueError, TypeError):
+                fs = -1
+            if fs <= -1:
+                eligible.append({'staff_id': s.staff_id, 'name': s.name})
 
-        return JsonResponse({
-            "staff": [
-                {"staff_id": s.staff_id, "name": s.name}
-                for s in available_staff
-            ]
-        })
+        return JsonResponse({"staff": eligible})
 
-    except Exception as e:
-        print("Error in get_available_staff:", str(e))
-        import traceback
-        traceback.print_exc()
-        return JsonResponse({"error": "Internal server error"}, status=500)
+        # Final fallback: show base (same-category, free at slot) when all capacities are zero
+        staff_base = list(base.order_by('staff_id').values('staff_id', 'name'))
+        return JsonResponse({"staff": staff_base})
 
-
+    except Exception:
+        return JsonResponse({"staff": [], "error": "Internal server error"}, status=500)
 
 def staff_edit_session(request):
     if request.method == "POST":

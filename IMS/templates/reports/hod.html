@@ -66,8 +66,8 @@
 	</div>
 
 	<!-- 🔹 Active Tab Name Display -->
-	<div id="activeTabDisplay" class="text-center text-lg font-semibold text-blue-700">
-		Currently Viewing : Instructions
+	<div id="activeTabDisplay" class="text-left text-lg font-semibold text-blue-700">
+		Instructions
 	</div>
 
 	<!-- Tables -->
@@ -274,7 +274,7 @@
 			const activeBtn = document.querySelector(`[data-target="${tabId}"]`);
 			activeBtn.classList.add("bg-blue-100", "text-blue-700", "active");
 			activeTab = tabId;
-			activeTabDisplay.textContent = "Currently Viewing : " + activeBtn.innerText;
+			activeTabDisplay.textContent =   activeBtn.innerText;
 		}
 		tabButtons.forEach(btn => {
 			btn.addEventListener("click", () => {

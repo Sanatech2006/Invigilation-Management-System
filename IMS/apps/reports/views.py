@@ -36,12 +36,20 @@ def reports_view(request):
                 welcome_message = f"WELCOME, {staff_name}"
             elif role == 2:
                 welcome_message = f"WELCOME, Squad Team, {staff_name}"
+            # elif role == 4:
+            #     welcome_message = f"WELCOME, {staff_name}, {staff_id}"
+            #     # Fetch invigilation schedule data for role 4
+            #     schedules = InvigilationSchedule.objects.filter(
+            #         staff_id=staff.staff_id
+            #     ).values('date', 'session', 'hall_no', 'hall_department')
             elif role == 4:
                 welcome_message = f"WELCOME, {staff_name}, {staff_id}"
-                # Fetch invigilation schedule data for role 4
-                schedules = InvigilationSchedule.objects.filter(
-                    staff_id=staff.staff_id
-                ).values('date', 'session', 'hall_no', 'hall_department')
+                schedules = (
+                    InvigilationSchedule.objects
+                    .filter(staff_id=staff.staff_id)
+                    .values('date', 'session', 'hall_no', 'hall_department')
+                    .order_by('date', 'session')
+                )
 
         except Staff.DoesNotExist:
             pass  # Keep defaults

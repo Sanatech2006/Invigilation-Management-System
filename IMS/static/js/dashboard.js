@@ -9,14 +9,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Define distinct colors for each category
     const backgroundColors = [
-    'rgba(255, 99, 132, 0.8)',    // Bright Red
+    'rgba(34, 197, 94, 0.7)',
     'rgba(54, 162, 235, 0.8)',    // Bright Blue
-    'rgba(34, 197, 94, 0.7)'     // Bright Yellow
+    'rgba(128, 0, 128, 0.8)'    // SFW (purple)
+    
+         // Bright Yellow
 ];
 const borderColors = [
-    'rgba(255, 99, 132, 1)',
-    'rgba(54, 162, 235, 1)',
-    'rgba(34, 197, 94, 1)'
+     'rgba(34, 197, 94, 1)',     // Green (moved to 1st)
+  'rgba(54, 162, 235, 1)',    // Blue
+  'rgba(128, 0, 128, 0.8)'    // SFW (purple)  // Pink (moved to 3rd)
 ];
     
     const ctx = canvas.getContext('2d');
@@ -104,16 +106,17 @@ document.addEventListener('DOMContentLoaded', function () {
     datasets: [{
         label: 'Total Required Sessions',
         data: sessionValues,
-        backgroundColor: [
-            'rgba(255, 99, 132, 0.7)',   // Rose Pink
-            'rgba(75, 192, 192, 0.7)',   // Teal
-            'rgba(34, 197, 94, 0.7)'    // Mustard Yellow
-        ],
-        borderColor: [
-            'rgba(255, 99, 132, 1)',
-            'rgba(75, 192, 192, 1)',
-           'rgba(34, 197, 94, 1)'
-        ],
+       backgroundColor: [
+            'rgba(34, 197, 94, 0.7)',   // Green (moved to 1st)
+            'rgba(75, 192, 192, 0.7)',  // Teal (unchanged middle)
+            'rgba(128, 0, 128, 0.7)'    // SFW (purple)
+            ],
+borderColor: [
+            'rgba(34, 197, 94, 1)',     // Green (moved to 1st)
+            'rgba(75, 192, 192, 1)',    // Teal
+            'rgba(128, 0, 128, 1)'      // SFW
+            ],
+
         borderWidth: 1,
         barThickness: 30,
     }]

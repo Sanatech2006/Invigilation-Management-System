@@ -50,6 +50,33 @@
         </tbody>
     </table>
 </div>
+<div class="mt-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-md shadow-md">
+    <p class="text-base font-medium text-gray-800 text-center leading-relaxed">
+        In case of unavoidable circumstances, any changes in the invigilation schedule will be communicated.
+    </p>
+    <p class="text-lg font-semibold text-gray-900 text-center mt-3">
+        Controller of Examinations
+    </p>
+</div>
+
+<div class="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-md shadow-md">
+    <p class="text-base font-medium text-gray-800 leading-relaxed">
+        <span class="font-bold text-red-600">Note:</span><br />
+        Staff members who are on leave during the common invigilation schedule of CIA are requested to submit the 
+        duty adjustment form to the Office of the Controller of Examinations.
+    </p>
+    <div class="text-center mt-4">
+        <!-- template: settings.html -->
+<a href="{% static 'forms/duty_adjustment_form.docx' %}"
+   download="Duty Adjustment Form.docx"
+   class="inline-block px-5 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition">
+  📄 Download Duty Adjustment Form
+</a>
+
+    </div>
+</div>
+
+
 {% endif %}
 
 {% endblock %}

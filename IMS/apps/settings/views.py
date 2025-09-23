@@ -11,6 +11,7 @@ from ..invigilation_schedule.models import InvigilationSchedule
 import logging
 from datetime import datetime
 import pandas as pd
+from apps.staff.logic import allocate_sessions  # reuse the Calculate Schedule logic
 
 
 
@@ -134,6 +135,12 @@ def upload_schedule(request):
 
     # Bulk create all schedule entries at once
     InvigilationSchedule.objects.bulk_create(schedule_objects)
+    required_session = {}
+    for dept_cat, grp in df.groupby("Dept Category"):
+        required_session[dept_cat] = len(grp)
+
+# Run the same allocation used by the Calculate Schedule button
+    alloc_results = allocate_sessions(required_session)
 
     message = f"Successfully processed {success_count} records."
     if errors:

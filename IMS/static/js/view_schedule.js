@@ -507,48 +507,64 @@ function clearStaffAssignment(serialNumber, staffId, date, hallNo, session) {
 
         // EDIT
         if (target.classList.contains("edit-btn")) {
-            const serial = target.getAttribute("data-id-edit");
-            const date = target.getAttribute("data-edit");
-            const hallNo = target.getAttribute("data-hallno");
-            const session = target.getAttribute("data-session");
-            const hallDept = target.getAttribute("data-hall-department");
-            const hallCat = target.getAttribute("data-hall-category");
+  const serial = target.getAttribute("data-id-edit");
+  const dateStr = target.getAttribute("data-edit");
+  const hallNo = target.getAttribute("data-hallno");
+  const session = target.getAttribute("data-session");
+  const hallCat = target.getAttribute("data-hall-category");
+  const hallDept = target.getAttribute("data-hall-department"); // kept if needed elsewhere
 
-            document.getElementById("editDate").textContent = date;
-            document.getElementById("editHall").textContent = hallNo;
-            document.getElementById("editSession").textContent = session;
-            document.getElementById("serialNoEdit").textContent = serial;
+  // Fill modal fields
+  document.getElementById("editDate").textContent = dateStr;
+  document.getElementById("editHall").textContent = hallNo;
+  document.getElementById("editSession").textContent = session;
+  document.getElementById("serialNoEdit").textContent = serial;
 
-            document.getElementById("hall-date-edit").value = date;
-            document.getElementById("hall-no-edit").value = hallNo;
-            document.getElementById("hall-session-edit").value = session;
-            document.getElementById("hall-serial-edit").value = serial;
+  document.getElementById("hall-date-edit").value = dateStr;
+  document.getElementById("hall-no-edit").value = hallNo;
+  document.getElementById("hall-session-edit").value = session;
+  document.getElementById("hall-serial-edit").value = serial;
 
-            const parsedDateObj = new Date(date);
-            const parsedDate = parsedDateObj.getFullYear() + "-" +
-                String(parsedDateObj.getMonth() + 1).padStart(2, '0') + "-" +
-                String(parsedDateObj.getDate()).padStart(2, '0');
+  // Parse date once
+  const d = new Date(dateStr);
+  const parsedDate =
+    d.getFullYear() + "-" +
+    String(d.getMonth() + 1).padStart(2, '0') + "-" +
+    String(d.getDate()).padStart(2, '0');
 
-            // Fetch available staff
-            fetch(`${getStaffUrl}?date=${parsedDate}&session=${session}&hall_department=${hallDept}&hall_category=${hallCat}`)
-                .then(response => {
-                    if (!response.ok) throw new Error("Network error");
-                    return response.json();
-                })
-                .then(data => {
-                    const staffSelect = document.getElementById("staffSelect");
-                    staffSelect.innerHTML = '<option value="">-- Select Staff --</option>';
-                    data.staff.forEach(staff => {
-                        const option = document.createElement("option");
-                        option.value = staff.staff_id;
-                        option.textContent = `${staff.staff_id} - ${staff.name}`;
-                        staffSelect.appendChild(option);
-                    });
-                })
-                .catch(error => console.error("Error fetching staff:", error));
+  // Fetch available staff only if inputs present
+  if (!session || session === '-' || !hallCat) {
+    console.warn('Missing session or hall_category for staff fetch', { session, hallCat, parsedDate });
+  } else {
+    const url = window.getStaffUrl || '/view-schedule/get-available-staff/';
+    console.log('Row attrs:', {
+  'data-edit': target.getAttribute('data-edit'),
+  'data-session': target.getAttribute('data-session'),
+  'data-hall-category': target.getAttribute('data-hall-category')
+});
+    console.log('Row staff dept_category being sent:', hallCat);
 
-            editModal.style.display = "block";
-        }
+    console.log('Row attrs:', { 'data-edit': dateStr, 'data-session': target.getAttribute('data-session'), 'data-hall-category': target.getAttribute('data-hall-category') });
+console.log('Fetching available staff with:', { url, date: parsedDate, session, hall_category: hallCat });
+    fetch(`${url}?date=${encodeURIComponent(parsedDate)}&session=${encodeURIComponent(session)}&hall_category=${encodeURIComponent(hallCat)}`)
+      .then(r => r.json())
+      .then(data => {
+        const staffSelect = document.getElementById("staffSelect");
+        staffSelect.innerHTML = '<option value="">-- Select Staff --</option>';
+        (data.staff || []).forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.staff_id;
+          opt.textContent = `${s.staff_id} - ${s.name}`;
+          staffSelect.appendChild(opt);
+        });
+      })
+      .catch(err => console.error('get_available_staff error:', err));
+  }
+
+  // Show modal
+  editModal.style.display = "block";
+}
+
     });
     
     // Cancel buttons

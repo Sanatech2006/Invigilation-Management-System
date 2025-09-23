@@ -172,12 +172,19 @@
                 data-session="{{ schedule.session|default:'-' }}" data-hallno="{{ schedule.hall_no }}">
                 Delete
               </button> -->
-              <button type="button" class="edit-btn text-blue-600 underline" data-id-edit="{{ schedule.serial_number }}"
-              data-edit="{{ schedule.date }}" data-hallno="{{ schedule.hall_no }}"
-              data-session="{{ schedule.session|default:'-' }}" data-hall-department="{{ schedule.hall_department }}"
-              data-hall-category="{{ schedule.hall_dept_category }}">
-              Edit
-            </button>
+              <button
+  type="button"
+  class="edit-btn text-blue-600 underline"
+  data-id-edit="{{ schedule.serial_number }}"
+  data-edit="{{ schedule.date }}"
+  data-hallno="{{ schedule.hall_no }}"
+  data-session="{{ schedule.session }}"
+  data-hall-department="{{ schedule.hall_department }}"
+  data-hall-category="{{ schedule.dept_category }}"  
+>
+  Edit
+</button>
+
 
             <!-- Delete Button -->
             <button type="button" class="delete-btn text-red-600 underline"
@@ -251,7 +258,8 @@
 
 <!-- Edit Modal -->
 <div id="editModal" class="custom-modal hidden">
-  <div class="custom-modal-content">
+  <div class="custom-modal-content text-gray-900">
+
     <h2 class="custom-modal-title">Reassign Staff</h2>
     <p><strong>Date:</strong> <span id="editDate"></span></p>
     <p><strong>Hall No:</strong> <span id="editHall"></span></p>
