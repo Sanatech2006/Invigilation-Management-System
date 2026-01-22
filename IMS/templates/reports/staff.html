@@ -2,79 +2,116 @@
 {% load static %}
 {% block content %}
 
-<div class="bg-blue-100 p-4 rounded-md shadow-sm mb-6">
-    <h2 class="text-xl font-semibold text-blue-700 tracking-wide">
-        {{ welcome_message }}
-    </h2>
-</div>
-
-{% if role == 4 %}
-<div class="overflow-x-auto rounded-lg shadow-lg">
-    <table class="min-w-full border border-gray-200 rounded-lg overflow-hidden">
-        <thead class="bg-gradient-to-r from-blue-600 to-blue-500 text-white text-sm uppercase tracking-wider">
-            <tr>
-                <th class="py-3 px-6 text-center">S.no</th>
-                <th class="py-3 px-6 text-center">Date</th>
-                <th class="py-3 px-6 text-center">Session</th>
-                <th class="py-3 px-6 text-center">Hall No</th>
-                <th class="py-3 px-6 text-center">Hall Department</th>
-            </tr>
-        </thead>
-        <tbody class="text-gray-700 text-sm divide-y divide-gray-200">
-            {% for schedule in schedules %}
-            <tr class="hover:bg-blue-50 transition duration-200 ease-in-out transform hover:scale-[1.01]">
-                <td class="py-3 px-6 whitespace-nowrap font-medium text-gray-800">
-                    {{ forloop.counter }}
-                </td>
-                <td class="py-3 px-6 whitespace-nowrap">
-                    {{ schedule.date }}
-                </td>
-                <td class="py-3 px-6 whitespace-nowrap">
-                    {{ schedule.session }}
-                </td>
-                <td class="py-3 px-6 whitespace-nowrap font-semibold text-blue-600">
-                    {{ schedule.hall_no }}
-                </td>
-                <td class="py-3 px-6 whitespace-nowrap">
-                    {{ schedule.hall_department }}
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5" class="py-6 px-6 text-center text-gray-500">
-                    <i class="fas fa-calendar-alt text-3xl mb-2"></i><br />
-                    No schedules found.
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-<div class="mt-6 p-6 bg-yellow-100 border-l-4 border-yellow-500 rounded-md shadow-md">
-    <p class="text-lg font-semibold text-gray-800 leading-relaxed">
-        In case of unavoidable circumstances, any changes in the invigilation schedule will be communicated.
-    </p>
-    <p class="text-xl font-bold text-gray-900 mt-3">
-        Controller of Examinations
-    </p>
-</div>
-
-<div class="mt-6 p-6 bg-yellow-50 border-l-4 border-yellow-500 rounded-md shadow-md">
-    <p class="text-lg font-semibold text-gray-800 leading-relaxed">
-        <span class="font-bold text-red-600">Note:</span><br />
-        Staff members who are on leave during the common invigilation schedule of CIA are requested to submit the 
-        duty adjustment form to the Office of the Controller of Examinations.
-    </p>
-    <div class="mt-4">
-        <a href="{% static 'forms/duty_adjustment_form.docx' %}"
-           download="Duty Adjustment Form.docx"
-           class="inline-block px-6 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition text-lg">
-          📄 Download Duty Adjustment Form
-        </a>
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-800">
+            {{ welcome_message }}
+        </h1>
+        <p class="text-sm text-slate-500">Review your assigned invigilation duties below.</p>
+    </div>
+    <div class="hidden md:block">
+        <span class="px-3 py-1 text-xs font-semibold tracking-wider text-blue-700 uppercase border border-blue-200 rounded-full bg-blue-50">
+            Official Schedule
+        </span>
     </div>
 </div>
 
+{% if role == 4 %}
+<div class="overflow-hidden bg-white border shadow-sm rounded-xl border-slate-200">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left uppercase text-slate-500">S.No</th>
+                    <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left uppercase text-slate-500">Date</th>
+                    <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left uppercase text-slate-500">Session</th>
+                    <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left uppercase text-slate-500">Hall No</th>
+                    <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left uppercase text-slate-500">Hall Department</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-slate-100">
+                {% for schedule in schedules %}
+                <tr class="transition-colors duration-150 hover:bg-blue-50/50">
+                    <td class="px-6 py-4 text-sm font-medium whitespace-nowrap text-slate-500">
+                        {{ forloop.counter }}
+                    </td>
+                    <td class="px-6 py-4 text-sm whitespace-nowrap text-slate-700">
+                        <div class="flex items-center">
+                            <span class="font-medium text-slate-900">{{ schedule.date }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 uppercase">
+                            {{ schedule.session }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-sm font-bold text-blue-600 whitespace-nowrap">
+                        {{ schedule.hall_no }}
+                    </td>
+                    <td class="px-6 py-4 text-sm whitespace-nowrap text-slate-600">
+                        {{ schedule.hall_department }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center">
+                            <svg class="w-12 h-12 mb-4 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-15-6h1.5m.75 0h3.75m.75 0h1.5"></path>
+                            </svg>
+                            <p class="font-medium text-slate-500">No schedules found at this time.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
+<div class="grid grid-cols-1 gap-6 mt-8 md:grid-cols-2">
+    <div class="flex flex-col justify-between p-6 bg-white border shadow-sm rounded-xl border-slate-200">
+        <div>
+            <div class="flex items-center mb-3 space-x-2">
+                <span class="flex w-2 h-2 bg-blue-500 rounded-full"></span>
+                <h3 class="text-sm font-bold tracking-tight uppercase text-slate-800">Official Notice</h3>
+            </div>
+            <p class="text-sm leading-relaxed text-slate-600">
+                In case of unavoidable circumstances, any changes in the invigilation schedule will be communicated promptly.
+            </p>
+        </div>
+        <div class="pt-4 mt-6 border-t border-slate-100">
+            <p class="text-xs font-semibold tracking-widest uppercase text-slate-400">Authorized By</p>
+            <p class="font-bold text-slate-900">Controller of Examinations</p>
+        </div>
+    </div>
+
+    <div class="p-6 border shadow-sm bg-amber-50 rounded-xl border-amber-200">
+        <div class="flex items-start space-x-4">
+            <div class="p-2 rounded-lg bg-amber-100 text-amber-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"></path>
+                </svg>
+            </div>
+            <div class="flex-1">
+                <h3 class="text-lg font-bold leading-tight text-amber-900">Leave Policy</h3>
+                <p class="mt-2 text-sm leading-relaxed text-amber-800/80">
+                    Staff members on leave during CIA duties must submit the <strong>Duty Adjustment Form</strong> to the COE office.
+                </p>
+                <div class="mt-5">
+                    <a href="{% static 'forms/duty_adjustment_form.docx' %}"
+                    download="Duty Adjustment Form.docx"
+                    class="inline-flex items-center px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold rounded-lg transition-all shadow-sm hover:shadow-md">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"></path>
+                        </svg>
+                        Download Form
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endif %}
 
 {% endblock %}

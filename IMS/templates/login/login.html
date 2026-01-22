@@ -1,114 +1,181 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Invigilation System | Jamal Mohamed College</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+        <style>
+            body { font-family: 'Plus Jakarta Sans', sans-serif; }
+            
+            .split-sidebar {
+                background: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+            }
 
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Invigilation System - Login</title>
-	<script src="https://cdn.tailwindcss.com"></script>
-</head>
+            .dot-pattern {
+                background-image: radial-gradient(#334155 0.5px, transparent 0.5px);
+                background-size: 24px 24px;
+            }
 
-<body class="min-h-screen flex">
+            .form-input-focus {
+                transition: all 0.2s ease;
+            }
 
-	<!-- Left Branding Panel -->
-	<div
-		class="hidden lg:flex w-1/2 bg-gradient-to-br from-indigo-800 via-purple-800 to-indigo-700 text-white flex-col justify-center items-center relative overflow-hidden p-10">
-		<div class="absolute inset-0 opacity-20 pointer-events-none">
-			<div class="absolute w-96 h-96 bg-purple-500 rounded-full blur-3xl top-[-80px] left-[-80px] animate-pulse">
-			</div>
-			<div
-				class="absolute w-80 h-80 bg-indigo-500 rounded-full blur-3xl bottom-[-60px] right-[-60px] animate-pulse delay-200">
-			</div>
-		</div>
-		<!-- Logos -->
-		<div class="flex items-center gap-6 mb-8 relative z-10">
-			<img src="{% static 'images/logos.png' %}" alt="College Logo" class="h-32 w-32 rounded-lg shadow-lg">
-			<img src="{% static 'images/75logo.png' %}" alt="75 Years Logo" class="h-32 w-32 rounded-full shadow-lg">
-		</div>
-		<!-- College Info -->
-		<h1 class="text-3xl font-bold mb-2 text-center drop-shadow-md">JAMAL MOHAMED COLLEGE</h1>
-		<p class="text-md text-gray-200 text-center mb-2 uppercase font-semibold"> ( Autonomous )</p>
-		<p class="text-md text-gray-200 text-center leading-relaxed mb-2">
-			Accredited with <span class="text-yellow-300 font-semibold">A++ Grade by NAAC</span> (4th Cycle) with CGPA
-			<span class="font-bold">3.69</span>/4.0
-		</p>
-		<p class="text-md text-gray-200 text-center mb-4 font-semibold"> Tiruchirappalli - 620 020.</p>
-		<p class="text-lg font-semibold text-center px-24 py-3 bg-white/10 rounded-xl 
-        shadow-md border border-white/20 backdrop-blur-sm hover:bg-white/20 transition-all duration-300">
-			Invigilation Management System</p>
-	</div>
+            .form-input-focus:focus-within {
+                transform: translateY(-1px);
+                border-color: #4f46e5;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            }
+        </style>
+    </head>
 
-	<!-- Right Login Panel -->
-	<div class="flex w-full lg:w-1/2 justify-center items-center bg-gray-50 relative p-10">
-		<!-- Login Card -->
-		<div
-			class="relative z-10 bg-white/90 backdrop-blur-lg rounded-2xl shadow-2xl w-full max-w-md p-10 border border-gray-200">
-			<!-- Header -->
-			<h2 class="text-3xl font-extrabold text-gray-800 text-center mb-6">Login</h2>
-			<p class="text-gray-500 text-center mb-6">Enter your staff credentials</p>
-			<!-- Error Messages -->
-			{% if messages %}
-			<div>
-				{% for message in messages %}
-				<p class="text-red-600 text-sm text-center">{{ message }}</p>
-				{% endfor %}
-			</div>
-			{% endif %}
-			<!-- Form -->
-			<form method="post" action="{% url 'login' %}" class="space-y-6" novalidate>
-				{% csrf_token %}
-				<!-- Staff ID -->
-				<div>
-					<label for="staff_id" class="block text-md font-medium text-gray-700 mb-3">Staff ID :</label>
-					<input type="text" id="staff_id" name="staff_id" required placeholder="Enter your Staff ID"
-						class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-gray-700 placeholder-gray-400 shadow-sm transition" />
-				</div>
-				<!-- Password -->
-				<div>
-					<label for="password" class="block text-md font-medium text-gray-700 mb-3">Password :</label>
-					<div class="relative">
-						<input type="password" id="password" name="password" required placeholder="Enter your password"
-							class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-gray-700 placeholder-gray-400 shadow-sm transition" />
-						<span class="absolute inset-y-0 right-4 flex items-center text-gray-500 cursor-pointer"
-							onclick="togglePassword()">
-							<i id="eyeIcon" class="fas fa-eye"></i>
-						</span>
-					</div>
-				</div>
-				<!-- Submit Button -->
-				<button type="submit"
-					class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg transition-transform transform hover:scale-[1.02]">
-					Login
-				</button>
-			</form>
-			<!-- Footer -->
-			<p class="text-xs text-gray-500 text-center mt-6">
-				© 2025 Jamal Mohamed College · All Rights Reserved
-			</p>
-		</div>
-	</div>
+    <body class="flex min-h-screen bg-white">
 
-	<!-- FontAwesome -->
-	<script src="https://kit.fontawesome.com/your-kit-id.js" crossorigin="anonymous"></script>
+        <div class="relative hidden w-1/2 overflow-hidden border-r lg:flex split-sidebar border-slate-800">
+            <div class="absolute inset-0 dot-pattern opacity-20"></div>
+            <div class="absolute -top-24 -left-24 w-96 h-96 bg-indigo-600/20 rounded-full blur-[100px]"></div>
+            <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px]"></div>
 
-	<!-- Password Toggle -->
-	<script>
-		function togglePassword() {
-			const pwd = document.getElementById("password");
-			const eye = document.getElementById("eyeIcon");
-			if (pwd.type === "password") {
-				pwd.type = "text";
-				eye.classList.remove("fa-eye");
-				eye.classList.add("fa-eye-slash");
-			} else {
-				pwd.type = "password";
-				eye.classList.remove("fa-eye-slash");
-				eye.classList.add("fa-eye");
-			}
-		}
-	</script>
+            <div class="relative z-10 flex flex-col justify-between w-full p-20">
+                <div class="flex items-center gap-6">
+                    <div class="p-3 bg-white shadow-2xl rounded-2xl shadow-indigo-500/10">
+                        <img src="{% static 'images/logos.png' %}" alt="JMC Logo" class="object-contain w-auto h-16">
+                    </div>
+                    <div class="h-12 w-[1px] bg-slate-700"></div>
+                    <div class="p-3 border bg-white/5 backdrop-blur-md rounded-2xl border-white/10">
+                        <img src="{% static 'images/75logo.png' %}" alt="75 Years" class="object-contain w-auto h-16">
+                    </div>
+                </div>
 
-</body>
+                <div class="max-w-xl">
+                    <h1 class="text-5xl font-extrabold leading-tight tracking-tight text-white">
+                        Invigilation <br/>
+                        <span class="text-indigo-400">Management System</span>
+                    </h1>
+                    <div class="flex flex-col gap-4 mt-6">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-px bg-indigo-500"></span>
+                            <p class="font-medium tracking-wide text-slate-400">JAMAL MOHAMED COLLEGE (AUTONOMOUS)</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div class="p-4 border bg-white/5 border-white/10 rounded-2xl">
+                                <p class="text-xs font-bold tracking-widest text-indigo-400 uppercase">Accreditation</p>
+                                <p class="mt-1 font-semibold text-white">A++ Grade (NAAC)</p>
+                            </div>
+                            <div class="p-4 border bg-white/5 border-white/10 rounded-2xl">
+                                <p class="text-xs font-bold tracking-widest text-indigo-400 uppercase">Performance</p>
+                                <p class="mt-1 font-semibold text-white">3.69 / 4.0 CGPA</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
+                <div class="flex items-center gap-6 text-sm font-medium text-slate-500">
+                    <span class="flex items-center gap-2"><i class="text-indigo-500 fa-solid fa-location-dot"></i> Tiruchirappalli</span>
+                    <span class="flex items-center gap-2"><i class="text-indigo-500 fa-solid fa-shield-halved"></i> Secure Portal</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-center flex-1 p-8 overflow-y-auto sm:p-12">
+            
+            <div class="w-full max-w-md bg-white p-8 sm:p-10 rounded-[2.5rem] lg:bg-transparent lg:p-0">
+                
+                <div class="flex justify-center gap-4 mb-10 lg:hidden">
+                    <img src="{% static 'images/logos.png' %}" alt="Logo" class="w-auto h-10">
+                    <img src="{% static 'images/75logo.png' %}" alt="Logo" class="w-auto h-10">
+                </div>
+
+                <div class="mb-10 text-center lg:text-left">
+                    <h2 class="text-3xl font-extrabold tracking-tight text-slate-900">Staff Sign In</h2>
+                    <p class="mt-2 font-medium text-slate-500">Access your invigilation schedule and duties.</p>
+                </div>
+
+                {% if messages %}
+                <div class="mb-6">
+                    {% for message in messages %}
+                    <div class="flex items-center gap-3 p-4 text-xs font-bold tracking-wider text-red-700 uppercase border border-red-100 bg-red-50 rounded-2xl">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'login' %}" class="space-y-5" id="loginForm">
+                    {% csrf_token %}
+                    
+                    <div class="space-y-2">
+                        <label for="staff_id" class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Staff ID Number</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-5 transition-colors pointer-events-none text-slate-400 group-focus-within:text-indigo-600">
+                                <i class="fa-solid fa-address-card"></i>
+                            </div>
+                            <input 
+                                autofocus type="text" id="staff_id" name="staff_id" required 
+                                placeholder="JMCMTS0000"
+                                class="block w-full pl-14 pr-5 mt-4 py-4.5 bg-slate-50 border-2 border-transparent rounded-2xl text-slate-900 text-sm font-bold placeholder:text-slate-300 placeholder:font-normal outline-none focus:bg-white focus:border-indigo-600/20 transition-all py-4"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between px-1">
+                            <label for="password" class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Password</label>
+                            <a href="#" class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider">Support</a>
+                        </div>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-5 transition-colors pointer-events-none text-slate-400 group-focus-within:text-indigo-600">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+                            <input 
+                                type="password" id="password" name="password" required placeholder="••••••••"
+                                class="block w-full pl-14 pr-14 py-4.5 mt-4 bg-slate-50 border-2 border-transparent rounded-2xl text-slate-900 text-sm font-bold outline-none focus:bg-white focus:border-indigo-600/20 transition-all py-4"
+                            />
+                            <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 flex items-center pr-5 transition-colors text-slate-300 hover:text-indigo-600">
+                                <i id="eyeIcon" class="text-xs fa-solid fa-eye-slash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" class="w-full group relative flex items-center justify-center gap-3 py-4.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-[11px] uppercase tracking-[0.25em] transition-all duration-300 shadow-xl shadow-indigo-100 hover:shadow-indigo-200 py-4">
+                            <span>Continue to System</span>
+                            <i class="fa-solid fa-chevron-right text-[10px] transition-transform group-hover:translate-x-1"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-10 text-center lg:mt-16">
+                    <p class="text-[10px] text-slate-400 leading-relaxed font-bold uppercase tracking-widest">
+                        &copy; 2024 Jamal Mohamed College <br/> 
+                        <span class="font-medium tracking-normal normal-case">Technical Support: IT Management Section</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function togglePassword() {
+                const pwd = document.getElementById("password");
+                const eye = document.getElementById("eyeIcon");
+                if (pwd.type === "password") {
+                    pwd.type = "text";
+                    eye.classList.replace("fa-eye-slash", "fa-eye");
+                } else {
+                    pwd.type = "password";
+                    eye.classList.replace("fa-eye", "fa-eye-slash");
+                }
+            }
+
+            document.getElementById('loginForm').onsubmit = function() {
+                const btn = this.querySelector('button[type="submit"]');
+                btn.innerHTML = '<span>Verifying Identity</span> <i class="fa-solid fa-spinner animate-spin"></i>';
+                btn.classList.add('opacity-80', 'cursor-not-allowed');
+            };
+        </script>
+    </body>
 </html>
