@@ -1,542 +1,443 @@
-{% extends 'base/base.html' %}
-{% load static %}
+{% extends 'base/base.html' %} {% load static %} {% block content %}
 
-{% block content %}
-<div class="container mx-auto px-4 py-8">
-
-  <!-- Top Row: Title + Buttons -->
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">View Schedule</h1>
-    <div class="flex space-x-2">
-      <a href="{% url 'download_schedule_excel' %}"
-        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        Download Invigilation Schedule
-      </a>
-      
-       <button id="swap-button" disabled
-        class="bg-gray-400 text-black font-semibold px-4 py-2 rounded border border-gray-600 shadow-md opacity-70 cursor-not-allowed"
-        title="Select exactly two checkboxes to activate Swap">
-  Swap
-</button>
-
-  </div>
-</div>
-
-  <!-- Filters -->
-  <!-- Filters -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-  <!-- Date -->
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-    <select id="filter-date" class="w-full border rounded px-3 py-2">
-      <option value="">All Dates</option>
-      {% for date in dates %}
-      <option value="{{ date }}">{{ date }}</option>
-      {% endfor %}
-    </select>
-  </div>
-
-  <!-- Department Category -->
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Department Category</label>
-    <select id="filter-dept-category" class="w-full border rounded px-3 py-2">
-      <option value="">All Categories</option>
-      {% for category in dept_categories %}
-      <option value="{{ category }}">{{ category }}</option>
-      {% endfor %}
-    </select>
-  </div>
-
-  <!-- Hall Department -->
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Hall Department</label>
-    <select id="filter-hall-dept" class="w-full border rounded px-3 py-2">
-      <option value="">All Hall Departments</option>
-      {% for hall in hall_department %}
-      <option value="{{ hall }}">{{ hall }}</option>
-      {% endfor %}
-    </select>
-  </div>
-
-  <!-- Hall Dept Category -->
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Hall Dept Category</label>
-    <select id="filter-hall-dept-category" class="w-full border rounded px-3 py-2">
-      <option value="">All Hall Dept Categories</option>
-      {% for category in hall_dept_categories %}
-      <option value="{{ category }}">{{ category }}</option>
-      {% endfor %}
-    </select>
-  </div>
-
-  <!-- Double Session (Added inside grid) -->
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Double Session</label>
-    <select id="filter-double-session" class="w-full border rounded px-3 py-2">
-      <option value="">All</option>
-      <option value="true">Yes</option>
-      <option value="false">No</option>
-    </select>
-  </div>
-</div>
-
-
-
-
-
-</div>
-
-<!-- search -->
-
-<div class="flex justify-between items-center mb-4">
-    <div id="showingCount" class="record-count text-sm text-gray-700">
-        Showing all records
+<div class="mx-auto antialiased">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">View Schedule</h1>
+        <div class="flex space-x-2">
+            <a href="{% url 'download_schedule_excel' %}" class="px-4 py-2 text-white bg-green-600 rounded hover:bg-green-700">Download Invigilation Schedule</a>
+            <button
+                id="swap-button"
+                disabled
+                class="px-4 py-2 font-semibold text-black bg-gray-400 border border-gray-600 rounded shadow-md cursor-not-allowed opacity-70"
+                title="Select exactly two checkboxes to activate Swap"
+            >
+                Swap
+            </button>
+        </div>
     </div>
-    <div class="flex items-center space-x-2">
-        <input type="text" id="searchInput" placeholder="Search..." 
-               class="border rounded px-3 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <button id="searchBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            Search
-        </button>
-        <button id="clearSearchBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-            Clear
-        </button>
+
+    <!-- Filter -->
+    <div class="mx-auto antialiased">
+        <div class="overflow-hidden bg-white border border-gray-200 shadow-sm rounded-2xl">
+            <!-- Filters Header -->
+            <div class="flex items-center justify-between px-5 py-3 border-b border-gray-50 bg-gray-50/30">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                        />
+                    </svg>
+                    <span class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Filter Schedule</span>
+                </div>
+                <button
+                    type="button"
+                    onclick="window.location.href = window.location.pathname"
+                    class="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 transition-colors uppercase tracking-wider"
+                >
+                    Reset All
+                </button>
+            </div>
+
+            <!-- Filters -->
+            <div class="p-5 sm:p-6">
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                    <!-- Date -->
+                    <div class="space-y-2.5">
+                        <label class="flex items-center ml-1 text-sm font-bold text-gray-600">
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Date
+                        </label>
+                        <select
+                            id="filter-date"
+                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                        >
+                            <option value="">All Dates</option>
+                            {% for date in dates %}
+                            <option value="{{ date }}">{{ date }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Department Category -->
+                    <div class="space-y-2.5">
+                        <label class="flex items-center ml-1 text-sm font-bold text-gray-600">
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2"
+                                />
+                            </svg>
+                            Department Category
+                        </label>
+                        <select
+                            id="filter-dept-category"
+                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                        >
+                            <option value="">All Categories</option>
+                            {% for category in dept_categories %}
+                            <option value="{{ category }}">{{ category }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Hall Department -->
+                    <div class="space-y-2.5">
+                        <label class="flex items-center ml-1 text-sm font-bold text-gray-600">
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M12 8c1.657 0 3-1.567 3-3.5S13.657 1 12 1 9 2.567 9 4.5 10.343 8 12 8zM12 10v10M5 21h14a2 2 0 002-2v-7H3v7a2 2 0 002 2z"
+                                />
+                            </svg>
+                            Hall Department
+                        </label>
+                        <select
+                            id="filter-hall-dept"
+                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                        >
+                            <option value="">All Hall Departments</option>
+                            {% for hall in hall_department %}
+                            <option value="{{ hall }}">{{ hall }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Hall Dept Category -->
+                    <div class="space-y-2.5">
+                        <label class="flex items-center ml-1 text-sm font-bold text-gray-600">
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 3h14a2 2 0 012 2v16a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2zM9 9h6M9 13h6M9 17h6" />
+                            </svg>
+                            Hall Dept Category
+                        </label>
+                        <select
+                            id="filter-hall-dept-category"
+                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                        >
+                            <option value="">All Hall Dept Categories</option>
+                            {% for category in hall_dept_categories %}
+                            <option value="{{ category }}">{{ category }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Double Session -->
+                    <div class="space-y-2.5">
+                        <label class="flex items-center ml-1 text-sm font-bold text-gray-600">
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Double Session
+                        </label>
+                        <select
+                            id="filter-double-session"
+                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                        >
+                            <option value="">All</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
 
-   <!-- Table Container with Scroll -->
-  <!-- <div class="bg-white shadow-md rounded-lg border border-gray-300 flex-1 min-h-0">
-    <div id="showingCount" class="record-count text-sm text-gray-700 mb-2">
-    Showing all records
-</div> -->
+    <!-- Search bar -->
+    <div class="flex items-center justify-between mb-4">
+        <div id="showingCount" class="text-sm text-gray-700 record-count">Showing all records</div>
+        <div class="flex items-center space-x-2">
+            <input type="text" id="searchInput" placeholder="Search..." class="w-64 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <button id="searchBtn" class="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700">Search</button>
+            <button id="clearSearchBtn" class="px-4 py-2 text-white bg-gray-500 rounded hover:bg-gray-600">Clear</button>
+        </div>
+    </div>
 
-    <!-- Single wrapper for both horizontal and vertical scroll -->
+    <!-- Schedule Table -->
     <div class="overflow-auto max-h-[500px]">
-      <table id="schedule-table" class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-100 sticky top-0 z-10">
-         <tr data-date="{{ schedule.date }}" 
-    data-dept-category="{{ schedule.dept_category }}" 
-    data-hall-department="{{ schedule.hall_department }}">
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">S. No</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Schedule Date</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Session</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Hall No</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Hall Department</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Staff Department</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Staff ID</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Staff Name</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Designation</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Staff Category</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Dept Category</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Hall Dept Category</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Double Session</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">Swap</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase whitespace-nowrap">
-  Actions
-</th>
-
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          {% for schedule in schedules %}
-          <tr data-date="{{ schedule.date }}" 
-              data-dept-category="{{ schedule.dept_category }}" 
-              data-hall-department="{{ schedule.hall_department }}">
-            <!-- <td class="px-6 py-4 whitespace-nowrap">{{ schedule.serial_number }}</td> -->
-             <td class="px-6 py-4 whitespace-nowrap">{{ forloop.counter }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.date }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.session|default:"-" }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_no }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_department }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.dept_name }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.staff_id|default:"-" }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.name|default:"-" }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.designation|default:"-" }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.staff_category|default:"-" }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.dept_category|default:"-" }}</td>            
-            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_dept_category|default:"-" }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{% if schedule.double_session %}Yes{% else %}No{% endif %}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-  <input type="checkbox" class="swap-checkbox" value="{{ schedule.serial_number }}">
-</td>
-
-            <td class="px-6 py-4 whitespace-nowrap">
-              
-              <!-- <button type="button" class="edit-btn text-blue-600 underline" data-id-edit="{{ schedule.serial_number }}"
-                data-edit="{{ schedule.date }}" data-hallno="{{ schedule.hall_no }}"
-                data-session="{{ schedule.session|default:'-' }}" hall-department="{{schedule.hall_department}}" hall-category="{{schedule.hall_dept_category}}">
-                Edit
-              </button>
-              <button type="button" class="delete-btn text-red-600" data-id-delete="{{ schedule.serial_number }}"
-                data-staffid="{{ schedule.staff_id|default:'-' }}" data-date="{{ schedule.date }}"
-                data-session="{{ schedule.session|default:'-' }}" data-hallno="{{ schedule.hall_no }}">
-                Delete
-              </button> -->
-              <button
-  type="button"
-  class="edit-btn text-blue-600 underline"
-  data-id-edit="{{ schedule.serial_number }}"
-  data-edit="{{ schedule.date }}"
-  data-hallno="{{ schedule.hall_no }}"
-  data-session="{{ schedule.session }}"
-  data-hall-department="{{ schedule.hall_department }}"
-  data-hall-category="{{ schedule.dept_category }}"  
->
-  Edit
-</button>
-
-
-            <!-- Delete Button -->
-            <button type="button" class="delete-btn text-red-600 underline"
-        data-id-delete="{{ schedule.serial_number }}" 
-        data-staffid="{{ schedule.staff_id|default:'' }}"  
-        data-date="{{ schedule.date|date:'Y-m-d' }}" 
-        data-session="{{ schedule.session|default:'' }}"  
-        data-hallno="{{ schedule.hall_no }}">
-    Delete
-</button>
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="14" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">No schedule records found.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+        <table id="schedule-table" class="min-w-full divide-y divide-gray-200">
+            <thead class="sticky top-0 z-10 bg-gray-100">
+                <tr>
+                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">S. No</th>
+                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Schedule Date</th>
+                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Session</th>
+                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Hall No</th>
+                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Hall Department</th>
+                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Staff Department</th>
+                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Staff ID</th>
+                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Staff Name</th>
+                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Designation</th>
+                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Staff Category</th>
+                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Dept Category</th>
+                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Hall Dept Category</th>
+                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Double Session</th>
+                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Swap</th>
+                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for schedule in schedules %}
+                <tr data-date="{{ schedule.date }}" data-dept-category="{{ schedule.dept_category }}" data-hall-department="{{ schedule.hall_department }}">
+                    <td class="px-6 py-4 whitespace-nowrap">{{ forloop.counter }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.date }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.session|default:'-' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_no }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_department }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.dept_name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.staff_id|default:'-' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.name|default:'-' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.designation|default:'-' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.staff_category|default:'-' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.dept_category|default:'-' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_dept_category|default:'-' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{% if schedule.double_session %} Yes {% else %} No {% endif %}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <input type="checkbox" class="swap-checkbox" value="{{ schedule.serial_number }}" />
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <button
+                            type="button"
+                            class="text-blue-600 underline edit-btn"
+                            data-id-edit="{{ schedule.serial_number }}"
+                            data-edit="{{ schedule.date }}"
+                            data-hallno="{{ schedule.hall_no }}"
+                            data-session="{{ schedule.session }}"
+                            data-hall-department="{{ schedule.hall_department }}"
+                            data-hall-category="{{ schedule.dept_category }}"
+                        >
+                            Edit
+                        </button>
+                        <button
+                            type="button"
+                            class="text-red-600 underline delete-btn"
+                            data-id-delete="{{ schedule.serial_number }}"
+                            data-staffid="{{ schedule.staff_id|default:'' }}"
+                            data-date="{{ schedule.date|date:'Y-m-d' }}"
+                            data-session="{{ schedule.session|default:'' }}"
+                            data-hallno="{{ schedule.hall_no }}"
+                        >
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="15" class="px-6 py-4 text-center text-gray-500 whitespace-nowrap">No schedule records found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-  </div>
+
+    <!-- Delete Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <h2 class="mb-2 text-lg font-semibold">Confirm Deletion</h2>
+            <p class="mb-4 text-sm text-gray-700">Are you sure you want to delete the schedule for:</p>
+
+            <form id="deleteForm" method="post" action="{% url 'clear_staff_assignment' %}">
+                {% csrf_token %}
+                <ul class="mb-4 text-sm text-left text-gray-800">
+                    <li>
+                        <strong>Serial ID:</strong>
+                        <span id="SerialID">-</span>
+                        <input type="number" name="serial_number" id="inputSerialNumber" readonly hidden />
+                    </li>
+                    <li>
+                        <strong>Staff ID:</strong>
+                        <span id="modalStaffId">-</span>
+                        <input type="text" name="staff_id" id="inputStaffId" readonly hidden />
+                    </li>
+                    <li>
+                        <strong>Date:</strong>
+                        <span id="modalDate">-</span>
+                        <input type="text" name="date" id="inputDate" readonly hidden />
+                    </li>
+                    <li>
+                        <strong>Hall No:</strong>
+                        <span id="modalHallNo">-</span>
+                        <input type="text" name="hall_no" id="inputHallNo" readonly hidden />
+                    </li>
+                    <li>
+                        <strong>Session:</strong>
+                        <span id="modalSession">-</span>
+                        <input type="text" name="session" id="inputSession" readonly hidden />
+                    </li>
+                </ul>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-delete">Delete</button>
+                    <button type="button" id="cancelDelete" class="btn btn-cancel">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="hidden custom-modal">
+        <div class="text-gray-900 custom-modal-content">
+            <h2 class="custom-modal-title">Reassign Staff</h2>
+            <p>
+                <strong>Date:</strong>
+                <span id="editDate"></span>
+            </p>
+            <p>
+                <strong>Hall No:</strong>
+                <span id="editHall"></span>
+            </p>
+            <p>
+                <strong>Session:</strong>
+                <span id="editSession"></span>
+            </p>
+            <p>
+                <strong>Serial No:</strong>
+                <span id="serialNoEdit"></span>
+            </p>
+
+            <form action="{% url 'staff_edit_session' %}" id="editform" method="POST">
+                {% csrf_token %}
+                <input type="text" name="date-edit" id="hall-date-edit" readonly hidden />
+                <input type="text" name="hallno-edit" id="hall-no-edit" readonly hidden />
+                <input type="text" name="session-edit" id="hall-session-edit" readonly hidden />
+                <input type="text" name="serial-no-edit" id="hall-serial-edit" readonly />
+                <label for="staffSelect"><strong>Select Staff ID:</strong></label>
+                <select id="staffSelect" name="staff-edit">
+                    <option value="">-- Select Staff --</option>
+                </select>
+
+                <div class="custom-modal-buttons">
+                    <button id="confirmEditBtn" class="confirm-btn" type="submit">Confirm</button>
+                    <button id="cancelEditBtn" class="cancel-btn" type="button">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
-
-
-
-
-<!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="modal">
-  <div class="modal-content">
-    <h2 class="text-lg font-semibold mb-2">Confirm Deletion</h2>
-    <p class="text-sm text-gray-700 mb-4">
-      Are you sure you want to delete the schedule for:
-    </p>
-
-    <!-- Form for backend -->
-    <form id="deleteForm" method="post" action="{% url 'clear_staff_assignment'%}">
-      {% csrf_token %}
-
-      <ul class="text-sm text-gray-800 mb-4 text-left">
-        <li>
-          <strong>Serial ID:</strong> <span id="SerialID">-</span>
-          <input type="number" name="serial_number" id="inputSerialNumber" readonly hidden>
-        </li>
-        <li>
-          <strong>Staff ID:</strong> <span id="modalStaffId">-</span>
-          <input type="text" name="staff_id" id="inputStaffId" readonly hidden>
-        </li>
-        <li>
-          <strong>Date:</strong> <span id="modalDate">-</span>
-          <input type="text" name="date" id="inputDate" readonly hidden>
-        </li>
-        <li>
-          <strong>Hall No:</strong> <span id="modalHallNo">-</span>
-          <input type="text" name="hall_no" id="inputHallNo" readonly hidden>
-        </li>
-        <li>
-          <strong>Session:</strong> <span id="modalSession">-</span>
-          <input type="text" name="session" id="inputSession" readonly hidden>
-        </li>
-      </ul>
-
-      <div class="modal-actions">
-        <button type="submit" class="btn btn-delete">Delete</button>
-        <button type="button" id="cancelDelete" class="btn btn-cancel">Cancel</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-
-
-<!-- Edit Modal -->
-<div id="editModal" class="custom-modal hidden">
-  <div class="custom-modal-content text-gray-900">
-
-    <h2 class="custom-modal-title">Reassign Staff</h2>
-    <p><strong>Date:</strong> <span id="editDate"></span></p>
-    <p><strong>Hall No:</strong> <span id="editHall"></span></p>
-    <p><strong>Session:</strong> <span id="editSession"></span></p>
-    <p><strong>Session:</strong> <span id="serialNoEdit"></span></p>
-    <label for="staffSelect"><strong>Select Staff ID:</strong></label>
-
-    <form action="{% url 'staff_edit_session' %}" id="editform" method="POST">
-      {% csrf_token %}
-      <input type="text" name="date-edit" id="hall-date-edit" readonly hidden>
-      <input type="text" name="hallno-edit" id="hall-no-edit" readonly hidden>
-      <input type="text" name="session-edit" id="hall-session-edit" readonly hidden>
-      <input type="text" name="serial-no-edit" id="hall-serial-edit" readonly>
-
-      <select id="staffSelect" name="staff-edit">
-        <option value="">-- Select Staff --</option>
-        <!-- Populate options dynamically -->
-      </select>
-
-      <div class="custom-modal-buttons">
-        <button id="confirmEditBtn" class="confirm-btn" type="submit">Confirm</button>
-        <button id="cancelEditBtn" class="cancel-btn" type="button">Cancel</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-
-
-
-
-
-
-
 
 <script>
-  window.getStaffUrl = "{% url 'get_available_staff' %}";
+    window.getStaffUrl = "{% url 'get_available_staff' %}";
+    window.swapUrl = "{% url 'swap_slots' %}";
 </script>
-<script>
-  window.swapUrl = "{% url 'swap_slots' %}";
-</script>
-
-
 <script src="{% static 'js/view_schedule.js' %}"></script>
+
 <style>
-  /* Modal background */
-  .modal {
-    display: none;
-    /* Hidden by default */
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    /* Dark overlay */
-    justify-content: center;
-    align-items: center;
-  }
-
-  /* Modal box */
-  .modal-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 350px;
-    text-align: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  }
-
-  /* Buttons */
-  .modal-actions {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
-  }
-
-  .btn {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-
-  .btn-delete {
-    background-color: #e53935;
-    color: white;
-  }
-
-  .btn-delete:hover {
-    background-color: #c62828;
-  }
-
-  .btn-cancel {
-    background-color: #9e9e9e;
-    color: white;
-  }
-
-  .btn-cancel:hover {
-    background-color: #757575;
-  }
-
-
-  /* Reuse modal background */
-  .modal {
-    display: none;
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    justify-content: center;
-    align-items: center;
-  }
-
-  .modal-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 350px;
-    text-align: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  }
-
-  .modal-title {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
-
-  .modal-text {
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 15px;
-  }
-
-  .form-group {
-    text-align: left;
-    margin-bottom: 10px;
-  }
-
-  .form-control {
-    width: 100%;
-    padding: 6px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-
-  .details-list {
-    text-align: left;
-    font-size: 14px;
-    color: #333;
-    margin: 10px 0;
-  }
-
-  .details-list li {
-    margin: 4px 0;
-  }
-
-  .modal-actions {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 15px;
-  }
-
-  .btn {
-    padding: 8px 14px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-
-  .btn-save {
-    background-color: #4CAF50;
-    color: white;
-  }
-
-  .btn-save:hover {
-    background-color: #45a049;
-  }
-
-  .btn-cancel {
-    background-color: #9e9e9e;
-    color: white;
-  }
-
-  .btn-cancel:hover {
-    background-color: #757575;
-  }
-
-  .custom-modal {
-    display: none;
-    position: fixed;
-    z-index: 999;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-  }
-
-  .custom-modal-content {
-    background: white;
-    padding: 20px;
-    max-width: 400px;
-    margin: 100px auto;
-    border-radius: 8px;
-  }
-
-  .custom-modal-title {
-    margin-bottom: 15px;
-  }
-
-  .custom-modal-buttons {
-    margin-top: 15px;
-    display: flex;
-    gap: 10px;
-  }
-
-  .confirm-btn {
-    background-color: #4CAF50;
-    color: white;
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-
-  .cancel-btn {
-    background-color: #ccc;
-    color: black;
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  /* Ensure the table header stays fixed during scroll */
-  thead.sticky th {
-    background-color: #f3f4f6;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    box-shadow: inset 0 -1px 0 #e5e7eb;
-  }
-  
-  /* Custom scrollbar for the table */
-  .overflow-y-auto::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  .overflow-y-auto::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-  }
-  
-  .overflow-y-auto::-webkit-scrollbar-thumb {
-    background: #c5c5c5;
-    border-radius: 4px;
-  }
-  
-  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-  }
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        width: 350px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+    .modal-actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .btn-delete {
+        background-color: #e53935;
+        color: white;
+    }
+    .btn-delete:hover {
+        background-color: #c62828;
+    }
+    .btn-cancel {
+        background-color: #9e9e9e;
+        color: white;
+    }
+    .btn-cancel:hover {
+        background-color: #757575;
+    }
+    .custom-modal {
+        display: none;
+        position: fixed;
+        z-index: 999;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+    }
+    .custom-modal-content {
+        background: white;
+        padding: 20px;
+        max-width: 400px;
+        margin: 100px auto;
+        border-radius: 8px;
+    }
+    .custom-modal-buttons {
+        margin-top: 15px;
+        display: flex;
+        gap: 10px;
+    }
+    .confirm-btn {
+        background-color: #4caf50;
+        color: white;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .cancel-btn {
+        background-color: #ccc;
+        color: black;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    /* Sticky table header */
+    thead.sticky th {
+        background-color: #f3f4f6;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        box-shadow: inset 0 -1px 0 #e5e7eb;
+    }
+    /* Scrollbar */
+    .overflow-y-auto::-webkit-scrollbar {
+        width: 8px;
+    }
+    .overflow-y-auto::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #c5c5c5;
+        border-radius: 4px;
+    }
+    .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
 </style>
 
-<!-- <script>
-  const getStaffUrl = "{% url 'get_available_staff' %}";
-</script> -->
-<!-- <script>
-    // Set global variables that your external JS can access
-    window.getStaffUrl = "{% url 'get_available_staff' %}";
-    console.log('Staff URL set:', window.getStaffUrl); // For debugging
-</script> -->
 {% endblock %}
