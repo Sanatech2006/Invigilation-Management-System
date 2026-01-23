@@ -339,24 +339,23 @@ def filter_options(request):
         'hall_departments': hall_departments,
     })
 
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Staff clear function
+
 @require_POST
 @csrf_exempt
 def clear_staff_assignment(request):
+
     try:
-        # Get data from form
         serial_number = request.POST.get('serial_number')
-        date = request.POST.get('date')
-        hall_no = request.POST.get('hall_no')
-        session = request.POST.get('session')
         
-        print(f"Clearing staff for: serial={serial_number}, date={date}, hall={hall_no}, session={session}")
+        print(f"Clearing staff for : serial = {serial_number}")
         
         # Find the schedule and clear only staff-related fields
         schedule = InvigilationSchedule.objects.get(
             serial_number=serial_number,
-            date=date,
-            hall_no=hall_no,
-            session=session
         )
         
         # Clear only the staff-related fields

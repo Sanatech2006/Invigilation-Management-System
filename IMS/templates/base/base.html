@@ -1,293 +1,305 @@
 {% load static %}
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="h-full bg-[#f1f5f9]">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invigilation System | Jamal Mohamed College</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        primary: { 
-                            50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe', 300: '#c4b5fd', 
-                            400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9', 
-                            800: '#5b21b6', 900: '#4c1d95', 950: '#1e1b4b'
-                        }
-                    }
-                }
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Invigilation System | Jamal Mohamed College</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: { sans: ["Inter", "sans-serif"] },
+                        colors: {
+                            primary: {
+                                50: "#f5f3ff",
+                                100: "#ede9fe",
+                                200: "#ddd6fe",
+                                300: "#c4b5fd",
+                                400: "#a78bfa",
+                                500: "#8b5cf6",
+                                600: "#7c3aed",
+                                700: "#6d28d9",
+                                800: "#5b21b6",
+                                900: "#4c1d95",
+                                950: "#1e1b4b",
+                            },
+                        },
+                    },
+                },
+            };
+        </script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+        <style>
+            body {
+                font-family: "Inter", sans-serif;
+                -webkit-font-smoothing: antialiased;
             }
-        }
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <style>
 
-        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
-        
-        /* Elite Sidebar Styling */
-        .sidebar-indigo {
-            background-color: #0f172a;
-            background-image: radial-gradient(at 0% 0%, rgba(76, 29, 149, 0.15) 0, transparent 50%);
-        }
-        .glass-header {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
+            /* Elite Sidebar Styling */
+            .sidebar-indigo {
+                background-color: #0f172a;
+                background-image: radial-gradient(at 0% 0%, rgba(76, 29, 149, 0.15) 0, transparent 50%);
+            }
+            .glass-header {
+                background: rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+            }
 
-        /* Smooth Floating Navigation */
-        .nav-item {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            margin: 0 12px;
-            border-radius: 12px;
-        }
+            /* Smooth Floating Navigation */
+            .nav-item {
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                margin: 0 12px;
+                border-radius: 12px;
+            }
 
-        .nav-active {
-            background: rgba(255, 255, 255, 0.08);
-            color: white !important;
-            border-left: 4px solid white;
-        }
+            .nav-active {
+                background: rgba(255, 255, 255, 0.08);
+                color: white !important;
+                border-left: 4px solid white;
+            }
 
-        .nav-item:hover:not(.nav-active) {
-            background: rgba(255, 255, 255, 0.04);
-        }
+            .nav-item:hover:not(.nav-active) {
+                background: rgba(255, 255, 255, 0.04);
+            }
 
-        /* Custom Scrollbar */
-        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
-        .sidebar-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-    </style>
-    {% block extra_head %}{% endblock %}
-</head>
+            .sidebar-scroll::-webkit-scrollbar {
+                width: 4px;
+            }
+            .sidebar-scroll::-webkit-scrollbar-thumb {
+                background: #334155;
+                border-radius: 10px;
+            }
 
-<body class="h-full text-slate-900 overflow-hidden bg-[#f1f5f9]">
-    <div class="flex h-screen">
-        
-        <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex flex-col transition-transform duration-300 transform -translate-x-full w-72 sidebar-indigo lg:relative lg:translate-x-0">
-            
-            <div class="flex items-center h-20 px-8 border-b border-white/5">
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center justify-center shadow-lg w-9 h-9 rounded-xl bg-gradient-to-tr from-primary-600 to-primary-400 shadow-primary-900/40">
-                        <i class="text-sm text-white fas fa-shield-halved"></i>
+            .no-scrollbar::-webkit-scrollbar {
+                display: none; 
+            }
+
+            .no-scrollbar {
+                -ms-overflow-style: none; 
+                scrollbar-width: none; 
+            }
+        </style>
+        {% block extra_head %}{% endblock %}
+    </head>
+
+    <body class="h-full text-slate-900 overflow-hidden bg-[#f1f5f9]">
+        <div class="flex h-screen">
+            <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex flex-col transition-transform duration-300 transform -translate-x-full w-72 sidebar-indigo lg:relative lg:translate-x-0">
+                <div class="flex items-center h-20 px-8 border-b border-white/5">
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center justify-center shadow-lg w-9 h-9 rounded-xl bg-gradient-to-tr from-primary-600 to-primary-400 shadow-primary-900/40">
+                            <i class="text-sm text-white fas fa-shield-halved"></i>
+                        </div>
+                        <span class="text-lg font-bold tracking-tight text-white">
+                            Invigilation
+                            <span class="text-primary-400">System</span>
+                        </span>
                     </div>
-                    <span class="text-lg font-bold tracking-tight text-white">Invigilation <span class="text-primary-400">System</span></span>
                 </div>
-            </div>
 
-            <nav class="flex-1 py-6 space-y-2 overflow-y-auto sidebar-scroll">
-
-                {% if user_role == 1 %}
+                <nav class="flex-1 py-6 space-y-2 overflow-y-auto sidebar-scroll no-scrollbar">
+                    {% if user_role == 1 %}
                     <div class="mb-4">
-                        <h3 class="px-8 mb-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
-                            Main Menu
-                        </h3>
+                        <h3 class="px-8 mb-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Main Menu</h3>
                         <div class="space-y-2">
                             {% url 'dashboard:dashboard' as dashboard_url %}
-                            <a href="{{ dashboard_url }}"
-                            class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium
-                            {% if request.path == dashboard_url %} nav-active
-                            {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <a
+                                href="{{ dashboard_url }}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == dashboard_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                            >
                                 <i class="w-5 text-xs text-center fas fa-house-chimney"></i>
                                 Dashboard
                             </a>
 
-                            <a href="{% url 'staff:staff-management' %}"
-                            class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium
-                            {% if 'staff' in request.path %} nav-active
-                            {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <a
+                                href="{% url 'staff:staff-management' %}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'staff' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                            >
                                 <i class="w-5 text-xs text-center fas fa-users-gear"></i>
                                 Staff Management
                             </a>
 
-                            <a href="{% url 'hall_management' %}"
-                            class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium
-                            {% if 'hall' in request.path %} nav-active
-                            {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <a
+                                href="{% url 'hall_management' %}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'hall' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                            >
                                 <i class="w-5 text-xs text-center fas fa-building-columns"></i>
                                 Hall Management
                             </a>
 
-                            <a href="{% url 'exam_dates:index' %}"
-                            class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium
-                            {% if 'exam-dates' in request.path %} nav-active
-                            {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <a
+                                href="{% url 'exam_dates:index' %}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'exam-dates' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                            >
                                 <i class="w-5 text-xs text-center fas fa-calendar-check"></i>
                                 Exam Date
                             </a>
                         </div>
                     </div>
                     <div class="mb-4">
-                        <h3 class="px-8 mb-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
-                            Examination
-                        </h3>
+                        <h3 class="px-8 mb-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Examination</h3>
                         <div class="space-y-2">
-                            <a href="{% url 'generate_schedule' %}"
-                            class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium
-                            {% if 'generate-schedule' in request.path %} nav-active
-                            {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <a
+                                href="{% url 'generate_schedule' %}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'generate-schedule' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                            >
                                 <i class="w-5 text-xs text-center fas fa-wand-sparkles"></i>
                                 Generate Schedule
                             </a>
 
-                            <a href="{% url 'view_schedule' %}"
-                            class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium
-                            {% if 'view-schedule' in request.path %} nav-active
-                            {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <a
+                                href="{% url 'view_schedule' %}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'view-schedule' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                            >
                                 <i class="w-5 text-xs text-center fas fa-table-list"></i>
                                 View Schedule
                             </a>
 
-                            <a href="{% url 'manual_assignment:manual_assignment' %}"
-                            class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium
-                            {% if 'manual-assignment' in request.path %} nav-active
-                            {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <a
+                                href="{% url 'manual_assignment:manual_assignment' %}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'manual-assignment' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                            >
                                 <i class="w-5 text-xs text-center fas fa-tasks"></i>
                                 Manual Assignment
                             </a>
                         </div>
                     </div>
                     <div>
-                        <h3 class="px-8 mb-4 mt-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
-                            Others
-                        </h3>
+                        <h3 class="px-8 mb-4 mt-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Others</h3>
                         <div class="space-y-2">
-                            <a href="{% url 'reports:admin_reports' %}"
-                            class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium
-                            {% if 'reports' in request.path %} nav-active
-                            {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <a
+                                href="{% url 'reports:admin_reports' %}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'reports' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                            >
                                 <i class="w-5 text-xs text-center fas fa-chart-bar"></i>
                                 Reports
                             </a>
 
-                            <a href="{% url 'settings:settings_home' %}"
-                            class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium
-                            {% if 'settings' in request.path and 'invigilation_settings' not in request.path %} nav-active
-                            {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <a
+                                href="{% url 'settings:settings_home' %}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'settings' in request.path and 'invigilation_settings' not in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                            >
                                 <i class="w-5 text-xs text-center fas fa-sliders-h"></i>
                                 Settings
                             </a>
                         </div>
                     </div>
-                {% endif %}
-
-                {% if user_role == 2 %}
-                    {% url 'dashboard:dashboard' as dashboard_url %}
-                    <a href="{{ dashboard_url }}"
-                    class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium
-                    {% if request.path == dashboard_url %} nav-active
-                    {% else %} text-slate-400 hover:text-white {% endif %}">
+                    {% endif %} {% if user_role == 2 %} {% url 'dashboard:dashboard' as dashboard_url %}
+                    <a
+                        href="{{ dashboard_url }}"
+                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == dashboard_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                    >
                         <i class="w-5 text-xs text-center fas fa-house-chimney"></i>
                         Dashboard
                     </a>
 
-                    <a href="{% url 'reports:reports' %}"
-                    class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium
-                    {% if 'reports' in request.path %} nav-active
-                    {% else %} text-slate-400 hover:text-white {% endif %}">
+                    <a
+                        href="{% url 'reports:reports' %}"
+                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'reports' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                    >
                         <i class="w-5 text-xs text-center fas fa-chart-bar"></i>
                         Reports
                     </a>
-                {% endif %}
-
-                {% if user_role == 3 %}
-                   {% url 'dashboard:dashboard' as dashboard_url %}
-                    <a href="{{ dashboard_url }}"
-                    class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium
-                    {% if request.path == dashboard_url %} nav-active
-                    {% else %} text-slate-400 hover:text-white {% endif %}">
+                    {% endif %} {% if user_role == 3 %} {% url 'dashboard:dashboard' as dashboard_url %}
+                    <a
+                        href="{{ dashboard_url }}"
+                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == dashboard_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                    >
                         <i class="w-5 text-xs text-center fas fa-house-chimney"></i>
                         Dashboard
                     </a>
 
-                    <a href="{% url 'reports:hod_reports' %}"
-                    class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium
-                    {% if 'reports' in request.path %} nav-active
-                    {% else %} text-slate-400 hover:text-white {% endif %}">
+                    <a
+                        href="{% url 'reports:hod_reports' %}"
+                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'reports' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                    >
                         <i class="w-5 text-xs text-center fas fa-chart-bar"></i>
                         Reports
                     </a>
-                {% endif %}
-
-                {% if user_role == 4 %}
-                    <a href="{% url 'dashboard:dashboard' %}"
-                    class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium
-                    {% if request.path == '/' %} nav-active
-                    {% else %} text-slate-400 hover:text-white {% endif %}">
+                    {% endif %} {% if user_role == 4 %}
+                    <a
+                        href="{% url 'dashboard:dashboard' %}"
+                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == '/' %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                    >
                         <i class="w-5 text-xs text-center fas fa-tachometer"></i>
                         Dashboard
                     </a>
 
-                    <a href="{% url 'reports:reports' %}"
-                    class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium
-                    {% if 'reports' in request.path %} nav-active
-                    {% else %} text-slate-400 hover:text-white {% endif %}">
+                    <a
+                        href="{% url 'reports:reports' %}"
+                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'reports' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                    >
                         <i class="w-5 text-xs text-center fas fa-chart-bar"></i>
                         Schedule
                     </a>
-                {% endif %}
+                    {% endif %}
+                </nav>
 
-            </nav>
-
-            <div class="p-4 border-t border-white/5 bg-black/10">
-                <button onclick="openLogoutModal()" class="flex items-center justify-center w-full gap-3 px-4 py-3 text-xs font-bold text-red-400 transition-all hover:bg-red-500/10 rounded-xl">
-                    <i class="fas fa-power-off"></i> Logout
-                </button>
-            </div>
-        </aside>
-
-        <div class="flex flex-col flex-1 min-w-0">
-            <main class="flex-1 p-4 overflow-y-auto lg:p-8">
-                <div class="mx-auto">
-                    <div class="bg-white rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/50 min-h-[calc(100vh-160px)] p-6 lg:p-10">
-                        {% block content %}{% endblock %}
-                    </div>
+                <div class="p-4 border-t border-white/5 bg-black/10">
+                    <button onclick="openLogoutModal()" class="flex items-center justify-center w-full gap-3 px-4 py-3 text-xs font-bold text-red-400 transition-all hover:bg-red-500/10 rounded-xl">
+                        <i class="fas fa-power-off"></i>
+                        Logout
+                    </button>
                 </div>
-            </main>
-        </div>
-    </div>
-    <div id="logoutModal" class="fixed inset-0 z-[100] items-center justify-center hidden bg-slate-900/60 backdrop-blur-sm p-4">
-        <div class="bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl p-8 text-center border border-slate-100 transform transition-all animate-in fade-in zoom-in duration-200">
-            <div class="flex items-center justify-center w-16 h-16 mx-auto mb-6 text-red-500 bg-red-50 rounded-2xl">
-                <i class="text-2xl fas fa-sign-out-alt"></i>
-            </div>
-            <h3 class="mb-2 text-xl font-black text-slate-900">End Session?</h3>
-            <p class="mb-8 text-sm text-slate-500">Are you sure you want to log out? Any unsaved progress may be lost.</p>
-            <div class="flex gap-3">
-                <button onclick="closeLogoutModal()" class="flex-1 px-4 py-4 text-xs font-bold tracking-widest uppercase transition-all text-slate-600 hover:bg-slate-50 rounded-2xl">Cancel</button>
-                <a href="{% url 'logout' %}" class="flex-1 px-4 py-4 text-xs font-bold tracking-widest text-center text-white uppercase transition-all bg-red-500 shadow-lg hover:bg-red-600 rounded-2xl shadow-red-200">Logout</a>
+            </aside>
+
+            <div class="flex flex-col flex-1 min-w-0">
+                <main class="flex-1 p-4 overflow-y-auto lg:p-8">
+                    <div class="mx-auto">
+                        <div class="bg-white rounded-[1rem] border border-slate-200 shadow-xl shadow-slate-200/50 min-h-[calc(100vh-160px)] p-8">{% block content %}{% endblock %}</div>
+                    </div>
+                </main>
             </div>
         </div>
-    </div>
-    <script>
-        const sidebar = document.getElementById('sidebar');
-        const menuBtn = document.getElementById('mobile-menu-button');
-        const logoutModal = document.getElementById('logoutModal');
+        <div id="logoutModal" class="fixed inset-0 z-[100] items-center justify-center hidden bg-slate-900/60 backdrop-blur-sm p-4">
+            <div class="bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl p-8 text-center border border-slate-100 transform transition-all animate-in fade-in zoom-in duration-200">
+                <div class="flex items-center justify-center w-16 h-16 mx-auto mb-6 text-red-500 bg-red-50 rounded-2xl">
+                    <i class="text-2xl fas fa-sign-out-alt"></i>
+                </div>
+                <h3 class="mb-2 text-xl font-black text-slate-900">End Session?</h3>
+                <p class="mb-8 text-sm text-slate-500">Are you sure you want to log out? Any unsaved progress may be lost.</p>
+                <div class="flex gap-3">
+                    <button onclick="closeLogoutModal()" class="flex-1 px-4 py-4 text-xs font-bold tracking-widest uppercase transition-all text-slate-600 hover:bg-slate-50 rounded-2xl">
+                        Cancel
+                    </button>
+                    <a
+                        href="{% url 'logout' %}"
+                        class="flex-1 px-4 py-4 text-xs font-bold tracking-widest text-center text-white uppercase transition-all bg-red-500 shadow-lg hover:bg-red-600 rounded-2xl shadow-red-200"
+                    >
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+        <script>
+            const sidebar = document.getElementById("sidebar");
+            const menuBtn = document.getElementById("mobile-menu-button");
+            const logoutModal = document.getElementById("logoutModal");
 
-        menuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            sidebar.classList.toggle('-translate-x-full');
-        });
+            menuBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle("-translate-x-full");
+            });
 
-        function openLogoutModal() { 
-            logoutModal.classList.remove('hidden'); 
-            logoutModal.classList.add('flex'); 
-        }
-        function closeLogoutModal() { 
-            logoutModal.classList.add('hidden'); 
-            logoutModal.classList.remove('flex'); 
-        }
-
-        document.addEventListener('click', (e) => {
-            if (!sidebar.contains(e.target) && !menuBtn.contains(e.target) && window.innerWidth < 1024) {
-                sidebar.classList.add('-translate-x-full');
+            function openLogoutModal() {
+                logoutModal.classList.remove("hidden");
+                logoutModal.classList.add("flex");
             }
-        });
-    </script>
-    {% block extra_js %}{% endblock %}
-</body>
+            function closeLogoutModal() {
+                logoutModal.classList.add("hidden");
+                logoutModal.classList.remove("flex");
+            }
 
+            document.addEventListener("click", (e) => {
+                if (!sidebar.contains(e.target) && !menuBtn.contains(e.target) && window.innerWidth < 1024) {
+                    sidebar.classList.add("-translate-x-full");
+                }
+            });
+        </script>
+        {% block extra_js %}{% endblock %}
+    </body>
 </html>

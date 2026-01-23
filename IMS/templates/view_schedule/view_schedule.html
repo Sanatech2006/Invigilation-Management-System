@@ -1,43 +1,47 @@
 {% extends 'base/base.html' %} {% load static %} {% block content %}
 
 <div class="mx-auto antialiased">
+
     <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">View Schedule</h1>
-        <div class="flex space-x-2">
-            <a href="{% url 'download_schedule_excel' %}" class="px-4 py-2 text-white bg-green-600 rounded hover:bg-green-700">Download Invigilation Schedule</a>
-            <button
-                id="swap-button"
-                disabled
-                class="px-4 py-2 font-semibold text-black bg-gray-400 border border-gray-600 rounded shadow-md cursor-not-allowed opacity-70"
-                title="Select exactly two checkboxes to activate Swap"
-            >
+    <div
+        class="flex flex-col items-start justify-between pb-4 mb-4 border-b border-gray-100 sm:flex-row sm:items-center">
+        <div>
+            <h2 class="text-xl font-extrabold tracking-tight text-gray-800">View Schedule</h2>
+            <p class="text-sm italic font-medium text-gray-500">Manage and download invigilation schedules</p>
+        </div>
+        <div class="flex items-center gap-3 mt-4 sm:mt-0">
+            <a href="{% url 'download_schedule_excel' %}"
+                class="inline-flex items-center px-4 py-2 text-sm font-black text-white transition-all rounded-md shadow-lg bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100 active:scale-95">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download Schedule
+            </a>
+
+            <button id="swap-button" disabled
+                class="px-5 py-2 text-sm font-black transition-all border cursor-not-allowed rounded-xl bg-slate-100 border-slate-200 text-slate-500 opacity-70 enabled:bg-white enabled:border-blue-200 enabled:text-blue-600 enabled:shadow-lg enabled:shadow-blue-100 enabled:cursor-pointer enabled:opacity-100 hover:enabled:bg-blue-50 hover:enabled:scale-105 active:enabled:scale-95"
+                title="Select exactly two checkboxes to activate Swap">
+                <i class="mr-2 text-xs fas fa-random"></i> 
                 Swap
             </button>
         </div>
     </div>
 
     <!-- Filter -->
-    <div class="mx-auto antialiased">
+    <div class="mx-auto mt-6 antialiased">
         <div class="overflow-hidden bg-white border border-gray-200 shadow-sm rounded-2xl">
             <!-- Filters Header -->
             <div class="flex items-center justify-between px-5 py-3 border-b border-gray-50 bg-gray-50/30">
                 <div class="flex items-center gap-2">
                     <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                        />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                     </svg>
                     <span class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Filter Schedule</span>
                 </div>
-                <button
-                    type="button"
-                    onclick="window.location.href = window.location.pathname"
-                    class="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 transition-colors uppercase tracking-wider"
-                >
+                <button type="button" onclick="window.location.href = window.location.pathname"
+                    class="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 transition-colors uppercase tracking-wider">
                     Reset All
                 </button>
             </div>
@@ -48,15 +52,15 @@
                     <!-- Date -->
                     <div class="space-y-2.5">
                         <label class="flex items-center ml-1 text-sm font-bold text-gray-600">
-                            <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                             Date
                         </label>
-                        <select
-                            id="filter-date"
-                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                        >
+                        <select id="filter-date"
+                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none">
                             <option value="">All Dates</option>
                             {% for date in dates %}
                             <option value="{{ date }}">{{ date }}</option>
@@ -67,20 +71,15 @@
                     <!-- Department Category -->
                     <div class="space-y-2.5">
                         <label class="flex items-center ml-1 text-sm font-bold text-gray-600">
-                            <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2"
-                                />
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2" />
                             </svg>
                             Department Category
                         </label>
-                        <select
-                            id="filter-dept-category"
-                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                        >
+                        <select id="filter-dept-category"
+                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none">
                             <option value="">All Categories</option>
                             {% for category in dept_categories %}
                             <option value="{{ category }}">{{ category }}</option>
@@ -91,20 +90,15 @@
                     <!-- Hall Department -->
                     <div class="space-y-2.5">
                         <label class="flex items-center ml-1 text-sm font-bold text-gray-600">
-                            <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M12 8c1.657 0 3-1.567 3-3.5S13.657 1 12 1 9 2.567 9 4.5 10.343 8 12 8zM12 10v10M5 21h14a2 2 0 002-2v-7H3v7a2 2 0 002 2z"
-                                />
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 8c1.657 0 3-1.567 3-3.5S13.657 1 12 1 9 2.567 9 4.5 10.343 8 12 8zM12 10v10M5 21h14a2 2 0 002-2v-7H3v7a2 2 0 002 2z" />
                             </svg>
                             Hall Department
                         </label>
-                        <select
-                            id="filter-hall-dept"
-                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                        >
+                        <select id="filter-hall-dept"
+                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none">
                             <option value="">All Hall Departments</option>
                             {% for hall in hall_department %}
                             <option value="{{ hall }}">{{ hall }}</option>
@@ -115,15 +109,15 @@
                     <!-- Hall Dept Category -->
                     <div class="space-y-2.5">
                         <label class="flex items-center ml-1 text-sm font-bold text-gray-600">
-                            <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 3h14a2 2 0 012 2v16a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2zM9 9h6M9 13h6M9 17h6" />
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    d="M5 3h14a2 2 0 012 2v16a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2zM9 9h6M9 13h6M9 17h6" />
                             </svg>
                             Hall Dept Category
                         </label>
-                        <select
-                            id="filter-hall-dept-category"
-                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                        >
+                        <select id="filter-hall-dept-category"
+                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none">
                             <option value="">All Hall Dept Categories</option>
                             {% for category in hall_dept_categories %}
                             <option value="{{ category }}">{{ category }}</option>
@@ -134,15 +128,15 @@
                     <!-- Double Session -->
                     <div class="space-y-2.5">
                         <label class="flex items-center ml-1 text-sm font-bold text-gray-600">
-                            <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 6v6l4 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             Double Session
                         </label>
-                        <select
-                            id="filter-double-session"
-                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                        >
+                        <select id="filter-double-session"
+                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none">
                             <option value="">All</option>
                             <option value="true">Yes</option>
                             <option value="false">No</option>
@@ -153,175 +147,359 @@
         </div>
     </div>
 
-    <!-- Search bar -->
-    <div class="flex items-center justify-between mb-4">
-        <div id="showingCount" class="text-sm text-gray-700 record-count">Showing all records</div>
-        <div class="flex items-center space-x-2">
-            <input type="text" id="searchInput" placeholder="Search..." class="w-64 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            <button id="searchBtn" class="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700">Search</button>
-            <button id="clearSearchBtn" class="px-4 py-2 text-white bg-gray-500 rounded hover:bg-gray-600">Clear</button>
+    <!-- Schedule Table --> 
+    <div class="mx-auto mt-6 antialiased">
+        <div class="flex flex-col overflow-hidden bg-white border border-gray-200 shadow-sm rounded-2xl"
+            style="max-height: 600px">
+            <div
+                class="flex items-center justify-between gap-4 px-5 py-4 border-b border-gray-100 bg-gray-50/50 shrink-0">
+                <div class="flex items-center gap-3">
+                    <h3 class="text-base font-bold text-gray-800">Exam Schedule</h3>
+                    <span id="showingCount"
+                        class="text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full uppercase record-count">Showing
+                        all records</span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Search..."
+                            class="w-64 py-2 pr-4 text-xs transition-all bg-white border border-gray-200 rounded-lg outline-none pl-9 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400" />
+                        <svg class="absolute left-3 top-2.5 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-grow overflow-x-auto overflow-y-auto custom-scrollbar">
+                <table id="schedule-table" class="w-full text-left border-separate border-spacing-0">
+                    <thead class="sticky top-0 z-20 px-4 py-4 bg-gray-50">
+                        <tr class="h-12">
+                            <th
+                                class="px-4 py-2 text-[11px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">
+                                S.No</th>
+                            <th
+                                class="px-4 py-2 text-[11px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">
+                                Date</th>
+                            <th
+                                class="px-4 py-2 text-[11px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">
+                                Session</th>
+                            <th
+                                class="px-4 py-2 text-[11px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">
+                                Hall Details</th>
+                            <th
+                                class="px-4 py-2 text-[11px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">
+                                Staff Assignment</th>
+                            <th
+                                class="px-4 py-2 text-[11px] text-center whitespace-nowrap font-bold text-gray-500 uppercase border-b border-gray-100">
+                                Staff Category</th>
+                            <th
+                                class="px-4 py-2 text-[11px] whitespace-nowrap text-center font-bold text-gray-500 uppercase border-b border-gray-100">
+                                Dept Category</th>
+                            <th
+                                class="px-4 py-2 text-[11px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">
+                                Double</th>
+                            <th
+                                class="px-4 py-2 text-[11px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">
+                                Swap</th>
+                            <th
+                                class="px-4 py-2 text-[11px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <!-- <tbody class="bg-white divide-y divide-gray-200">
+                        {% for schedule in schedules %}
+                        <tr data-date="{{ schedule.date }}" data-dept-category="{{ schedule.dept_category }}"
+                            data-hall-dept="{{ schedule.hall_department }}">
+                            <td class="px-6 py-4 whitespace-nowrap">{{ forloop.counter }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.date }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.session|default:'-' }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_no }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_department }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.dept_name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.staff_id|default:'-' }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.name|default:'-' }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.designation|default:'-' }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.staff_category|default:'-' }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.dept_category|default:'-' }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_dept_category|default:'-' }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{% if schedule.double_session %} Yes {% else %} No
+                                {% endif %}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <input type="checkbox" class="swap-checkbox" value="{{ schedule.serial_number }}" />
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <button type="button" class="text-blue-600 underline edit-btn"
+                                    data-id-edit="{{ schedule.serial_number }}" data-edit="{{ schedule.date }}"
+                                    data-hallno="{{ schedule.hall_no }}" data-session="{{ schedule.session }}"
+                                    data-hall-department="{{ schedule.hall_department }}"
+                                    data-hall-category="{{ schedule.dept_category }}">
+                                    Edit
+                                </button>
+                                <button type="button" class="text-red-600 underline delete-btn"
+                                    data-id-delete="{{ schedule.serial_number }}"
+                                    data-staffid="{{ schedule.staff_id|default:'' }}"
+                                    data-date="{{ schedule.date|date:'Y-m-d' }}"
+                                    data-session="{{ schedule.session|default:'' }}"
+                                    data-hallno="{{ schedule.hall_no }}">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="15" class="px-6 py-4 text-center text-gray-500 whitespace-nowrap">No schedule
+                                records found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody> -->
+                    <tbody class="divide-y divide-gray-100" id="staffTableBody">
+                        {% for schedule in schedules %}
+                        <tr class="transition-colors hover:bg-indigo-50/30" 
+                            data-date="{{ schedule.date }}" 
+                            data-dept-category="{{ schedule.dept_category }}"
+                            data-hall-dept="{{ schedule.hall_department }}"
+                            data-hall-dept-category="{{ schedule.hall_dept_category }}"
+                            data-double-session="{% if schedule.double_session %}yes{% else %}no{% endif %}">
+
+                            <td class="px-4 py-2.5 text-xs text-center text-gray-400 font-medium">
+                                {{ forloop.counter }}
+                            </td>
+
+                            <td class="px-4 py-2.5 whitespace-nowrap text-center w-40 max-w-[10rem]">
+                                <div class="text-sm font-semibold text-gray-800">{{ schedule.date }}</div>
+                            </td>
+
+                            <td class="px-4 py-2.5 whitespace-nowrap text-center w-40 max-w-[10rem]">
+                                <div class="text-[10px] font-bold text-indigo-500 uppercase tracking-tighter">
+                                    {{ schedule.session|default:'-' }}
+                                </div>
+                            </td>
+
+                            <td class="px-4 py-2.5 text-center whitespace-nowrap w-60">
+                                <div class="text-sm font-bold text-gray-700">{{ schedule.hall_no }}</div>
+                                <div class="text-[11px] text-gray-500 truncate max-w-[380px] mx-auto" 
+                                    title="{{ schedule.hall_department }}" data-field="hall-dept">
+                                    {{ schedule.hall_department }}
+                                </div>
+                            </td>
+
+                            <td class="py-2.5 pr-4 pl-12 whitespace-nowrap w-[250px]">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center justify-center w-8 h-8 text-[11px] font-bold rounded shadow-sm shrink-0
+                                        {% cycle 'bg-indigo-100 text-indigo-600' 'bg-emerald-100 text-emerald-600' 'bg-rose-100 text-rose-600' 'bg-amber-100 text-amber-600' 'bg-sky-100 text-sky-600' 'bg-violet-100 text-violet-600' %}">
+                                        {{ schedule.name|slice:":1"|upper }}
+                                    </div>
+                                    <div class="w-full">
+                                        <div class="text-sm font-semibold text-gray-800">
+                                            {{ schedule.name|slice:":28" }}{% if schedule.name|length > 28 %}…{% endif %}
+                                        </div>
+                                        <div class="font-mono text-sm font-bold text-gray-500 uppercase">
+                                            {{ schedule.staff_id }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td class="px-4 py-2.5 text-center whitespace-nowrap" data-field="staff_category">
+                                <span class="text-[10px] font-black px-2 py-0.5 rounded border uppercase tracking-widest
+                                    {% if schedule.staff_category|lower == 'aided' %} bg-green-50 text-green-700 border-green-100
+                                    {% elif schedule.staff_category|lower == 'sfm' %} bg-orange-50 text-orange-800 border-orange-100
+                                    {% elif schedule.staff_category|lower == 'sfw' %} bg-purple-50 text-purple-700 border-purple-100
+                                    {% else %} bg-gray-50 text-gray-900 border-gray-200 {% endif %}">
+                                    {{ schedule.staff_category|default:'-' }}
+                                </span>
+                            </td>
+
+                            <td class="px-4 py-2.5 text-center whitespace-nowrap" data-field="dept_category">
+                                <span class="text-[10px] font-black px-2 py-0.5 rounded border uppercase tracking-widest
+                                    {% if schedule.hall_dept_category|lower == 'aided' %} bg-green-50 text-green-700 border-green-100
+                                    {% elif schedule.hall_dept_category|lower == 'sfm' %} bg-orange-50 text-orange-800 border-orange-100
+                                    {% elif schedule.hall_dept_category|lower == 'sfw' %} bg-purple-50 text-purple-700 border-purple-100
+                                    {% else %} bg-gray-50 text-gray-900 border-gray-200 {% endif %}">
+                                    {{ schedule.hall_dept_category|default:'-' }}
+                                </span>
+                            </td>
+
+                            <td class="px-4 py-2.5 text-center">
+                                {% if schedule.double_session %}
+                                    <span class="px-2 py-0.5 text-[10px] font-bold bg-rose-50 text-rose-600 rounded border border-rose-100">YES</span>
+                                {% else %}
+                                    <span class="text-xs font-medium text-gray-300">No</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="px-4 py-2.5 text-center">
+                                <input type="checkbox" class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 swap-checkbox" value="{{ schedule.serial_number }}" />
+                            </td>
+
+                            <td class="px-3 space-x-4 text-center whitespace-nowrap">
+                                <!-- Edit Button -->
+                               <button
+                                    type="button"
+                                    class="transition-colors text-slate-400 hover:text-indigo-600 edit-btn"
+                                    data-id-edit="{{ schedule.serial_number }}"
+                                    data-edit="{{ schedule.date }}"
+                                    data-hallno="{{ schedule.hall_no }}"
+                                    data-session="{{ schedule.session }}"
+                                    data-hall-department="{{ schedule.hall_department }}"
+                                    data-hall-category="{{ schedule.hall_dept_category }}"
+                                    title="Edit"
+                                >
+                                    <i class="pointer-events-none fas fa-pencil-alt"></i>
+                                </button>
+
+                                <!-- Delete Button -->
+                               <button
+                                    type="button"
+                                    class="transition-colors text-slate-400 hover:text-red-500 delete-btn"
+                                    data-id-delete="{{ schedule.serial_number }}"
+                                    data-staffid="{{ schedule.staff_id|default:'' }}"
+                                    data-date="{{ schedule.date }}"
+                                    data-session="{{ schedule.session|default:'' }}"
+                                    data-hallno="{{ schedule.hall_no }}"
+                                    title="Delete"
+                                >
+                                    <i class="pointer-events-none fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="py-10 text-sm font-bold tracking-widest text-center text-gray-400 uppercase">
+                                No schedule records found
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <!-- Schedule Table -->
-    <div class="overflow-auto max-h-[500px]">
-        <table id="schedule-table" class="min-w-full divide-y divide-gray-200">
-            <thead class="sticky top-0 z-10 bg-gray-100">
-                <tr>
-                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">S. No</th>
-                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Schedule Date</th>
-                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Session</th>
-                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Hall No</th>
-                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Hall Department</th>
-                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Staff Department</th>
-                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Staff ID</th>
-                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Staff Name</th>
-                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Designation</th>
-                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Staff Category</th>
-                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Dept Category</th>
-                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Hall Dept Category</th>
-                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Double Session</th>
-                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Swap</th>
-                    <th class="px-6 py-3 text-xs font-medium text-left text-gray-700 uppercase whitespace-nowrap">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                {% for schedule in schedules %}
-                <tr data-date="{{ schedule.date }}" data-dept-category="{{ schedule.dept_category }}" data-hall-department="{{ schedule.hall_department }}">
-                    <td class="px-6 py-4 whitespace-nowrap">{{ forloop.counter }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.date }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.session|default:'-' }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_no }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_department }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.dept_name }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.staff_id|default:'-' }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.name|default:'-' }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.designation|default:'-' }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.staff_category|default:'-' }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.dept_category|default:'-' }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ schedule.hall_dept_category|default:'-' }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{% if schedule.double_session %} Yes {% else %} No {% endif %}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <input type="checkbox" class="swap-checkbox" value="{{ schedule.serial_number }}" />
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <button
-                            type="button"
-                            class="text-blue-600 underline edit-btn"
-                            data-id-edit="{{ schedule.serial_number }}"
-                            data-edit="{{ schedule.date }}"
-                            data-hallno="{{ schedule.hall_no }}"
-                            data-session="{{ schedule.session }}"
-                            data-hall-department="{{ schedule.hall_department }}"
-                            data-hall-category="{{ schedule.dept_category }}"
-                        >
-                            Edit
-                        </button>
-                        <button
-                            type="button"
-                            class="text-red-600 underline delete-btn"
-                            data-id-delete="{{ schedule.serial_number }}"
-                            data-staffid="{{ schedule.staff_id|default:'' }}"
-                            data-date="{{ schedule.date|date:'Y-m-d' }}"
-                            data-session="{{ schedule.session|default:'' }}"
-                            data-hallno="{{ schedule.hall_no }}"
-                        >
-                            Delete
-                        </button>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="15" class="px-6 py-4 text-center text-gray-500 whitespace-nowrap">No schedule records found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
     <!-- Delete Modal -->
-    <div id="deleteModal" class="modal">
-        <div class="modal-content">
-            <h2 class="mb-2 text-lg font-semibold">Confirm Deletion</h2>
-            <p class="mb-4 text-sm text-gray-700">Are you sure you want to delete the schedule for:</p>
+    <div id="deleteModal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4 bg-slate-900/60 backdrop-blur-md">
+        <div class="w-full max-w-md h-[80vh] p-8 overflow-y-auto text-center bg-white shadow-2xl rounded-3xl no-scrollbar">
+            <div class="flex items-center justify-center w-20 h-20 mx-auto mb-6 text-red-500 rounded-full bg-red-50">
+                <i class="text-3xl fas fa-exclamation-triangle"></i>
+            </div>
+
+            <h3 class="mb-2 text-xl font-black text-slate-900">Confirm Deletion</h3>
+            <p class="mb-6 text-sm text-slate-500">Are you sure you want to delete the schedule for the following details? This action cannot be undone.</p>
 
             <form id="deleteForm" method="post" action="{% url 'clear_staff_assignment' %}">
                 {% csrf_token %}
-                <ul class="mb-4 text-sm text-left text-gray-800">
-                    <li>
-                        <strong>Serial ID:</strong>
-                        <span id="SerialID">-</span>
-                        <input type="number" name="serial_number" id="inputSerialNumber" readonly hidden />
-                    </li>
-                    <li>
-                        <strong>Staff ID:</strong>
-                        <span id="modalStaffId">-</span>
-                        <input type="text" name="staff_id" id="inputStaffId" readonly hidden />
-                    </li>
-                    <li>
-                        <strong>Date:</strong>
-                        <span id="modalDate">-</span>
-                        <input type="text" name="date" id="inputDate" readonly hidden />
-                    </li>
-                    <li>
-                        <strong>Hall No:</strong>
-                        <span id="modalHallNo">-</span>
-                        <input type="text" name="hall_no" id="inputHallNo" readonly hidden />
-                    </li>
-                    <li>
-                        <strong>Session:</strong>
-                        <span id="modalSession">-</span>
-                        <input type="text" name="session" id="inputSession" readonly hidden />
-                    </li>
-                </ul>
+                
+                <div class="p-4 mb-8 text-left border bg-slate-50 rounded-2xl border-slate-100">
+                    <ul class="space-y-2 text-sm text-slate-700">
+                        <li class="flex justify-between">
+                            <span class="font-bold text-slate-500">Serial ID:</span>
+                            <span id="SerialID" class="font-mono text-slate-900">-</span>
+                            <input type="number" name="serial_number" id="inputSerialNumber" readonly hidden />
+                        </li>
+                        <li class="flex justify-between pt-2 border-t border-slate-200">
+                            <span class="font-bold text-slate-500">Staff ID:</span>
+                            <span id="modalStaffId" class="text-slate-900">-</span>
+                            <input type="text" name="staff_id" id="inputStaffId" readonly hidden />
+                        </li>
+                        <li class="flex justify-between pt-2 border-t border-slate-200">
+                            <span class="font-bold text-slate-500">Date:</span>
+                            <span id="modalDate" class="text-slate-900">-</span>
+                            <input type="text" name="date" id="inputDate" readonly hidden />
+                        </li>
+                        <li class="flex justify-between pt-2 border-t border-slate-200">
+                            <span class="font-bold text-slate-500">Hall No:</span>
+                            <span id="modalHallNo" class="text-slate-900">-</span>
+                            <input type="text" name="hall_no" id="inputHallNo" readonly hidden />
+                        </li>
+                        <li class="flex justify-between pt-2 border-t border-slate-200">
+                            <span class="font-bold text-slate-500">Session:</span>
+                            <span id="modalSession" class="text-slate-900">-</span>
+                            <input type="text" name="session" id="inputSession" readonly hidden />
+                        </li>
+                    </ul>
+                </div>
 
-                <div class="modal-actions">
-                    <button type="submit" class="btn btn-delete">Delete</button>
-                    <button type="button" id="cancelDelete" class="btn btn-cancel">Cancel</button>
+                <div class="flex flex-col gap-3">
+                    <button type="submit" class="w-full py-3.5 bg-red-500 text-white font-bold rounded-2xl hover:bg-red-600 transition-all shadow-lg shadow-red-200">
+                        Yes, Delete it
+                    </button>
+                    <button type="button" id="cancelDelete" class="w-full py-3.5 text-slate-500 font-bold hover:bg-slate-100 rounded-2xl transition-all">
+                        Cancel
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Edit Modal -->
-    <div id="editModal" class="hidden custom-modal">
-        <div class="text-gray-900 custom-modal-content">
-            <h2 class="custom-modal-title">Reassign Staff</h2>
-            <p>
-                <strong>Date:</strong>
-                <span id="editDate"></span>
-            </p>
-            <p>
-                <strong>Hall No:</strong>
-                <span id="editHall"></span>
-            </p>
-            <p>
-                <strong>Session:</strong>
-                <span id="editSession"></span>
-            </p>
-            <p>
-                <strong>Serial No:</strong>
-                <span id="serialNoEdit"></span>
-            </p>
+    <div id="editModal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4 bg-slate-900/60 backdrop-blur-md">
+        <div class="w-full max-w-md overflow-hidden transition-all transform bg-white shadow-2xl rounded-3xl">
+            <div class="p-8 border-b border-slate-100">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-2xl font-black text-slate-900">Reassign Staff</h3>
+                    <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="transition-colors text-slate-400 hover:text-slate-600">
+                        <i class="text-lg fas fa-times"></i>
+                    </button>
+                </div>
+                <p class="mt-1 text-sm text-slate-500">Update the staff assignment for this specific session.</p>
+            </div>
 
             <form action="{% url 'staff_edit_session' %}" id="editform" method="POST">
                 {% csrf_token %}
+                
                 <input type="text" name="date-edit" id="hall-date-edit" readonly hidden />
                 <input type="text" name="hallno-edit" id="hall-no-edit" readonly hidden />
                 <input type="text" name="session-edit" id="hall-session-edit" readonly hidden />
-                <input type="text" name="serial-no-edit" id="hall-serial-edit" readonly />
-                <label for="staffSelect"><strong>Select Staff ID:</strong></label>
-                <select id="staffSelect" name="staff-edit">
-                    <option value="">-- Select Staff --</option>
-                </select>
+                <input type="text" name="serial-no-edit" id="hall-serial-edit" readonly hidden />
 
-                <div class="custom-modal-buttons">
-                    <button id="confirmEditBtn" class="confirm-btn" type="submit">Confirm</button>
-                    <button id="cancelEditBtn" class="cancel-btn" type="button">Cancel</button>
+                <div class="p-8 space-y-6">
+                    <div class="grid grid-cols-2 gap-4 p-4 mb-6 border bg-slate-50 border-slate-100 rounded-2xl">
+                        <div class="space-y-1">
+                            <span class="block text-[10px] font-bold tracking-widest uppercase text-slate-400">Date</span>
+                            <span id="editDate" class="text-sm font-semibold text-slate-700">-</span>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="block text-[10px] font-bold tracking-widest uppercase text-slate-400">Hall No</span>
+                            <span id="editHall" class="text-sm font-semibold text-slate-700">-</span>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="block text-[10px] font-bold tracking-widest uppercase text-slate-400">Session</span>
+                            <span id="editSession" class="text-sm font-semibold text-slate-700">-</span>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="block text-[10px] font-bold tracking-widest uppercase text-slate-400">Serial No</span>
+                            <span id="serialNoEdit" class="text-sm font-semibold text-slate-700">-</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="staffSelect" class="block mb-2 text-xs font-bold tracking-widest uppercase text-slate-500">Select Staff ID</label>
+                        <div class="relative">
+                            <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-user-tie"></i>
+                            <select id="staffSelect" name="staff-edit" 
+                                class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium appearance-none">
+                                <option value="">-- Select Staff --</option>
+                            </select>
+                            <i class="absolute text-xs -translate-y-1/2 pointer-events-none text-slate-400 right-4 top-1/2 fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 p-8 bg-slate-50/50">
+                    <button id="cancelEditBtn" type="button" class="flex-1 px-6 py-3.5 text-sm font-bold text-slate-600 hover:bg-slate-200/50 rounded-2xl transition-all">
+                        Cancel
+                    </button>
+                    <button id="confirmEditBtn" type="submit" class="flex-1 px-6 py-3.5 bg-indigo-600 text-white text-sm font-bold rounded-2xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all active:scale-95">
+                        Confirm
+                    </button>
                 </div>
             </form>
         </div>
     </div>
+    
 </div>
 
 <script>
@@ -343,6 +521,7 @@
         justify-content: center;
         align-items: center;
     }
+
     .modal-content {
         background-color: white;
         padding: 20px;
@@ -351,32 +530,39 @@
         text-align: center;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     }
+
     .modal-actions {
         display: flex;
         justify-content: center;
         gap: 10px;
         margin-top: 20px;
     }
+
     .btn {
         padding: 8px 16px;
         border: none;
         border-radius: 5px;
         cursor: pointer;
     }
+
     .btn-delete {
         background-color: #e53935;
         color: white;
     }
+
     .btn-delete:hover {
         background-color: #c62828;
     }
+
     .btn-cancel {
         background-color: #9e9e9e;
         color: white;
     }
+
     .btn-cancel:hover {
         background-color: #757575;
     }
+
     .custom-modal {
         display: none;
         position: fixed;
@@ -387,6 +573,7 @@
         height: 100%;
         background-color: rgba(0, 0, 0, 0.6);
     }
+
     .custom-modal-content {
         background: white;
         padding: 20px;
@@ -394,11 +581,13 @@
         margin: 100px auto;
         border-radius: 8px;
     }
+
     .custom-modal-buttons {
         margin-top: 15px;
         display: flex;
         gap: 10px;
     }
+
     .confirm-btn {
         background-color: #4caf50;
         color: white;
@@ -407,6 +596,7 @@
         border-radius: 4px;
         cursor: pointer;
     }
+
     .cancel-btn {
         background-color: #ccc;
         color: black;
@@ -415,6 +605,7 @@
         border-radius: 4px;
         cursor: pointer;
     }
+
     /* Sticky table header */
     thead.sticky th {
         background-color: #f3f4f6;
@@ -423,21 +614,35 @@
         z-index: 10;
         box-shadow: inset 0 -1px 0 #e5e7eb;
     }
+
     /* Scrollbar */
     .overflow-y-auto::-webkit-scrollbar {
         width: 8px;
     }
+
     .overflow-y-auto::-webkit-scrollbar-track {
         background: #f1f1f1;
         border-radius: 4px;
     }
+
     .overflow-y-auto::-webkit-scrollbar-thumb {
         background: #c5c5c5;
         border-radius: 4px;
     }
+
     .overflow-y-auto::-webkit-scrollbar-thumb:hover {
         background: #a8a8a8;
     }
+
+    .no-scrollbar::-webkit-scrollbar {
+        display: none; 
+    }
+
+    .no-scrollbar {
+        -ms-overflow-style: none; 
+        scrollbar-width: none; 
+    }
+
 </style>
 
 {% endblock %}

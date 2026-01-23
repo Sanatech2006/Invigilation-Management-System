@@ -233,14 +233,14 @@
         <div class="flex-grow overflow-x-auto overflow-y-auto custom-scrollbar">
             <table class="w-full text-left border-separate border-spacing-0">
                 <thead class="sticky top-0 z-20 bg-gray-50">
-                    <tr class="h-10">
-                        <th class="px-4 py-2 text-[11px] text-center font-bold text-gray-500 uppercase border-b border-gray-100 w-24">S.No</th>
-                        <th class="px-4 py-2 text-[11px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Name & ID</th>
-                        <th class="px-4 py-2 text-[11px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Category</th>
-                        <th class="px-4 py-2 text-[11px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Designation</th>
-                        <th class="px-4 py-2 text-[11px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Department</th>
-                        <th class="px-4 py-2 text-[11px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Dept. Type</th>
-                        <th class="px-4 py-2 text-[11px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Mobile</th>
+                    <tr class="h-12">
+                        <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100 w-24">S.No</th>
+                        <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Name & ID</th>
+                        <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Category</th>
+                        <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Designation</th>
+                        <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Department</th>
+                        <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Dept. Type</th>
+                        <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Mobile</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100" id="staffTableBody">
@@ -251,16 +251,15 @@
                                 {% if staff_list.start_index %}{{ forloop.counter0|add:staff_list.start_index }}{% else %}{{ forloop.counter }}{% endif %}
                             </td>
                             
-                            <td class="py-2.5 whitespace-nowrap w-[280px]">
+                            <td class="py-2.5 whitespace-nowrap w-[250px]">
                                 <div class="flex items-center gap-3">
                                     <div class="flex items-center justify-center w-8 h-8 text-[11px] font-bold rounded shadow-sm shrink-0
                                         {% cycle 'bg-indigo-100 text-indigo-600' 'bg-emerald-100 text-emerald-600' 'bg-rose-100 text-rose-600' 'bg-amber-100 text-amber-600' 'bg-sky-100 text-sky-600' 'bg-violet-100 text-violet-600' %}">
                                         {{ staff.name|slice:":1"|upper }}
                                     </div>
-
                                     <div class="w-full">
                                         <div class="text-sm font-semibold text-gray-800">
-                                            {{ staff.name|slice:":18" }}{% if staff.name|length > 18 %}…{% endif %}
+                                            {{ staff.name|slice:":28" }}{% if staff.name|length > 28 %}…{% endif %}
                                         </div>
                                         <div class="font-mono text-sm font-bold text-gray-500 uppercase">
                                             {{ staff.staff_id }}
@@ -269,7 +268,7 @@
                                 </div>
                             </td>
 
-                            <td class="px-4 py-2.5 text-center whitespace-nowrap">
+                            <td class="px-4 py-2.5 text-center whitespace-nowrap w-40 max-w-[10rem] truncate">
                                 <span class="text-xs font-black px-2 py-0.5 rounded border uppercase tracking-widest
                                     {% if staff.staff_category|lower == 'aided' %} bg-green-50 text-green-700 border-green-100
                                     {% elif staff.staff_category|lower == 'sfm' %} bg-orange-50 text-orange-800 border-orange-100
@@ -283,11 +282,11 @@
                                 {{ staff.designation }}
                             </td>
 
-                            <td class="px-4 py-2.5 text-sm text-gray-600 text-center w-40 max-w-[10rem] truncate">
+                            <td class="px-4 py-2.5 text-sm text-gray-600 text-center w-40 max-w-[15rem] truncate">
                                 {{ staff.dept_name }}
                             </td>
 
-                            <td class="px-4 py-2.5 text-center whitespace-nowrap">
+                            <td class="px-4 py-2.5 text-center whitespace-nowrap w-40 max-w-[10rem] truncate">
                                 <span class="text-xs font-black px-2 py-0.5 rounded border uppercase tracking-widest
                                     {% if staff.dept_category|lower == 'aided' %} bg-green-50 text-green-700 border-green-100
                                     {% elif staff.dept_category|lower == 'sfm' %} bg-orange-50 text-orange-800 border-orange-100
@@ -297,7 +296,7 @@
                                 </span>
                             </td>
                             
-                            <td class=" py-2.5 text-sm font-semibold text-center text-gray-500 font-mono">
+                            <td class=" py-2.5 text-sm font-semibold text-center text-gray-500 font-mono w-40 max-w-[10rem] truncate">
                                 {{ staff.mobile }}
                             </td>
                         </tr>

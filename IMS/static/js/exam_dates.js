@@ -41,16 +41,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         row.innerHTML = `
             <td class="text-center px-8 py-5">
-                <span class="inline-flex items-center justify-center w-12 h-8 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-black uppercase tracking-tighter">
+                <span class="inline-flex items-center justify-center px-3 h-8 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-black uppercase tracking-tighter">
                     Day ${String(day).padStart(2, '0')}
                 </span>
             </td>
             <td class="text-center px-8 py-5 text-sm font-bold text-slate-700">${displayDate}</td>
-            <td class="text-center px-8 py-5 space-x-2">
-                <button onclick="handleEdit(${day}, '${date}', ${id})" class="p-2.5 text-slate-400 hover:text-indigo-600 transition-colors">
+            <td class="text-center px-8 py-5 space-x-4">
+                <button onclick="handleEdit(${day}, '${date}', ${id})" class="text-slate-400 hover:text-indigo-600 transition-colors">
                     <i class="fas fa-pencil-alt"></i>
                 </button>
-                <button onclick="handleDeletePrompt(${id})" class="p-2.5 text-slate-400 hover:text-red-500 transition-colors">
+                <button onclick="handleDeletePrompt(${id})" class="text-slate-400 hover:text-red-500 transition-colors">
                     <i class="fas fa-trash-alt"></i>
                 </button>
             </td>
