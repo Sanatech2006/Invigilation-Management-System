@@ -1,390 +1,538 @@
 {% extends 'base/base.html' %}
 {% load static %}
-
 {% block title %}Hall Management{% endblock %}
-
 {% block content %}
 
-<!-- Add & Edit Hall buttons -->
-<!-- Add & Edit Hall Buttons -->
-<div class="fixed top-4 right-4 flex space-x-2 z-50" style="right: 1rem;">
-  <button id="openAddHallBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 shadow-md">
-    Add Hall
-  </button>
-  <button id="openEditHallBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 shadow-md">
-    Edit Hall
-  </button>
-  <button id="openDeleteHallBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-red-700 shadow-md">
-  Delete Hall
-</button>
+<!------------------- Top Heading, Crud Buttons and File Upload --------------------->
 
-</div>
+<div class="mx-auto antialiased">
+    <div class="flex flex-col items-start justify-between pb-4 mb-4 border-b border-gray-100 sm:flex-row sm:items-center">
+        <div>
+            <h2 class="text-xl font-extrabold tracking-tight text-gray-800">Hall Management</h2>
+            <p class="text-sm italic font-medium text-gray-500">Manage examination halls and room capacities</p>
+        </div>
+        <div class="flex items-center gap-2 mt-3 sm:mt-0">
+            <button id="openAddHallBtn" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-all flex items-center shadow-sm">
+                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                </svg>
+                Add Hall
+            </button>
+            <button id="openEditHallBtn" class="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-sm font-bold rounded-lg hover:bg-gray-50 transition-colors">
+                Edit Hall
+            </button>
+            <button id="openDeleteHallBtn" class="px-3 py-1.5 bg-white border border-red-100 text-red-500 text-sm font-bold rounded-lg hover:bg-red-50 transition-colors">
+                Delete Hall
+            </button>
+        </div>
+    </div>
 
-<!-- Add Hall Modal -->
-<div id="addHallModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
-  <div class="bg-white rounded-xl max-w-md w-full mx-4 p-6 shadow-xl border border-gray-200 max-h-[600px] overflow-y-auto">
-    <h2 class="text-xl font-semibold mb-6 text-blue-700">Add New Hall</h2>
-    <form id="addHallForm" autocomplete="off" class="space-y-4">
-      <div>
-        <label for="addHallNo" class="block text-sm font-medium text-gray-700 mb-1">Hall Number</label>
-        <input type="text" id="addHallNo" name="hall_no" required class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200" />
-      </div>
-      <div>
-        <label for="addDeptCategory" class="block text-sm font-medium text-gray-700 mb-1">Department Category</label>
-        <input type="text" id="addDeptCategory" name="dept_category" required class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200" />
-      </div>
-      <div>
-        <label for="addDeptName" class="block text-sm font-medium text-gray-700 mb-1">Department Name</label>
-        <input type="text" id="addDeptName" name="dept_name" required class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200" />
-      </div>
-      <div>
-        <label for="addHallDepartment" class="block text-sm font-medium text-gray-700 mb-1">Hall Department</label>
-        <input type="text" id="addHallDepartment" name="hall_department" required class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200" />
-      </div>
-      <div>
-  <label for="addHallStrength" class="block text-sm font-medium text-gray-700 mb-1">Strength</label>
-  <input type="number" id="addHallStrength" name="strength" required class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200" min="0" />
-</div>
+    <div class="mt-6 overflow-hidden bg-white border border-gray-200 shadow-sm rounded-2xl">
+        <div class="p-5">
+            <form method="POST" enctype="multipart/form-data" action="{% url 'hall_upload' %}" id="uploadForm">
+                {% csrf_token %}
 
-      <div class="flex justify-center space-x-4 pt-4">
-        <button type="submit" id="saveAddHallBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow">
-          Save
-        </button>
-        <button type="button" id="cancelAddHallBtn" class="bg-gray-300 hover:bg-gray-400 px-6 py-2 rounded shadow">
-          Cancel
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
+                {% if message or error %}
+                <div class="mb-5 space-y-2">
+                    <div class="flex items-center justify-between p-3 rounded-xl border {% if message %}bg-emerald-50/50 border-emerald-200 text-emerald-800{% else %}bg-rose-50/50 border-rose-200 text-rose-800{% endif %} animate-in fade-in slide-in-from-top-1">
+                        <div class="flex items-center gap-3">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center {% if message %}bg-emerald-500 text-white{% else %}bg-rose-500 text-white{% endif %} shadow-sm">
+                                {% if message %}
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                {% else %}
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <p class="mb-1 text-xs font-bold leading-none tracking-wider uppercase">{% if message %}Success{% else %}Error{% endif %}</p>
+                                <p class="text-sm font-medium opacity-90">{{ message }}{{ error }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
 
-<!-- Edit Hall Modal -->
-<!-- Edit Hall Modal -->
-<div id="editHallModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
-  <div class="bg-white rounded-xl max-w-md w-full mx-4 p-6 shadow-xl border border-gray-200 max-h-[600px] overflow-y-auto">
-    <h2 class="text-xl font-semibold mb-6 text-blue-700">Edit Hall Details</h2>
-    <form id="editHallForm" autocomplete="off" class="space-y-4">
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-12">
+                    <div class="space-y-5 md:col-span-7">
+                        <div class="relative group">
+                            <input type="file" name="file" accept=".xlsx,.xls" required 
+                                   class="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer" id="fileInput">
+                            <div id="dropzone" class="flex items-center justify-center gap-4 p-6 text-center transition-all border-2 border-blue-200 border-dashed rounded-2xl bg-blue-50/10 group-hover:border-blue-400 group-hover:bg-blue-50/40">
+                                <div class="p-3 text-blue-500 transition-transform bg-white border border-blue-100 shadow-sm rounded-xl group-hover:scale-110">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                </div>
+                                <div>
+                                    <p id="fileNameDisplay" class="text-sm font-bold text-gray-700">Drop Hall Excel Here</p>
+                                    <p class="text-[11px] text-gray-400 font-medium">or click to browse local files</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-gray-200">
+                            Upload & Process Halls
+                        </button>
+                    </div>
 
-      <label for="editHallSelect" class="block text-sm font-medium text-gray-700 mb-1">Select Hall No</label>
-<select id="editHallSelect" name="hall_no" class="w-full border rounded px-3 py-2">
-  <option value="">Select Hall No</option>
-  {% for hall in hall_list %}
-    <option value="{{ hall.hall_no }}">{{ hall.hall_no }} - {{ hall.dept_name }}</option>
-  {% endfor %}
-</select>
+                    <div class="flex flex-col gap-3 md:col-span-5">
+                        <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-1">Templates & Export</h4>
+                        
+                        <a href="{% static 'staff/Template.xlsx' %}" download="Room_Template.xlsx"
+                           class="flex items-center justify-between px-4 py-3.5 rounded-xl bg-gray-50 border border-gray-100 hover:border-blue-200 hover:bg-white hover:shadow-md transition-all group">
+                            <div class="flex items-center gap-3">
+                                <div class="flex items-center justify-center w-10 h-10 text-blue-600 border border-blue-100 rounded-lg bg-blue-100/50">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                                <div>
+                                    <span class="block text-sm font-bold text-gray-700">Room Template</span>
+                                    <span class="block text-[10px] text-gray-400 uppercase mt-1">Download .xlsx</span>
+                                </div>
+                            </div>
+                            <svg class="w-4 h-4 text-gray-300 transition-all transform group-hover:text-blue-400 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </a>
 
-
-      <div>
-        <label for="editHallDeptCategory" class="block text-sm font-medium text-gray-700 mb-1">Department Category</label>
-        <input type="text" name="dept_category" id="editHallDeptCategory" class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200"  />
-      </div>
-
-      <div>
-        <label for="editHallDeptName" class="block text-sm font-medium text-gray-700 mb-1">Department Name</label>
-        <input type="text" name="dept_name" id="editHallDeptName" class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200"  />
-      </div>
-
-      <div>
-        <label for="editHallDepartment" class="block text-sm font-medium text-gray-700 mb-1">Hall Department</label>
-        <input type="text" name="hall_department" id="editHallDepartment" class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200" />
-      </div>
-      <div>
-  <label for="editHallStrength" class="block text-sm font-medium text-gray-700 mb-1">Strength</label>
-  <input type="number" name="strength" id="editHallStrength" min="0" class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200" />
-</div>
-
-
-      <div class="flex justify-center space-x-4 pt-4">
-        <button type="submit" id="saveEditHallBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded shadow">
-          Save
-        </button>
-        <button type="button" id="cancelEditHallBtn" class="bg-gray-300 hover:bg-gray-400 px-6 py-2 rounded shadow">
-          Cancel
-        </button>
-      </div>
-
-    </form>
-  </div>
-</div>
-<!-- Delete Hall Modal -->
-<div id="deleteHallModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
-  <div class="bg-white rounded-xl max-w-md w-full mx-4 p-6 shadow-xl border border-gray-200">
-    <h2 class="text-xl font-semibold mb-6 text-red-700">Delete Hall</h2>
-    <form id="deleteHallForm" autocomplete="off" class="space-y-4">
-
-      <div>
-        <label for="deleteHallSelect" class="block text-sm font-medium text-gray-700 mb-1">Select Hall No</label>
-        <select id="deleteHallSelect" name="hall_no" class="w-full border rounded px-3 py-2">
-          <option value="">Select Hall No</option>
-          <!-- Will be populated dynamically -->
-        </select>
-      </div>
-
-      <div>
-        <label for="deleteDeptCategory" class="block text-sm font-medium text-gray-700 mb-1">Department Category</label>
-        <input type="text" id="deleteDeptCategory" readonly class="w-full border rounded px-3 py-2 bg-gray-100" />
-      </div>
-
-      <div>
-        <label for="deleteDeptName" class="block text-sm font-medium text-gray-700 mb-1">Department Name</label>
-        <input type="text" id="deleteDeptName" readonly class="w-full border rounded px-3 py-2 bg-gray-100" />
-      </div>
-
-      <div class="flex justify-center space-x-4">
-        <button type="button" id="confirmDeleteHallBtn" class="bg-blue-600 hover:bg-red-700 text-white px-6 py-2 rounded shadow">
-          Delete
-        </button>
-        <button type="button" id="cancelDeleteHallBtn" class="bg-gray-300 hover:bg-gray-400 px-6 py-2 rounded shadow">
-          Cancel
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
-
-
-
-
-    <!-- Upload Section -->
-    <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm sm:shadow-md border border-gray-200 mb-8 max-w-xl">
-
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Upload Room Data</h2>
+                        <a href="{% url 'download_room_data' %}" 
+                           class="flex items-center justify-between px-4 py-3.5 rounded-xl bg-gray-50 border border-gray-100 hover:border-emerald-200 hover:bg-white hover:shadow-md transition-all group">
+                            <div class="flex items-center gap-3">
+                                <div class="flex items-center justify-center w-10 h-10 border rounded-lg bg-emerald-100/50 text-emerald-600 border-emerald-100">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                </div>
+                                <div>
+                                    <span class="block text-sm font-bold text-gray-700">Download Data</span>
+                                    <span class="block text-[10px] text-gray-400 uppercase mt-1">Current Hall List</span>
+                                </div>
+                            </div>
+                            <svg class="w-4 h-4 text-gray-300 transition-all transform group-hover:text-emerald-400 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
         
-        <!-- Display messages/errors -->
-        {% if message %}
-        <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-            {{ message }}
+        <div class="bg-gray-50/80 px-5 py-2.5 border-t border-gray-100 flex items-center justify-between">
+            <div class="flex gap-4">
+                <span class="text-[10px] font-bold text-gray-400 uppercase flex items-center">
+                    <svg class="w-3 h-3 mr-1 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="5"/></svg>
+                    Database Linked
+                </span>
+            </div>
+            <p class="text-[10px] text-gray-400 font-medium italic">Supports .xls and .xlsx files only</p>
         </div>
-        {% endif %}
+    </div>
+</div>
+
+<!------------------------------- Filters -------------------------------------------->
+
+<div class="m-6 mx-auto antialiased">
+    <div class="overflow-hidden bg-white border border-gray-200 shadow-sm rounded-2xl">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-gray-50 bg-gray-50/30">
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                </svg>
+                <span class="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Filter Hall</span>
+            </div>
+            <button type="button"
+                onclick="document.querySelectorAll('#filters-container select').forEach(s => s.value = '');"
+                class="text-[11px] font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-wider">
+                Clear Filters
+            </button>
+        </div>
+
+        <div class="p-5 sm:p-6" id="filters-container">
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                
+                <div class="space-y-2.5">
+                    <label for="filter-block" class="flex items-center ml-1 text-sm font-bold text-gray-600">
+                        <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                        Block / Wing
+                    </label>
+                    <select id="filter-block" 
+                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                        <option value="">All Blocks</option>
+                        {% for block in blocks %}
+                        <option value="{{ block|lower }}">{{ block }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label for="filter-dept-category" class="flex items-center ml-1 text-sm font-bold text-gray-600">
+                        <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                        </svg>
+                        Department Type
+                    </label>
+                    <select id="filter-dept-category" 
+                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                        <option value="">All Types</option>
+                        {% for dept_type in dept_types %}
+                        <option value="{{ dept_type|lower }}">{{ dept_type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label for="filter-dept-name" class="flex items-center ml-1 text-sm font-bold text-gray-600">
+                        <svg class="w-3.5 h-3.5 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                        Department
+                    </label>
+                    <select id="filter-dept-name" 
+                            class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl px-3 py-2.5 transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                        <option value="">All Departments</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept|lower }}">{{ dept }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!------------------------------- Hall Table -------------------------------------------->
+
+<div class="mx-auto antialiased">
+    <div class="flex flex-col overflow-hidden bg-white border border-gray-200 shadow-sm rounded-2xl" style="max-height: 600px;">
         
-        {% if error %}
-        <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-            {{ error }}
-        </div>
-        {% endif %}
-
-        <form method="POST" enctype="multipart/form-data" action="{% url 'hall_upload' %}" id="uploadForm">
-            {% csrf_token %}
-            
-            <div class="mb-6">
-    <p class="text-gray-700 mb-3">Select Excel File</p>
-    <div class="flex items-center gap-4 mb-2">
-        <label for="fileInput" class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-            Choose File
-        </label>
-        <input id="fileInput" type="file" name="file" class="hidden" accept=".xlsx,.xls" required>
-        <span id="fileNameDisplay" class="text-gray-500 text-sm">No file chosen</span>
-    </div>
-    <a href="{% static 'staff/Template.xlsx' %}" download="Template.xlsx"
-       class="text-sm text-blue-600 hover:text-blue-800 underline flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-        </svg>
-        Download Template
-    </a>
-</div>
-
-           <div class="pt-4 flex flex-row justify-start gap-4 flex-nowrap">
-    <!-- Upload & Process -->
-    <button type="submit" 
-        class="bg-blue-600 hover:bg-blue-700 
-        text-white px-5 py-2.5 rounded-lg text-sm sm:text-base
-        font-medium transition-all duration-200
-        focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-        shadow-sm hover:shadow-md flex items-center justify-center w-56">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-        </svg>
-        Upload & Process
-    </button>
-
-
-    <!-- Download Room Data -->
-    <a href="{% url 'download_room_data' %}"
-       class="bg-green-600 hover:bg-green-700 text-white 
-       px-5 py-2.5 rounded-lg text-sm sm:text-base font-medium 
-       transition-all duration-200 focus:ring-2 focus:ring-green-500 
-       focus:ring-offset-2 shadow-sm hover:shadow-md flex items-center justify-center w-56">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-        </svg>
-        Download Room Data
-    </a>
-</div>
-
-    </div>
-    
-
-
-
-
-    <div id="filters-container" class="border-t border-gray-200 pt-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">Block</label>
-                <select id="filter-block" class="w-full rounded border-gray-300 shadow-sm text-sm py-2 px-3 border focus:ring-blue-500 focus:border-blue-500 bg-white">
-                    <option value="">All Blocks</option>
-                    {% for block in blocks %}
-                    <option value="{{ block|lower }}">{{ block }}</option>
-                    {% endfor %}
-                </select>
+        <div class="flex items-center justify-between gap-4 px-5 py-4 border-b border-gray-100 bg-gray-50/50 shrink-0">
+            <div class="flex items-center gap-3">
+                <h3 class="text-base font-bold text-gray-800">Room Members</h3>
+                <span class="text-[11px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full uppercase">
+                    <span id="totalCount">{{ rooms.paginator.count|default:rooms.count }}</span> records
+                </span>
             </div>
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">Department Type</label>
-                <select id="filter-dept-category" class="w-full rounded border-gray-300 shadow-sm text-sm py-2 px-3 border focus:ring-blue-500 focus:border-blue-500 bg-white">
-                    <option value="">All Types</option>
-                    {% for dept_type in dept_types %}
-                    <option value="{{ dept_type|lower }}">{{ dept_type }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm text-gray-600 mb-1">Department Name</label>
-                <select id="filter-dept-name" class="w-full rounded border-gray-300 shadow-sm text-sm py-2 px-3 border focus:ring-blue-500 focus:border-blue-500 bg-white">
-                    <option value="">All Departments</option>
-                    {% for dept in departments %}
-                    <option value="{{ dept|lower }}">{{ dept }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-    </div>
 
-    <div class="flex justify-end mt-4">
-        <button id="apply-filters-btn" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 text-sm">
-            Apply Filters
-        </button>
-    </div>
-
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-4">
-        <div class="flex justify-between items-center mb-4">
-            <div>
-                <h2 class="text-xl font-semibold text-gray-800">Room Members</h2>
-                <div class="text-sm text-gray-500">
-                    <span id="showingCount">Showing {{ rooms.count }} results</span>
-                </div>
-            </div>
-            <div class="flex items-center gap-4">
-                <div class="text-sm text-gray-700">
-                    <span id="totalCount">Total: {{ rooms.count }} records</span>
-                </div>
-                <div class="relative w-64">
-                    <input type="text" id="roomSearch" placeholder="Search..." 
-                           class="block w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                </div>
+            <div class="relative">
+                <input type="text" id="roomSearch" placeholder="Quick search..." 
+                       class="py-2 pr-4 text-xs transition-all bg-white border border-gray-200 rounded-lg outline-none w-72 pl-9 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400">
+                <svg class="absolute left-3 top-2.5 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
             </div>
         </div>
 
-        <!-- Table -->
-        <div class="border border-gray-200 rounded-md overflow-hidden">
-        <div class="overflow-x-auto">
-        <!-- Add vertical scrolling container with fixed height -->
-        <div class="max-h-[500px] overflow-y-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50 sticky top-0 z-10">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">HALL NO</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BLOCK</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DEPT CATEGORY</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DEPT NAME</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">STRENGTH</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BENCHES</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">REQUIRED SESSION</th>
+        <div class="flex-grow overflow-x-auto overflow-y-auto custom-scrollbar">
+            <table class="w-full text-left border-separate border-spacing-0">
+                <thead class="sticky top-0 z-20 bg-gray-50">
+                    <tr class="h-12">
+                        <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100 w-20">S.No</th>
+                        <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Hall No</th>
+                        <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Dept Category</th>
+                        <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Dept Name</th>
+                        <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Strength</th>
+                        <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Benches</th>
+                        <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Required Session</th>
                     </tr>
                 </thead>
-                <tbody id="roomTableBody" class="divide-y divide-gray-200">
-                    {% for room in rooms %}
-                    <tr class="room-row" 
-                        data-block="{{ room.block|lower }}"
-                        data-dept-category="{{ room.dept_category|lower }}"
-                        data-dept-name="{{ room.dept_name|lower }}"
-                        data-search="{{ room.hall_no|lower }} {{ room.block|lower }} {{ room.dept_category|lower }} {{ room.dept_name|lower }}">
-                        <td class="px-6 py-4 whitespace-nowrap">{{ room.hall_no }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ room.block }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ room.dept_category }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ room.dept_name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ room.strength }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ room.benches }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ room.required_session }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                            No room records found. Upload data to get started.
-                        </td>
-                    </tr>
-                    {% endfor %}
+                <tbody class="divide-y divide-gray-100" id="roomTableBody">
+                    {% if rooms %}
+                        {% for room in rooms %}
+                        <tr class="transition-colors room-row hover:bg-gray-50/50"
+                            data-block="{{ room.block|lower }}"
+                            data-dept-category="{{ room.dept_category|lower }}"
+                            data-dept-name="{{ room.dept_name|lower }}"
+                            data-search="{{ room.hall_no|lower }} {{ room.block|lower }} {{ room.dept_category|lower }} {{ room.dept_name|lower }}">
+                            
+                            <td class="px-4 py-2.5 text-xs text-center text-gray-400 font-medium">
+                                {% if rooms.start_index %}{{ forloop.counter0|add:rooms.start_index }}{% else %}{{ forloop.counter }}{% endif %}
+                            </td>
+
+                            <td class="px-4 py-2.5 text-left whitespace-nowrap">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center justify-center w-8 h-8 text-[11px] font-bold rounded shadow-sm shrink-0
+                                        {% cycle 'bg-indigo-100 text-indigo-600' 'bg-emerald-100 text-emerald-600' 'bg-rose-100 text-rose-600' 'bg-amber-100 text-amber-600' 'bg-sky-100 text-sky-600' 'bg-violet-100 text-violet-600' %}">
+                                        {{ room.hall_no|slice:":2"|upper }}
+                                    </div>
+                                    <div class="text-sm font-semibold text-gray-800">{{ room.hall_no }}</div>
+                                </div>
+                            </td>
+
+                            <td class="px-4 py-2.5 text-center whitespace-nowrap">
+                                <span class="text-xs font-black px-2 py-0.5 rounded border uppercase tracking-widest
+                                    {% if room.dept_category|lower == 'aided' %} bg-green-50 text-green-700 border-green-100
+                                    {% elif room.dept_category|lower == 'sfm' %} bg-orange-50 text-orange-800 border-orange-100
+                                    {% elif room.dept_category|lower == 'sfw' %} bg-purple-50 text-purple-700 border-purple-100
+                                    {% else %} bg-gray-50 text-gray-900 border-gray-200 {% endif %}">
+                                    {{ room.dept_category }}
+                                </span>
+                            </td>
+
+                            <td class="px-4 py-2.5 text-sm text-gray-600 text-center truncate max-w-[15rem]" title="{{ room.dept_name }}">
+                                {{ room.dept_name }}
+                            </td>
+
+                            <td class="px-4 py-2.5 text-sm font-bold text-center text-gray-500 font-mono">{{ room.strength }}</td>
+                            <td class="px-4 py-2.5 text-sm font-bold text-center text-gray-500 font-mono">{{ room.benches }}</td>
+                            <td class="px-4 py-2.5 text-sm font-semibold text-center text-indigo-600">{{ room.required_session }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="py-10 text-center">
+                                <div class="flex flex-col items-center justify-center">
+                                    <h4 class="text-sm font-bold tracking-widest text-gray-400 uppercase">No records found</h4>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
                 </tbody>
             </table>
         </div>
-    </div>
-    
-    <!-- Pagination -->
-    {% if rooms.paginator.num_pages > 1 %}
-    <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-        <div class="flex-1 flex justify-between sm:hidden">
-            {% if rooms.has_previous %}
-            <a href="?page={{ rooms.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                Previous
-            </a>
-            {% endif %}
-            {% if rooms.has_next %}
-            <a href="?page={{ rooms.next_page_number }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                Next
-            </a>
-            {% endif %}
-        </div>
-        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-                <p class="text-sm text-gray-700">
-                    Showing <span class="font-medium">{{ rooms.start_index }}</span> to <span class="font-medium">{{ rooms.end_index }}</span> of <span class="font-medium">{{ rooms.paginator.count }}</span> results
-                </p>
-            </div>
-            <div>
-                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    {% if rooms.has_previous %}
-                    <a href="?page={{ rooms.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                        <span class="sr-only">Previous</span>
-                        <!-- Heroicon name: solid/chevron-left -->
-                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                    {% endif %}
-                    
-                    {% for num in rooms.paginator.page_range %}
-                        {% if rooms.number == num %}
-                        <a href="?page={{ num }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600">
-                            {{ num }}
-                        </a>
-                        {% elif num > rooms.number|add:'-3' and num < rooms.number|add:'3' %}
-                        <a href="?page={{ num }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                            {{ num }}
-                        </a>
-                        {% endif %}
-                    {% endfor %}
-                    
-                    {% if rooms.has_next %}
-                    <a href="?page={{ rooms.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                        <span class="sr-only">Next</span>
-                        <!-- Heroicon name: solid/chevron-right -->
-                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                    {% endif %}
-                </nav>
+
+        {% if rooms.has_other_pages %}
+        <div class="flex items-center justify-between px-5 py-3 border-t border-gray-100 bg-gray-50/50 shrink-0">
+            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
+                Showing {{ rooms.start_index }}-{{ rooms.end_index }}
+            </span>
+            <div class="flex gap-1">
+                {% if rooms.has_previous %}
+                <a href="?page={{ rooms.previous_page_number }}" class="px-3 py-1 bg-white border border-gray-200 rounded text-[10px] font-bold text-blue-600 hover:bg-blue-50 transition-colors">Prev</a>
+                {% endif %}
+                {% if rooms.has_next %}
+                <a href="?page={{ rooms.next_page_number }}" class="px-3 py-1 bg-white border border-gray-200 rounded text-[10px] font-bold text-blue-600 hover:bg-blue-50 transition-colors">Next</a>
+                {% endif %}
             </div>
         </div>
+        {% endif %}
     </div>
-
-
-   
-
-    {% endif %}
 </div>
+
+<!------------------------------- Add Modal -------------------------------------------->
+
+<div id="addHallModal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4 bg-slate-900/60 backdrop-blur-md">
+    <div class="w-full max-w-2xl overflow-hidden transition-all transform scale-95 bg-white shadow-2xl rounded-3xl">
+        
+        <div class="p-8 border-b border-slate-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900">Add New Hall</h3>
+                    <p class="mt-1 text-sm text-slate-500">Enter details to register a new examination hall.</p>
+                </div>
+                <button type="button" id="closeAddHallCross" class="transition-colors text-slate-400 hover:text-slate-600" onclick="document.getElementById('addHallModal').classList.add('hidden')">
+                    <i class="text-xl fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <form id="addHallForm" autocomplete="off">
+            <div class="grid grid-cols-1 gap-6 p-8 md:grid-cols-2">
+                
+                <div class="space-y-2.5">
+                    <label for="addHallNo" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Hall Number</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-door-open"></i>
+                        <input type="text" id="addHallNo" name="hall_no" required placeholder="e.g. 101"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label for="addDeptCategory" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Dept Category</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-tags"></i>
+                        <input type="text" id="addDeptCategory" name="dept_category" required placeholder="e.g. SFM"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label for="addDeptName" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Department Name</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-building"></i>
+                        <input type="text" id="addDeptName" name="dept_name" required placeholder="e.g. Computer Science"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label for="addHallDepartment" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Hall Department</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-university"></i>
+                        <input type="text" id="addHallDepartment" name="hall_department" required placeholder="Parent Dept"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2 md:col-span-2">
+                    <label for="addHallStrength" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Room Strength</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-users"></i>
+                        <input type="number" id="addHallStrength" name="strength" required min="0" placeholder="Total Capacity"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 p-8 bg-slate-50/50">
+                <button type="button" id="cancelAddHallBtn" 
+                    class="flex-1 px-6 py-4 text-sm font-bold transition-all text-slate-600 hover:bg-slate-200/50 rounded-2xl">
+                    Discard
+                </button>
+                <button type="submit" id="saveAddHallBtn" 
+                    class="flex-1 px-6 py-4 text-sm font-bold text-white transition-all bg-indigo-600 shadow-lg rounded-2xl hover:bg-indigo-700 shadow-indigo-200 active:scale-95">
+                    Save Hall Details
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!------------------------------- Edit Modal -------------------------------------------->
+
+<div id="editHallModal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4 bg-slate-900/60 backdrop-blur-md">
+    <div class="w-full max-w-2xl overflow-hidden transition-all transform scale-95 bg-white shadow-2xl rounded-3xl">
+        
+        <div class="p-8 border-b border-slate-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900">Edit Hall Details</h3>
+                    <p class="mt-1 text-sm text-slate-500">Modify the information for the selected examination hall.</p>
+                </div>
+                <button type="button" id="closeEditHallCross" class="transition-colors text-slate-400 hover:text-slate-600" onclick="document.getElementById('editHallModal').classList.add('hidden')">
+                    <i class="text-xl fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <form id="editHallForm" autocomplete="off">
+            <div class="grid grid-cols-1 gap-6 p-8 md:grid-cols-2">
+                
+                <div class="space-y-3 md:col-span-2">
+                    <label for="editHallSelect" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Select Hall No</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-list"></i>
+                        <select id="editHallSelect" name="hall_no" 
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium appearance-none">
+                            <option value="">Select Hall No</option>
+                            {% for hall in hall_list %}
+                                <option value="{{ hall.hall_no }}">{{ hall.hall_no }} - {{ hall.dept_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <i class="absolute -translate-y-1/2 pointer-events-none text-slate-400 right-4 top-1/2 fas fa-chevron-down"></i>
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label for="editHallDeptCategory" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Dept Category</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-tags"></i>
+                        <input type="text" name="dept_category" id="editHallDeptCategory" placeholder="e.g. SFM"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label for="editHallDeptName" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Department Name</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-building"></i>
+                        <input type="text" name="dept_name" id="editHallDeptName" placeholder="e.g. Computer Science"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label for="editHallDepartment" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Hall Department</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-university"></i>
+                        <input type="text" name="hall_department" id="editHallDepartment" placeholder="Parent Dept"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label for="editHallStrength" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Room Strength</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-users"></i>
+                        <input type="number" name="strength" id="editHallStrength" min="0" placeholder="0"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 p-8 bg-slate-50/50">
+                <button type="button" id="cancelEditHallBtn" 
+                    class="flex-1 px-6 py-4 text-sm font-bold transition-all text-slate-600 hover:bg-slate-200/50 rounded-2xl">
+                    Discard
+                </button>
+                <button type="submit" id="saveEditHallBtn" 
+                    class="flex-1 px-6 py-4 text-sm font-bold text-white transition-all bg-indigo-600 shadow-lg rounded-2xl hover:bg-indigo-700 shadow-indigo-200 active:scale-95">
+                    Update Details
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!------------------------------- Delete Modal -------------------------------------------->
+
+<div id="deleteHallModal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4 bg-slate-900/60 backdrop-blur-md">
+    <div class="w-full max-w-2xl overflow-hidden transition-all transform scale-95 bg-white shadow-2xl rounded-3xl">
+        
+        <div class="p-8 border-b border-slate-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900">Delete Hall</h3>
+                    <p class="mt-1 text-sm text-slate-500">Please select the hall you wish to remove from the system.</p>
+                </div>
+                <button type="button" class="transition-colors text-slate-400 hover:text-slate-600" onclick="document.getElementById('deleteHallModal').classList.add('hidden')">
+                    <i class="text-xl fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <form id="deleteHallForm" autocomplete="off">
+            <div class="grid grid-cols-1 gap-6 p-8 md:grid-cols-2">
+                
+                <div class="space-y-3 md:col-span-2">
+                    <label for="deleteHallSelect" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Select Hall No</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-search"></i>
+                        <select id="deleteHallSelect" name="hall_no" 
+                                class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium appearance-none">
+                            <option value="">Select Hall No</option>
+                            </select>
+                        <i class="absolute -translate-y-1/2 pointer-events-none text-slate-400 right-4 top-1/2 fas fa-chevron-down"></i>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <label for="deleteDeptCategory" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Department Category</label>
+                    <div class="relative">
+                        <i class="absolute -translate-y-1/2 text-slate-400 left-4 top-1/2 fas fa-tag"></i>
+                        <input type="text" id="deleteDeptCategory" readonly 
+                               class="w-full pl-11 pr-4 py-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-slate-500 font-medium outline-none cursor-not-allowed">
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <label for="deleteDeptName" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Department Name</label>
+                    <div class="relative">
+                        <i class="absolute -translate-y-1/2 text-slate-400 left-4 top-1/2 fas fa-building"></i>
+                        <input type="text" id="deleteDeptName" readonly 
+                               class="w-full pl-11 pr-4 py-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-slate-500 font-medium outline-none cursor-not-allowed">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 p-8 bg-slate-50/50">
+                <button type="button" id="cancelDeleteHallBtn" 
+                        class="flex-1 px-6 py-4 text-sm font-bold transition-all text-slate-600 hover:bg-slate-200/50 rounded-2xl">
+                    Discard
+                </button>
+                <button type="button" id="confirmDeleteHallBtn" 
+                        class="flex-1 px-6 py-4 text-sm font-bold text-white transition-all bg-red-600 shadow-lg rounded-2xl hover:bg-red-700 shadow-red-200 active:scale-95">
+                    Confirm Delete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script src="{% static 'js/filter.js' %}"></script>
 <script src="{% static 'js/hall_management.js' %}"></script>
+
 {% endblock %}
