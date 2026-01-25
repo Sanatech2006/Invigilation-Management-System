@@ -1,97 +1,81 @@
-document.getElementById('change-password-btn').addEventListener('click', function() {
-    document.getElementById('change-password-modal').style.display = 'block';
-    document.getElementById('change-password-message').innerText = '';
-    document.getElementById('change-password-form').reset();
-});
+document.addEventListener('DOMContentLoaded', function () {
 
-document.getElementById('close-modal-btn').addEventListener('click', function() {
-    document.getElementById('change-password-modal').style.display = 'none';
-});
+    // 1️⃣ Inline Change Password Form Submission
+    const passwordForm = document.getElementById('change-password-form');
+    const passwordMessage = document.getElementById('change-password-message');
 
-// AJAX form submission
-document.getElementById('change-password-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-    let staff_id = document.getElementById('staff_id').value;
-    let old_password = document.getElementById('old_password').value;
-    let new_password = document.getElementById('new_password').value;
+    if(passwordForm && passwordMessage){
+        passwordForm.addEventListener('submit', function(event){
+            event.preventDefault();
 
-    fetch(changePasswordUrl, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-CSRFToken': csrftoken,
-    },
-    body: new URLSearchParams({
-        'staff_id': staff_id,
-        'old_password': old_password,
-        'new_password': new_password
-    })
-})
+            const staff_id = document.getElementById('staff_id').value;
+            const old_password = document.getElementById('old_password').value;
+            const new_password = document.getElementById('new_password').value;
 
-    .then(response => response.json())
-    .then(data => {
-        if(data.success){
-            document.getElementById('change-password-message').style.color = 'green';
-            document.getElementById('change-password-message').innerText = data.message;
-            setTimeout(() => {
-                document.getElementById('change-password-modal').style.display = 'none';
-            }, 1500);
-        } else {
-            document.getElementById('change-password-message').style.color = 'red';
-            document.getElementById('change-password-message').innerText = data.message;
-        }
-    })
-    .catch(err => {
-        document.getElementById('change-password-message').style.color = 'red';
-        document.getElementById('change-password-message').innerText = 'An error occurred';
-    });
-});
+            fetch(changePasswordUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: new URLSearchParams({
+                    'staff_id': staff_id,
+                    'old_password': old_password,
+                    'new_password': new_password
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                passwordMessage.style.color = data.success ? 'green' : 'red';
+                passwordMessage.innerText = data.message || (data.success ? 'Password updated successfully' : 'Failed to update password');
+                if(data.success){
+                    passwordForm.reset();
+                }
+            })
+            .catch(err => {
+                passwordMessage.style.color = 'red';
+                passwordMessage.innerText = 'An error occurred';
+                console.error('Password change error:', err);
+            });
+        });
+    }
 
-document.addEventListener('DOMContentLoaded', function() {
+    // 2️⃣ Reports Menu Toggle
     const reportsMenu = document.getElementById('reports-menu-item');
     const toggle = document.getElementById('toggle-reports-menu');
 
-    // Load saved toggle state or default to true (checked)
-    localStorage.setItem('showReportsMenu', toggle.checked);
-    const savedState = localStorage.getItem('showReportsMenu');
-    console.log('Saved toggle state:', savedState);
+    if(reportsMenu && toggle){
+        const savedState = localStorage.getItem('showReportsMenu');
+        toggle.checked = savedState !== null ? savedState === 'true' : true;
 
-    if (savedState !== null) {
-        toggle.checked = savedState === 'true';  // Restore saved toggle state
-    } else {
-        toggle.checked = true;                    // Default if none saved
-    }
-
-    // Function to show/hide Reports menu and save state
-    function updateReportsMenu() {
-        if (toggle.checked) {
-            reportsMenu.style.display = '';
-        } else {
-            reportsMenu.style.display = 'none';
+        function updateReportsMenu() {
+            reportsMenu.style.display = toggle.checked ? '' : 'none';
+            localStorage.setItem('showReportsMenu', toggle.checked);
         }
-        localStorage.setItem('showReportsMenu', toggle.checked);
+
+        toggle.addEventListener('change', updateReportsMenu);
+        updateReportsMenu();
     }
 
-    // Listen for toggle changes
-    toggle.addEventListener('change', updateReportsMenu);
-
-    // Initialize menu visibility on page load
-    updateReportsMenu();
-});
-
-document.addEventListener('DOMContentLoaded', function () {
+    // 3️⃣ File Upload
     const uploadBtn = document.getElementById('upload-schedule-btn');
     const fileInput = document.getElementById('upload-schedule-file');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
 
-    if (uploadBtn && fileInput) {
-        uploadBtn.addEventListener('click', function () {
-            fileInput.value = ""; // reset file input
-            fileInput.click();
+    if(uploadBtn && fileInput && fileNameDisplay){
+        // Display selected file name
+        fileInput.addEventListener('change', function() {
+            const file = fileInput.files[0];
+            fileNameDisplay.textContent = file ? file.name : 'Drop Schedule File Here';
         });
 
-        fileInput.addEventListener('change', function () {
+        // Upload file when button is clicked
+        uploadBtn.addEventListener('click', function() {
             const file = fileInput.files[0];
-            if (!file) return;
+            if(!file){
+                alert('Please select a file first.');
+                return;
+            }
 
             const formData = new FormData();
             formData.append('file', file);
@@ -99,31 +83,22 @@ document.addEventListener('DOMContentLoaded', function () {
             fetch(uploadScheduleUrl, {
                 method: 'POST',
                 headers: {'X-CSRFToken': csrftoken},
-                body: formData,
+                body: formData
             })
             .then(res => {
-                console.log("Upload response status:", res.status);
-                if (!res.ok) {
-                    return res.text().then(text => {
-                        console.error("Upload failed response text:", text);
-                        throw new Error(`Server responded with ${res.status}`);
-                    });
+                if(!res.ok){
+                    return res.text().then(text => { throw new Error(text) });
                 }
                 return res.json();
             })
             .then(data => {
-                console.log("Upload response data:", data);
-                alert(data.message || (data.success ? "Upload successful" : "Upload failed"));
-                if (data.success) {
-                    window.location.href = "#";
-                }
+                alert(data.message || (data.success ? 'Upload successful' : 'Upload failed'));
             })
             .catch(err => {
-                console.error("Upload error detail:", err);
+                console.error('Upload error:', err);
                 alert('Upload failed. Please try again.');
             });
         });
     }
+
 });
-
-
