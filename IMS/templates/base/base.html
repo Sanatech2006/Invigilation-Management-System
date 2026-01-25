@@ -102,141 +102,160 @@
                 </div>
 
                 <nav class="flex-1 py-6 space-y-2 overflow-y-auto sidebar-scroll no-scrollbar">
+
+                    <!---------------------------------- Admin Role ------------------------------------------->
+
                     {% if user_role == 1 %}
-                    <div class="mb-4">
-                        <h3 class="px-8 mb-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Main Menu</h3>
-                        <div class="space-y-2">
-                            {% url 'dashboard:dashboard' as dashboard_url %}
-                            <a
-                                href="{{ dashboard_url }}"
-                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == dashboard_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
-                            >
-                                <i class="w-5 text-xs text-center fas fa-house-chimney"></i>
-                                Dashboard
-                            </a>
+                        <div class="mb-4">
+                            <h3 class="px-8 mb-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Main Menu</h3>
+                            <div class="space-y-2">
+                                {% url 'dashboard:dashboard' as dashboard_url %}
+                                {% url 'staff:staff-management' as staff_url %}
+                                {% url 'hall_management' as hall_url %}
+                                {% url 'exam_dates:index' as exam_url %}
 
-                            <a
-                                href="{% url 'staff:staff-management' %}"
-                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'staff' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
-                            >
-                                <i class="w-5 text-xs text-center fas fa-users-gear"></i>
-                                Staff Management
-                            </a>
+                                <a href="{{ dashboard_url }}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == dashboard_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                                    <i class="w-5 text-xs text-center fas fa-house-chimney"></i>
+                                    Dashboard
+                                </a>
 
-                            <a
-                                href="{% url 'hall_management' %}"
-                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'hall' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
-                            >
-                                <i class="w-5 text-xs text-center fas fa-building-columns"></i>
-                                Hall Management
-                            </a>
+                                <a href="{{ staff_url }}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == staff_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                                    <i class="w-5 text-xs text-center fas fa-users-gear"></i>
+                                    Staff Management
+                                </a>
 
-                            <a
-                                href="{% url 'exam_dates:index' %}"
-                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'exam-dates' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
-                            >
-                                <i class="w-5 text-xs text-center fas fa-calendar-check"></i>
-                                Exam Date
-                            </a>
+                                <a href="{{ hall_url }}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == hall_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                                    <i class="w-5 text-xs text-center fas fa-building-columns"></i>
+                                    Hall Management
+                                </a>
+
+                                <a href="{{ exam_url }}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == exam_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                                    <i class="w-5 text-xs text-center fas fa-calendar-check"></i>
+                                    Exam Date
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                    <div class="mb-4">
-                        <h3 class="px-8 mb-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Examination</h3>
-                        <div class="space-y-2">
-                            <a
-                                href="{% url 'generate_schedule' %}"
-                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'generate-schedule' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
-                            >
-                                <i class="w-5 text-xs text-center fas fa-wand-sparkles"></i>
-                                Generate Schedule
-                            </a>
 
-                            <a
-                                href="{% url 'view_schedule' %}"
-                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'view-schedule' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
-                            >
-                                <i class="w-5 text-xs text-center fas fa-table-list"></i>
-                                View Schedule
-                            </a>
+                        <div class="mb-4">
+                            <h3 class="px-8 mb-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Examination</h3>
+                            <div class="space-y-2">
+                                {% url 'generate_schedule' as gen_url %}
+                                {% url 'view_schedule' as view_url %}
+                                {% url 'manual_assignment:manual_assignment' as manual_url %}
 
-                            <a
-                                href="{% url 'manual_assignment:manual_assignment' %}"
-                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'manual-assignment' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
-                            >
-                                <i class="w-5 text-xs text-center fas fa-tasks"></i>
-                                Manual Assignment
-                            </a>
+                                <a href="{{ gen_url }}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == gen_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                                    <i class="w-5 text-xs text-center fas fa-wand-sparkles"></i>
+                                    Generate Schedule
+                                </a>
+
+                                <a href="{{ view_url }}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == view_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                                    <i class="w-5 text-xs text-center fas fa-table-list"></i>
+                                    View Schedule
+                                </a>
+
+                                <a href="{{ manual_url }}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == manual_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                                    <i class="w-5 text-xs text-center fas fa-tasks"></i>
+                                    Manual Assignment
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                    <div>
-                        <h3 class="px-8 mb-4 mt-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Others</h3>
-                        <div class="space-y-2">
-                            <a
-                                href="{% url 'reports:admin_reports' %}"
-                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'reports' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
-                            >
-                                <i class="w-5 text-xs text-center fas fa-chart-bar"></i>
-                                Reports
-                            </a>
 
-                            <a
-                                href="{% url 'settings:settings_home' %}"
-                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'settings' in request.path and 'invigilation_settings' not in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
-                            >
-                                <i class="w-5 text-xs text-center fas fa-sliders-h"></i>
-                                Settings
-                            </a>
+                        <div class="mb-4">
+                            <h3 class="px-8 mb-4 mt-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Others</h3>
+                            <div class="space-y-2">
+                                {% url 'reports:admin_reports' as admin_reports_url %}
+                                {% url 'settings:settings_home' as settings_url %}
+
+                                <a href="{{ admin_reports_url }}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == admin_reports_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                                    <i class="w-5 text-xs text-center fas fa-chart-bar"></i>
+                                    Reports
+                                </a>
+
+                                <a href="{{ settings_url }}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == settings_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                                    <i class="w-5 text-xs text-center fas fa-sliders-h"></i>
+                                    Settings
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                    {% endif %} {% if user_role == 2 %} {% url 'dashboard:dashboard' as dashboard_url %}
-                    <a
-                        href="{{ dashboard_url }}"
-                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == dashboard_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
-                    >
-                        <i class="w-5 text-xs text-center fas fa-house-chimney"></i>
-                        Dashboard
-                    </a>
-
-                    <a
-                        href="{% url 'reports:reports' %}"
-                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'reports' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
-                    >
-                        <i class="w-5 text-xs text-center fas fa-chart-bar"></i>
-                        Reports
-                    </a>
-                    {% endif %} {% if user_role == 3 %} {% url 'dashboard:dashboard' as dashboard_url %}
-                    <a
-                        href="{{ dashboard_url }}"
-                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == dashboard_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
-                    >
-                        <i class="w-5 text-xs text-center fas fa-house-chimney"></i>
-                        Dashboard
-                    </a>
-
-                    <a
-                        href="{% url 'reports:hod_reports' %}"
-                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'reports' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
-                    >
-                        <i class="w-5 text-xs text-center fas fa-chart-bar"></i>
-                        Reports
-                    </a>
-                    {% endif %} {% if user_role == 4 %}
-                    <a
-                        href="{% url 'dashboard:dashboard' %}"
-                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == '/' %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
-                    >
-                        <i class="w-5 text-xs text-center fas fa-tachometer"></i>
-                        Dashboard
-                    </a>
-
-                    <a
-                        href="{% url 'reports:reports' %}"
-                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'reports' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
-                    >
-                        <i class="w-5 text-xs text-center fas fa-chart-bar"></i>
-                        Schedule
-                    </a>
                     {% endif %}
+                    
+                    <!---------------------------------- Squad Role ------------------------------------------->
+
+                    {% if user_role == 2 %}
+                    
+                        {% url 'dashboard:dashboard' as dashboard_url %}
+                        <a
+                            href="{{ dashboard_url }}"
+                            class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == dashboard_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                        >
+                            <i class="w-5 text-xs text-center fas fa-house-chimney"></i>
+                            Dashboard
+                        </a>
+                        <a
+                            href="{% url 'reports:reports' %}"
+                            class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'reports' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                        >
+                            <i class="w-5 text-xs text-center fas fa-calendar-alt"></i>
+                            My Schedule
+                        </a>
+                    {% endif %} 
+
+                    <!---------------------------------- Hod Menus  ------------------------------------------->
+                    
+                   {% if user_role == 3 %} 
+
+                        {% url 'dashboard:dashboard' as dashboard_url %}
+                        {% url 'reports:reports' as my_schedule_url %}
+                        {% url 'reports:hod_reports' as reports_url %}
+
+                        <a href="{{ dashboard_url }}"
+                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == dashboard_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <i class="w-5 text-center fas fa-house-chimney text-xs"></i>
+                            <span>Dashboard</span>
+                        </a>
+
+                        <a href="{{ my_schedule_url }}"
+                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == my_schedule_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <i class="w-5 text-center fas fa-calendar-alt text-xs"></i>
+                            <span>My Schedule</span>
+                        </a>
+
+                        <a href="{{ reports_url }}"
+                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == reports_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <i class="w-5 text-center fas fa-chart-bar text-xs"></i>
+                            <span>Reports</span>
+                        </a>
+                    {% endif %}
+ 
+                    <!---------------------------------- Staff Menu  ------------------------------------------->
+
+                    {% if user_role == 4 %} 
+
+                        {% url 'dashboard:dashboard' as dashboard_url %}
+                        {% url 'reports:reports' as my_schedule_url %}
+
+                        <a href="{{ dashboard_url }}"
+                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == dashboard_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <i class="w-5 text-center fas fa-house-chimney text-xs"></i>
+                            <span>Dashboard</span>
+                        </a>
+
+                        <a href="{{ my_schedule_url }}"
+                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == my_schedule_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <i class="w-5 text-center fas fa-calendar-alt text-xs"></i>
+                            <span>My Schedule</span>
+                        </a>
+                    {% endif %}
+
                 </nav>
 
                 <div class="p-4 border-t border-white/5 bg-black/10">

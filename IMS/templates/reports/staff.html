@@ -2,7 +2,7 @@
 {% load static %}
 {% block content %}
 
-<div class="flex items-center justify-between mb-8">
+<div class="flex items-center justify-between mb-6">
     <div>
         <h1 class="text-2xl font-bold tracking-tight text-slate-800">
             {{ welcome_message }}
@@ -16,17 +16,16 @@
     </div>
 </div>
 
-{% if role == 4 %}
 <div class="overflow-hidden bg-white border shadow-sm rounded-xl border-slate-200">
     <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200">
+        <table class="min-w-full divide-y divide-slate-200 text-center">
             <thead class="bg-slate-50">
                 <tr>
-                    <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left uppercase text-slate-500">S.No</th>
-                    <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left uppercase text-slate-500">Date</th>
-                    <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left uppercase text-slate-500">Session</th>
-                    <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left uppercase text-slate-500">Hall No</th>
-                    <th class="px-6 py-4 text-xs font-semibold tracking-wider text-left uppercase text-slate-500">Hall Department</th>
+                    <th class="px-6 py-4 text-xs font-semibold tracking-wider uppercase text-slate-500">S.No</th>
+                    <th class="px-6 py-4 text-xs font-semibold tracking-wider uppercase text-slate-500">Date</th>
+                    <th class="px-6 py-4 text-xs font-semibold tracking-wider uppercase text-slate-500">Session</th>
+                    <th class="px-6 py-4 text-xs font-semibold tracking-wider uppercase text-slate-500">Hall No</th>
+                    <th class="px-6 py-4 text-xs font-semibold tracking-wider uppercase text-slate-500">Hall Department</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-slate-100">
@@ -41,7 +40,7 @@
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 uppercase">
+                        <span class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium bg-indigo-100 text-indigo-800 uppercase">
                             {{ schedule.session }}
                         </span>
                     </td>
@@ -112,6 +111,5 @@
         </div>
     </div>
 </div>
-{% endif %}
 
 {% endblock %}

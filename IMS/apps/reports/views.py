@@ -26,41 +26,29 @@ def reports_view(request):
             staff = Staff.objects.get(staff_id=staff_id)
             staff_name = staff.name
             role = staff.role
-            designation = getattr(staff, 'designation', '')
-
-            if role == 3:
-                # For HOD (role 3), redirect or call hod_view
-                return hod_view(request)
-
-            if role == 1:
-                welcome_message = f"WELCOME, {staff_name}"
-            elif role == 2:
-                welcome_message = f"WELCOME, Squad Team, {staff_name}"
-            # elif role == 4:
-            #     welcome_message = f"WELCOME, {staff_name}, {staff_id}"
-            #     # Fetch invigilation schedule data for role 4
-            #     schedules = InvigilationSchedule.objects.filter(
-            #         staff_id=staff.staff_id
-            #     ).values('date', 'session', 'hall_no', 'hall_department')
-            elif role == 4:
-                welcome_message = f"WELCOME, {staff_name}, {staff_id}"
-                schedules = (
-                    InvigilationSchedule.objects
-                    .filter(staff_id=staff.staff_id)
-                    .values('date', 'session', 'hall_no', 'hall_department')
-                    .order_by('date', 'session')
-                )
+            
+            # --- REMOVED THE IF ROLE == 3 REDIRECT FROM HERE ---
+            
+            welcome_message = f"WELCOME, {staff_name}"
+            
+            # Fetch ONLY the personal schedule for whoever is logged in (Role 3 or 4)
+            schedules = (
+                InvigilationSchedule.objects
+                .filter(staff_id=staff.staff_id)
+                .values('date', 'session', 'hall_no', 'hall_department')
+                .order_by('date', 'session')
+            )
 
         except Staff.DoesNotExist:
-            pass  # Keep defaults
+            pass 
 
     context = {
         'welcome_message': welcome_message,
         'schedules': schedules,
         'role': role,
     }
+    # This now always shows the personal staff page (staff.html)
     return render(request, 'reports/staff.html', context)
-
 
 def hod_view(request):
     staff_id = request.session.get('staff_id')
@@ -188,6 +176,15 @@ def hod_view(request):
     }
 
     return render(request, 'reports/hod.html', context)
+
+# This is ONLY for "My Schedule"
+def personal_schedule_view(request):
+    staff_id = request.session.get('staff_id')
+    # Just get this one person's schedule
+    my_data = InvigilationSchedule.objects.filter(staff_id=staff_id)
+    
+    return render(request, 'reports/re.html', {'my_schedule': my_data})
+
 def admin_view(request):
     total_staff = Staff.objects.count()
     total_halls = Room.objects.count()
