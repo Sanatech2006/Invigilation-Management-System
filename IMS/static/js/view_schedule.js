@@ -190,7 +190,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 row.style.display = "";
                 visibleCount++;
             });
-
             showingCount.textContent = `Showing all records`;
             return;
         }

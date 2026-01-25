@@ -6,238 +6,348 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manual Assignment</title>
-    <!-- Tailwind CSS -->
+    <title>Manual Assignment Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
 </head>
-<body class="bg-gray-50">
-    <div class="container mx-auto px-4 py-8">
-                
-        <!-- Staff Data Section -->
-        <div class="bg-white shadow-md rounded-lg p-6 mb-8">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-semibold text-gray-700">Unallotted Staff</h2>
-                <div class="relative">
+<body class="bg-slate-50 text-slate-900">
+    <div>
+        <div class="mb-6">
+            <h2 class="text-xl font-extrabold tracking-tight text-gray-800">Manual Assignment</h2>
+            <p class="text-sm font-medium text-gray-500">Manage staff allocations and hall schedules efficiently.</p>
+        </div>
+        <div class="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden mb-10 transition-all hover:shadow-md">
+            <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    </div>
+                    <h2 class="text-md font-bold text-slate-800">Unallotted Staff</h2>
+                    <span class="text-[11px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full uppercase" id="staffTotal">
+                        {{ unassigned_staff|length }} Staff
+                    </span>
+                </div>
+                <div class="relative group">
                     <input type="text" id="staffSearch" placeholder="Search staff..." 
-                           class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
-                        </svg>
+                           class="pl-11 pr-4 py-2.5 w-full md:w-72 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
                 </div>
             </div>
             
             {% if unassigned_staff %}
-            <div class="overflow-x-auto overflow-y-auto max-h-96">
-                <table id="staffTable" class="w-full table-auto divide-y divide-gray-200">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">STAFF ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">STAFF NAME</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">STAFF DEPARTMENT</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DEPT CATEGORY</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">REMAINING SESSIONS</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ACTIONS</th>
-                            
+            <div class="overflow-x-auto custom-scrollbar max-h-[500px]">
+                <table id="staffTable" class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/50 text-slate-500 text-[11px] uppercase tracking-widest font-bold">
+                            <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100 w-24">S.No</th>
+                            <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100">Name & ID</th>
+                            <th class="px-6 py-4 border-b text-center border-slate-100">Department</th>
+                            <th class="px-6 py-4 border-b text-center border-slate-100">Category</th>
+                            <th class="px-6 py-4 border-b text-center border-slate-100">Sessions</th>
+                            <th class="px-6 py-4 border-b text-center border-slate-100">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="divide-y divide-slate-100 text-center">
                         {% for staff in unassigned_staff %}
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ staff.staff_id }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ staff.name }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ staff.dept_name }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ staff.dept_category }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ staff.available_sessions }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-    <button type="button" class="view-staff-btn bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm flex items-center"
-    data-staff-id="{{ staff.staff_id }}"
-    data-staff-name="{{ staff.name }}"
-    data-url="/manual-assignment/get-staff-assignments/">
-    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-    </svg>
-    View
-</button>
-</td>
+                        <tr class="hover:bg-blue-50/30 transition-colors group">
+                            <td class="px-4 py-2.5 text-xs text-center text-gray-400 font-medium">
+                                {% if unassigned_staff.start_index %}{{ forloop.counter0|add:unassigned_staff.start_index }}{% else %}{{ forloop.counter }}{% endif %}
+                            </td>
+                            <td class="py-2.5 whitespace-nowrap w-[250px] text-left pl-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center justify-center w-8 h-8 text-[11px] font-bold rounded shadow-sm shrink-0
+                                        {% cycle 'bg-indigo-100 text-indigo-600' 'bg-emerald-100 text-emerald-600' 'bg-rose-100 text-rose-600' 'bg-amber-100 text-amber-600' 'bg-sky-100 text-sky-600' 'bg-violet-100 text-violet-600' %}">
+                                        {{ staff.name|slice:":1"|upper }}
+                                    </div>
+                                    <div class="w-full">
+                                        <div class="text-sm font-semibold text-gray-800">
+                                            {{ staff.name|slice:":28" }}{% if staff.name|length > 28 %}…{% endif %}
+                                        </div>
+                                        <div class="font-mono text-sm font-bold text-gray-500 uppercase">
+                                            {{ staff.staff_id }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-600 text-center">{{ staff.dept_name }}</td>
+                            <td class="px-4 py-2.5 text-center whitespace-nowrap w-40 max-w-[10rem] truncate">
+                                <span class="text-xs font-black px-2 py-0.5 rounded border uppercase tracking-widest
+                                    {% if staff.dept_category|lower == 'aided' %} bg-green-50 text-green-700 border-green-100
+                                    {% elif staff.dept_category|lower == 'sfm' %} bg-orange-50 text-orange-800 border-orange-100
+                                    {% elif staff.dept_category|lower == 'sfw' %} bg-purple-50 text-purple-700 border-purple-100
+                                    {% else %} bg-gray-50 text-gray-900 border-gray-200 {% endif %}">
+                                    {{ staff.dept_category }}
+                                </span> 
+                            </td>
+                            <td class="px-6 py-4 text-sm text-center">
+                                <span class="font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100">{{ staff.available_sessions }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <button type="button" class="view-staff-btn inline-flex items-center px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-sm font-semibold hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all shadow-sm"
+                                    data-staff-id="{{ staff.staff_id }}" data-staff-name="{{ staff.name }}" data-url="/manual-assignment/get-staff-assignments/">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    View
+                                </button>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-            <div class="text-sm text-gray-700 mb-2">
-                Total Staff: <span id="staffTotal">{{ unassigned_staff|length }}</span>
-            </div>
             {% else %}
-            <div class="text-center py-8">
-                <p class="text-gray-500">No staff available for assignment.</p>
+            <div class="text-center py-16">
+                <div class="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                </div>
+                <p class="text-slate-500 font-medium">No staff available for assignment.</p>
             </div>
             {% endif %}
         </div>
 
-        <!-- Hall Data Section -->
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-semibold text-gray-700">Unassigned Hall Slots</h2>
-                <div class="relative">
+        <div class="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden transition-all hover:shadow-md">
+            <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    </div>
+                    <h2 class="text-md font-bold text-slate-800">Unassigned Hall Slots</h2>
+                    <span class="text-[11px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full uppercase" id="hallTotal">
+                        {{ unassigned_slots|length }} Halls
+                    </span>
+                </div>
+                <div class="relative group">
                     <input type="text" id="hallSearch" placeholder="Search halls..." 
-                           class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
-                        </svg>
+                           class="pl-11 pr-4 py-2.5 w-full md:w-72 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
                 </div>
             </div>
             
             {% if unassigned_slots %}
-            <div class="overflow-x-auto overflow-y-auto max-h-96">
-                <table id="hallTable" class="w-full table-auto divide-y divide-gray-200">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SCHEDULE DATE</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SESSION</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">HALL NO</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">HALL DEPARTMENT</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">HALL DEPT CATEGORY</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ACTION</th>
-    </tr>
-</thead>
-                        
-                    <tbody class="bg-white divide-y divide-gray-200">
-    {% for slot in unassigned_slots %}
-    <tr class="hover:bg-gray-50">
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ slot.date }}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ slot.session }}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ slot.hall_no }}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ slot.hall_department }}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ slot.hall_dept_category }}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-            <button type="button" class="allot-btn bg-blue-500 text-white px-3 py-1 rounded text-sm"
-                data-date="{{ slot.date }}"
-                data-session="{{ slot.session }}"
-                data-hall-no="{{ slot.hall_no }}"
-                data-hall-dept="{{ slot.hall_department }}"
-                data-hall-category="{{ slot.hall_dept_category }}">
-                Allot
-            </button>
-        </td>
-    </tr>
-    {% endfor %}
-</tbody>
+            <div class="overflow-x-auto custom-scrollbar max-h-[500px]">
+                <table id="hallTable" class="w-full text-center border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/50 text-slate-500 text-[11px] uppercase tracking-widest font-bold">
+                            <th class="px-4 py-2 text-[12px] text-center font-bold text-gray-500 uppercase border-b border-gray-100 w-24">S.No</th>
+                            <th class="px-6 py-4 border-b border-slate-100">Schedule Date</th>
+                            <th class="px-6 py-4 border-b border-slate-100">Session</th>
+                            <th class="px-6 py-4 border-b border-slate-100">Hall No</th>
+                            <th class="px-6 py-4 border-b border-slate-100">Hall Dept</th>
+                            <th class="px-6 py-4 border-b border-slate-100">Category</th>
+                            <th class="px-6 py-4 border-b border-slate-100">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm">
+                        {% for slot in unassigned_slots %}
+                        <tr class="hover:bg-blue-50/30 transition-colors">
+                            <td class="px-4 py-2.5 text-xs text-center text-gray-400 font-medium">
+                                {% if unassigned_slots.start_index %}{{ forloop.counter0|add:unassigned_slots.start_index }}{% else %}{{ forloop.counter }}{% endif %}
+                            </td>
+                            <td class="px-6 py-4 font-medium text-slate-700">{{ slot.date }}</td>
+                            <td class="px-6 py-4">
+                                <span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md text-xs font-bold">{{ slot.session }}</span>
+                            </td>
+                            <td class="px-6 py-4 font-bold text-slate-900">{{ slot.hall_no }}</td>
+                            <td class="px-6 py-4 text-slate-600">{{ slot.hall_department }}</td>
+                            <td class="px-4 py-2.5 text-center whitespace-nowrap w-40 max-w-[10rem] truncate">
+                                <span class="text-xs font-black px-2 py-0.5 rounded border uppercase tracking-widest
+                                    {% if slot.hall_dept_category|lower == 'aided' %} bg-green-50 text-green-700 border-green-100
+                                    {% elif slot.hall_dept_category|lower == 'sfm' %} bg-orange-50 text-orange-800 border-orange-100
+                                    {% elif slot.hall_dept_category|lower == 'sfw' %} bg-purple-50 text-purple-700 border-purple-100
+                                    {% else %} bg-gray-50 text-gray-900 border-gray-200 {% endif %}">
+                                    {{ slot.hall_dept_category }}
+                                </span> 
+                            </td>
+                            <td class="px-6 py-4">
+                                <button type="button" class="allot-btn bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition-all shadow-sm hover:shadow active:scale-95"
+                                    data-date="{{ slot.date }}" data-session="{{ slot.session }}" data-hall-no="{{ slot.hall_no }}"
+                                    data-hall-dept="{{ slot.hall_department }}" data-hall-category="{{ slot.hall_dept_category }}">
+                                    Allot Staff
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
                 </table>
             </div>
-            <div class="flex items-center justify-between mt-4">
-                <div class="text-sm text-gray-700 mb-2">
-                    Total Hall Slots: <span id="hallTotal">{{ unassigned_slots|length }}</span>
-                </div>
-                <div class="flex space-x-2" id="hallPagination"></div>
-            </div>
             {% else %}
-            <div class="text-center py-8">
-                <p class="text-gray-500">No unassigned hall slots available.</p>
+            <div class="text-center py-16">
+                <p class="text-slate-500">No unassigned hall slots available.</p>
             </div>
             {% endif %}
         </div>
     </div>
 
-    
-<!-- Allot Modal -->
-<!-- Modal Structure -->
-<div id="allotModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden  items-center justify-center z-50">
+    <div id="allotModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-slate-950/50 backdrop-blur-md p-4 transition-all duration-300">
+        <div class="relative bg-white w-full max-w-2xl h-[80vh] rounded-[3rem] shadow-[0_32px_80px_-20px_rgba(0,0,0,0.4)] overflow-y-auto no-scrollbar border border-slate-100" style="-ms-overflow-style: none; scrollbar-width: none;">
+            <style>
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+            </style>
 
-    <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 lg:w-1/3">
-        <div class="border-b px-4 py-2 flex justify-between items-center">
-            <h3 class="font-semibold text-lg">Assign Staff to Hall</h3>
-        </div>
-        <div class="p-4">
-            <div class="mb-4">
-                <p><strong>Date:</strong> <span id="modalDate"></span></p>
-                <p><strong>Session:</strong> <span id="modalSession"></span></p>
-                <p><strong>Hall No:</strong> <span id="modalHallNo"></span></p>
-                <p><strong>Department:</strong> <span id="modalHallDept"></span></p>
+            <div class="flex justify-between items-center px-10 pt-10 mb-8">
+                <span class="px-3 py-1 bg-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] rounded-lg">Allocation Module</span>
+                <button id="cancelAllotBtn" class="group flex items-center gap-2 text-slate-400 hover:text-rose-500 transition-all font-bold text-xs uppercase tracking-widest">
+                    <div class="h-8 w-8 bg-slate-50 group-hover:bg-rose-50 rounded-full flex items-center justify-center transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </div>
+                </button>
             </div>
-            <div class="mb-4">
-                <label for="staffSelect" class="block text-sm font-medium text-gray-700">Select Staff Member:</label>
-                <select id="staffSelect" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                    <option value="">Select a staff member</option>
-                </select>
+
+            <div class="px-10 space-y-2 mb-10">
+                <h3 class="text-4xl font-black text-slate-900 tracking-tighter">Assign Staff</h3>
+                <p class="text-slate-500 font-medium leading-relaxed">Map available personnel to the examination hall schedule.</p>
             </div>
-        </div>
-        <div class="flex justify-end items-center w-100 border-t p-4">
-            <button id="confirmAllotBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                Assign
-            </button>
-            <button id="cancelAllotBtn" class="ml-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
-                Cancel
-            </button>
+
+            <div class="px-10 mb-10">
+                <div class="bg-indigo-600 rounded-[1.5rem] p-6 text-white shadow-2xl shadow-indigo-100 relative overflow-hidden">
+                    <div class="relative z-10 grid grid-cols-2 gap-8">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-black text-indigo-200 uppercase tracking-widest">Date</span>
+                            <p id="modalDate" class="font-bold text-lg"></p>
+                        </div>
+                        <div class="space-y-1 text-right">
+                            <span class="text-[10px] font-black text-indigo-200 uppercase tracking-widest">Session</span>
+                            <p id="modalSession" class="font-black text-lg uppercase italic"></p>
+                        </div>
+                        <div class="space-y-1 border-t border-white/10 pt-4">
+                            <span class="text-[10px] font-black text-indigo-200 uppercase tracking-widest">Hall</span>
+                            <p id="modalHallNo" class="font-bold text-lg"></p>
+                        </div>
+                        <div class="space-y-1 text-right border-t border-white/10 pt-4">
+                            <span class="text-[10px] font-black text-indigo-200 uppercase tracking-widest">Department</span>
+                            <p id="modalHallDept" class="font-bold text-sm truncate"></p>
+                        </div>
+                    </div>
+                    <div class="absolute -right-10 -bottom-10 h-32 w-32 bg-white/10 rounded-full blur-3xl"></div>
+                </div>
+            </div>
+
+            <div class="px-10 space-y-8 mb-12">
+                <div class="space-y-4">
+                    <label for="staffSelect" class="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Choose Staff</label>
+                    <div class="relative group">
+                        <select id="staffSelect" class="w-full py-3 px-8 bg-slate-50 border-2 border-transparent rounded-2xl shadow-sm focus:bg-white focus:border-indigo-600 outline-none appearance-none font-bold text-slate-800 transition-all cursor-pointer">
+                            <option value="">Select a staff member</option>
+                        </select>
+                        <div class="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-300">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 bg-slate-50 rounded-3xl border border-dashed border-slate-200 flex gap-4">
+                    <div class="text-indigo-500 mt-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <p class="text-xs text-slate-500 font-medium leading-relaxed italic">
+                        Staff visibility is determined by departmental logic and active duty session limits.
+                    </p>
+                </div>
+            </div>
+
+            <div class="px-10 pb-10">
+                <button id="confirmAllotBtn" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-slate-200 active:scale-[0.97] flex items-center justify-center gap-3 group">
+                    Confirm Allotment
+                    <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- view function  -->
-<div id="staffDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-3/4 lg:w-2/3 max-h-screen overflow-hidden">
-        <div class="border-b px-6 py-4 flex justify-between items-center bg-blue-600 text-white">
-            <h3 class="font-semibold text-lg">Staff Schedule Details - <span id="modalStaffName"></span></h3>
-            <button id="closeStaffDetailsBtn" class="text-white close-modal text-2xl">&times;</button>
-        </div>
-        <div class="p-6 overflow-y-auto max-h-96">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div class="bg-blue-50 p-4 rounded-lg">
-                    <h4 class="font-medium text-blue-800 mb-2">Staff Information</h4>
-                    <p><span class="font-semibold">Staff ID:</span> <span id="modalStaffId"></span></p>
-                    <p><span class="font-semibold">Name:</span> <span id="modalStaffName2"></span></p>
-                    <p><span class="font-semibold">Department:</span> <span id="modalStaffDept"></span></p>
-                    <p><span class="font-semibold">Category:</span> <span id="modalStaffCategory"></span></p>
-                </div>
-                <div class="bg-green-50 p-4 rounded-lg">
-                    <h4 class="font-medium text-green-800 mb-2">Availability</h4>
-                    <!-- <p><span class="font-semibold">Total Assignments:</span> <span id="modalTotalAssignments"></span></p> -->
-                    <p><span class="font-semibold">Allotted Assignments:</span> <span id="modalTotalAssignments"></span></p>
-
-                    <!-- <p><span class="font-semibold">Allotted Assignments:</span> <span id="modalAllottedAssignments"></span></p> -->
-                    <p><span class="font-semibold">Remaining Sessions:</span> <span id="modalRemainingSessions"></span></p>
-                    
-                </div>
-            </div>
+    <div id="staffDetailsModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-indigo-950/50 backdrop-blur-md p-4 transition-all duration-300">
+        <div class="relative bg-white w-full max-w-4xl h-[80vh] rounded-[3rem] shadow-[0_32px_80px_-20px_rgba(79,70,229,0.4)] overflow-y-auto no-scrollbar border border-indigo-50" style="-ms-overflow-style: none; scrollbar-width: none;">
             
-            <h4 class="font-semibold text-gray-700 mb-3">Current Assignments</h4>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Session</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hall No</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                        </tr>
-                    </thead>
-                    <tbody id="staffAssignmentsBody" class="bg-white divide-y divide-gray-200">
-                        <!-- Will be populated by JavaScript -->
-                    </tbody>
-                </table>
+            <style>
+                .no-scrollbar::-webkit-scrollbar { display: none; }
+            </style>
+
+            <div class="flex justify-between items-center px-10 pt-10 mb-8">
+                <span class="px-3 py-1 bg-indigo-50 text-indigo-500 text-[10px] font-black uppercase tracking-[0.2em] rounded-lg">Staff Management</span>
+                <button id="closeStaffDetailsBtn" class="group flex items-center gap-2 text-slate-400 hover:text-rose-500 transition-all font-bold text-xs uppercase tracking-widest">
+                    <div class="h-8 w-8 bg-slate-50 group-hover:bg-rose-50 rounded-full flex items-center justify-center transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </div>
+                </button>
             </div>
-            <div id="noAssignmentsMessage" class="text-center py-8 hidden">
-                <p class="text-gray-500">No current assignments found for this staff member.</p>
+
+            <div class="px-10 space-y-2 mb-10">
+                <h3 class="text-2xl font-black text-slate-900 tracking-tighter">Schedule : <span id="modalStaffName" class="text-indigo-600"></span></h3>
+                <p class="text-slate-500 font-medium leading-relaxed">Detailed workload and assignment history for this personnel.</p>
             </div>
-        </div>
-        <div class="flex justify-end items-center w-100 border-t p-4">
-            <button id="closeStaffDetailsBtn2" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">
-                Close
-            </button>
+
+            <div class="px-10 mb-10">
+                <div class="bg-indigo-600 rounded-[2rem] p-8 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden">
+                    <div class="relative z-10 grid grid-cols-2 gap-8">
+                        <div class="space-y-1">
+                            <span class="text-[11px] font-black text-indigo-200 uppercase tracking-widest">Staff ID</span>
+                            <p id="modalStaffId" class="font-mono font-bold text-lg"></p>
+                        </div>
+                        <div class="space-y-1 text-right">
+                            <span class="text-[11px] font-black text-indigo-200 uppercase tracking-widest">Department</span>
+                            <p id="modalStaffDept" class="font-black text-sm uppercase truncate"></p>
+                        </div>
+                        <div class="space-y-1 border-t border-white/10 pt-4">
+                            <span class="text-[11px] font-black text-indigo-200 uppercase tracking-widest">Total Allotted</span>
+                            <p id="modalTotalAssignments" class="font-black text-3xl"></p>
+                        </div>
+                        <div class="space-y-1 text-right border-t border-white/10 pt-4">
+                            <span class="text-[11px] font-black text-indigo-100 uppercase tracking-widest">Remaining</span>
+                            <p id="modalRemainingSessions" class="font-black text-3xl italic"></p>
+                        </div>
+                    </div>
+                    <span id="modalStaffName2" class="hidden"></span>
+                    
+                    <div class="absolute -right-10 -bottom-10 h-32 w-32 bg-white/10 rounded-full blur-3xl"></div>
+                </div>
+            </div>
+
+            <div class="px-10 mb-12">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="h-1 w-8 bg-indigo-500 rounded-full"></div>
+                    <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Active Assignments</h4>
+                </div>
+
+                <div class="border border-indigo-100 overflow-hidden bg-indigo-50/30 rounded-md">
+                    <table class="min-w-full text-center">
+                        <thead class="bg-indigo-50/50 text-[12px] uppercase text-indigo-400 font-black">
+                            <tr>
+                                <th class="px-6 py-4">Date</th>
+                                <th class="px-6 py-4">Session</th>
+                                <th class="px-6 py-4">Hall No</th>
+                                <th class="px-6 py-4">Dept Name</th>
+                                <th class="px-6 py-4">Hall Category</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffAssignmentsBody" class="text-sm divide-y divide-indigo-50 bg-white font-bold text-slate-700">
+                            </tbody>
+                    </table>
+                    
+                    <div id="noAssignmentsMessage" class="hidden text-center py-6 text-indigo-300">
+                        <p class="italic text-sm font-medium">No current assignments found.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-10 pb-10">
+                <button id="closeStaffDetailsBtn2" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-indigo-100 active:scale-[0.97]">
+                    Close Window
+                </button>
+            </div>
         </div>
     </div>
-</div>
-
-    <!-- JavaScript Files -->
+    
     {% load static %}
-<script src="{% static 'js/manual-assignment.js' %}"></script>
-
+    <script src="{% static 'js/manual-assignment.js' %}"></script>
 </body>
 </html>
-
 {% endblock %}
