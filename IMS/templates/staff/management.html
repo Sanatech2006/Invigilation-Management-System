@@ -119,6 +119,22 @@
     </div>
 </div>
 
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const fileNameDisplay = document.getElementById('fileName');
+    const dropzone = document.getElementById('dropzone');
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            fileNameDisplay.innerText = e.target.files[0].name;
+            fileNameDisplay.classList.remove('text-gray-700');
+            fileNameDisplay.classList.add('text-indigo-600');
+            dropzone.classList.remove('border-indigo-200');
+            dropzone.classList.add('border-indigo-500', 'bg-indigo-50/50');
+        }
+    });
+    function confirmDownload() {return confirm("Download the official staff data template?")}
+</script>
+
 <!------------------------------- Filters -------------------------------------------->
 
 <div class="m-6 mx-auto antialiased">
@@ -355,231 +371,357 @@
     });
 </script>
 
-<!------------------------------- Staff Table -------------------------------------------->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<script>
-    const fileInput = document.getElementById('fileInput');
-    const fileNameDisplay = document.getElementById('fileName');
-    const dropzone = document.getElementById('dropzone');
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            fileNameDisplay.innerText = e.target.files[0].name;
-            fileNameDisplay.classList.remove('text-gray-700');
-            fileNameDisplay.classList.add('text-indigo-600');
-            dropzone.classList.remove('border-indigo-200');
-            dropzone.classList.add('border-indigo-500', 'bg-indigo-50/50');
-        }
-    });
-    function confirmDownload() {return confirm("Download the official staff data template?")}
-</script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- New Edit Staff Modal -->
-
-<!-- Edit Staff Modal -->
-<div id="editStaffModal" class="fixed inset-0 z-50 items-center justify-center hidden bg-black bg-opacity-40">
-  <div class="w-full max-w-md p-6 mx-4 text-gray-900 bg-white border border-gray-200 shadow-xl rounded-xl">
-
-    <div class="max-h-screen overflow-y-auto">
-    <h2 class="mb-6 text-xl font-semibold text-blue-700">Edit Staff Details</h2>
-    <form id="editStaffForm" autocomplete="off" class="space-y-3">
-
-      <div>
-        <label for="editStaffSelect" class="block mb-1 text-sm font-medium text-gray-700">Staff ID</label>
-        <select id="editStaffSelect" name="staff_id" class="w-full px-3 py-2 border rounded">
-          <option value="">Select Staff ID</option>
-          {% for staff in staff_list %}
-            <option value="{{ staff.staff_id }}">{{ staff.staff_id }} - {{ staff.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <input type="text" name="name" id="editStaffName" placeholder="Name" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="text" name="staff_category" id="editStaffCategory" placeholder="Staff Category" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="text" name="designation" id="editStaffDesignation" placeholder="Designation" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="text" name="dept_category" id="editStaffDeptCategory" placeholder="Department Category" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="text" name="dept_name" id="editStaffDeptName" placeholder="Department Name" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="text" name="mobile" id="editStaffMobile" placeholder="Mobile Number" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="email" name="email" id="editStaffEmail" placeholder="Email" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="date" name="date_of_joining" id="editStaffDOJ" placeholder="Date of Joining" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="number" name="role" id="editStaffRole" placeholder="Role" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" min="1" required />
-      <input type="text" name="fixed_session" id="editStaffFixedSession" placeholder="Fixed Session" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      
-
-      <div class="flex justify-center pt-4 space-x-4">
-        <button type="submit" id="saveEditStaffBtn" class="px-5 py-2 font-semibold text-white bg-blue-600 rounded shadow hover:bg-blue-700">
-          Save
-        </button>
-        <button type="button" id="cancelEditStaffBtn" class="px-5 py-2 font-semibold text-gray-800 bg-gray-300 rounded shadow hover:bg-gray-400">
-          Cancel
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
+<!------------------------------- Add Modal -------------------------------------------->
+
+<div id="addStaffModal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4 bg-slate-900/60 backdrop-blur-md">
+    <div class="w-full max-w-2xl transition-all transform scale-95 bg-white shadow-2xl rounded-3xl max-h-[80vh] flex flex-col overflow-hidden">
+        
+        <div class="p-6 border-b border-slate-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900">Add Staff Member</h3>
+                    <p class="mt-1 text-sm text-slate-500">Register a new staff member into the system.</p>
+                </div>
+                <button type="button" class="transition-colors text-slate-400 hover:text-slate-600" onclick="document.getElementById('addStaffModal').classList.add('hidden')">
+                    <i class="text-xl fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <form id="addStaffForm" autocomplete="off" class="flex-1 overflow-y-auto scrollbar-hide" style="-ms-overflow-style: none; scrollbar-width: none;">
+            <style>
+                #addStaffForm::-webkit-scrollbar { display: none; }
+            </style>
+
+            <div class="grid grid-cols-1 gap-5 p-8 md:grid-cols-2">
+                
+                <div class="space-y-2">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Staff ID</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-id-badge"></i>
+                        <input type="text" name="staff_id" required placeholder="e.g. STF001"
+                            class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Full Name</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-user"></i>
+                        <input type="text" name="name" required placeholder="John Doe"
+                            class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Staff Category</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-tags"></i>
+                        <input type="text" name="staff_category" required placeholder="e.g. Teaching"
+                            class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Designation</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-briefcase"></i>
+                        <input type="text" name="designation" required placeholder="e.g. Asst. Professor"
+                            class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Dept Category</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-layer-group"></i>
+                        <input type="text" name="dept_category" required placeholder="e.g. Engineering"
+                            class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Department Name</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-building"></i>
+                        <input type="text" name="dept_name" required placeholder="e.g. IT Dept"
+                            class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Mobile Number</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-phone"></i>
+                        <input type="text" name="mobile" required placeholder="+1 234..."
+                            class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Email Address</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-envelope"></i>
+                        <input type="email" name="email" required placeholder="staff@college.edu"
+                            class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Date of Joining</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-calendar-alt"></i>
+                        <input type="date" name="date_of_joining" required
+                            class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Role (Level)</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-user-shield"></i>
+                        <input type="number" name="role" required min="1" placeholder="1"
+                            class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2 md:col-span-2">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Fixed Session</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-clock"></i>
+                        <input type="text" name="fixed_session" required placeholder="e.g. Morning"
+                            class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 p-6 border-t border-slate-100 bg-slate-50/50">
+                <button type="button" id="cancelAddStaff" 
+                    class="flex-1 px-6 py-3.5 text-sm font-bold transition-all text-slate-600 hover:bg-slate-200/50 rounded-2xl">
+                    Cancel
+                </button>
+                <button type="submit" id="saveStaffBtn" 
+                    class="flex-1 px-6 py-3.5 text-sm font-bold text-white transition-all bg-indigo-600 shadow-lg rounded-2xl hover:bg-indigo-700 shadow-indigo-200 active:scale-95">
+                    Save Staff
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
+<!------------------------------- Edit Modal -------------------------------------------->
 
+<div id="editStaffModal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4 bg-slate-900/60 backdrop-blur-md">
+    <div class="w-full max-w-2xl transition-all transform scale-95 bg-white shadow-2xl rounded-3xl max-h-[80vh] flex flex-col overflow-hidden">
+        
+        <div class="p-8 border-b border-slate-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900">Edit Staff Details</h3>
+                    <p class="mt-1 text-sm text-slate-500">Update the information for an existing staff member.</p>
+                </div>
+                <button type="button" class="transition-colors text-slate-400 hover:text-slate-600" onclick="document.getElementById('editStaffModal').classList.add('hidden')">
+                    <i class="text-xl fas fa-times"></i>
+                </button>
+            </div>
+        </div>
 
-<!-- Compact Add Staff Modal -->
-<div id="addStaffModal" class="fixed inset-0 z-50 items-center justify-center hidden bg-black bg-opacity-40">
-  <div class="w-full max-w-md p-6 mx-4 text-gray-900 bg-white border border-gray-200 shadow-xl rounded-xl">
-    <h2 class="mb-4 text-lg font-bold text-blue-700">Add Staff</h2>
-    <form id="addStaffForm" autocomplete="off" class="space-y-3">
+        <form id="editStaffForm" autocomplete="off" class="flex-1 overflow-y-auto scrollbar-hide" style="-ms-overflow-style: none; scrollbar-width: none;">
+            <style>
+                #editStaffForm::-webkit-scrollbar { display: none; }
+            </style>
 
-      <input type="text" name="staff_id" placeholder="Staff ID" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="text" name="name" placeholder="Name" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="text" name="staff_category" placeholder="Staff Category" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="text" name="designation" placeholder="Designation" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="text" name="dept_category" placeholder="Department Category" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="text" name="dept_name" placeholder="Department Name" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="text" name="mobile" placeholder="Mobile Number" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="email" name="email" placeholder="Email" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="date" name="date_of_joining" placeholder="Date of Joining" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-      <input type="number" name="role" placeholder="Role" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required min="1" />
-      <input type="text" name="fixed_session" placeholder="Fixed Session" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring focus:ring-blue-200" required />
-     
+            <div class="grid grid-cols-1 gap-6 p-8 md:grid-cols-2">
+                
+                <div class="space-y-3 md:col-span-2">
+                    <label for="editStaffSelect" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Select Staff ID</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-id-card"></i>
+                        <select id="editStaffSelect" name="staff_id" required
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium appearance-none">
+                            <option value="">Select Staff Member</option>
+                            {% for staff in staff_list %}
+                                <option value="{{ staff.staff_id }}">{{ staff.staff_id }} - {{ staff.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <i class="absolute -translate-y-1/2 pointer-events-none text-slate-400 right-4 top-1/2 fas fa-chevron-down"></i>
+                    </div>
+                </div>
 
+                <div class="space-y-2.5">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Full Name</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-user"></i>
+                        <input type="text" name="name" id="editStaffName" required placeholder="Name"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
 
-      <div class="flex justify-end pt-2 space-x-3">
-        <button type="submit" id="saveStaffBtn" class="px-4 py-2 font-semibold text-white bg-blue-600 rounded shadow-sm hover:bg-blue-700">
-          Save
-        </button>
-        <button type="button" id="cancelAddStaff" class="px-4 py-2 font-semibold text-gray-800 bg-gray-300 rounded shadow-sm hover:bg-gray-400">
-          Cancel
-        </button>
-      </div>
-    </form>
-  </div>
+                <div class="space-y-2.5">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Staff Category</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-tags"></i>
+                        <input type="text" name="staff_category" id="editStaffCategory" required placeholder="Category"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Designation</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-briefcase"></i>
+                        <input type="text" name="designation" id="editStaffDesignation" required placeholder="Designation"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Dept Category</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-layer-group"></i>
+                        <input type="text" name="dept_category" id="editStaffDeptCategory" required placeholder="Dept Category"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Department Name</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-building"></i>
+                        <input type="text" name="dept_name" id="editStaffDeptName" required placeholder="Dept Name"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Mobile Number</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-phone"></i>
+                        <input type="text" name="mobile" id="editStaffMobile" required placeholder="Mobile"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Email Address</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-envelope"></i>
+                        <input type="email" name="email" id="editStaffEmail" required placeholder="Email"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Date of Joining</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-calendar-alt"></i>
+                        <input type="date" name="date_of_joining" id="editStaffDOJ" required
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Role</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-user-shield"></i>
+                        <input type="number" name="role" id="editStaffRole" required min="1" placeholder="Role"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+
+                <div class="space-y-2.5 md:col-span-2">
+                    <label class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Fixed Session</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-clock"></i>
+                        <input type="text" name="fixed_session" id="editStaffFixedSession" required placeholder="e.g. Morning"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 p-8 border-t border-slate-100 bg-slate-50/50">
+                <button type="button" id="cancelEditStaffBtn" 
+                    class="flex-1 px-6 py-4 text-sm font-bold transition-all text-slate-600 hover:bg-slate-200/50 rounded-2xl">
+                    Discard
+                </button>
+                <button type="submit" id="saveEditStaffBtn" 
+                    class="flex-1 px-6 py-4 text-sm font-bold text-white transition-all bg-indigo-600 shadow-lg rounded-2xl hover:bg-indigo-700 shadow-indigo-200 active:scale-95">
+                    Update Details
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
-<!-- Delete Staff Modal -->
-<div id="deleteStaffModal" class="fixed inset-0 z-50 items-center justify-center hidden bg-black bg-opacity-40">
-  <div class="w-full max-w-md p-6 mx-4 text-gray-900 bg-white border border-gray-200 shadow-xl rounded-xl">
 
-    <h2 class="mb-6 text-xl font-semibold text-red-600">Delete Staff</h2>
-    <form id="deleteStaffForm" autocomplete="off" class="space-y-3">
+<!------------------------------- Delete Modal -------------------------------------------->
 
-      <div>
-        <label for="deleteStaffSelect" class="block mb-1 text-sm font-medium text-gray-700">Staff ID</label>
-        <select id="deleteStaffSelect" name="staff_id" class="w-full px-3 py-2 border rounded">
-          <option value="">Select Staff ID</option>
-          {% for staff in staff_list %}
-          <option value="{{ staff.staff_id }}">{{ staff.staff_id }} - {{ staff.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
+<div id="deleteStaffModal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4 bg-slate-900/60 backdrop-blur-md">
+    <div class="w-full max-w-2xl overflow-hidden transition-all transform scale-95 bg-white shadow-2xl rounded-3xl">
+        
+        <div class="p-8 border-b border-slate-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900">Delete Staff</h3>
+                    <p class="mt-1 text-sm text-slate-500">Select the staff member you wish to remove from the system.</p>
+                </div>
+                <button type="button" class="transition-colors text-slate-400 hover:text-slate-600" onclick="document.getElementById('deleteStaffModal').classList.add('hidden')">
+                    <i class="text-xl fas fa-times"></i>
+                </button>
+            </div>
+        </div>
 
-      <div>
-        <label for="deleteStaffName" class="block mb-1 text-sm font-medium text-gray-700">Name</label>
-        <input type="text" id="deleteStaffName" readonly class="w-full px-3 py-2 bg-gray-100 border rounded" />
-      </div>
+        <form id="deleteStaffForm" autocomplete="off">
+            <div class="grid grid-cols-1 gap-6 p-8 md:grid-cols-2">
+                
+                <div class="space-y-3 md:col-span-2">
+                    <label for="deleteStaffSelect" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Select Staff ID</label>
+                    <div class="relative">
+                        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-search"></i>
+                        <select id="deleteStaffSelect" name="staff_id" 
+                                class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium appearance-none">
+                            <option value="">Select Staff ID</option>
+                            {% for staff in staff_list %}
+                                <option value="{{ staff.staff_id }}">{{ staff.staff_id }} - {{ staff.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <i class="absolute -translate-y-1/2 pointer-events-none text-slate-400 right-4 top-1/2 fas fa-chevron-down"></i>
+                    </div>
+                </div>
 
-      <div class="flex justify-center pt-4 space-x-4">
-        <button type="button" id="confirmDeleteStaffBtn" class="px-6 py-2 text-white bg-red-600 rounded shadow hover:bg-red-700">
-          Delete
-        </button>
-        <button type="button" id="cancelDeleteStaffBtn" class="px-6 py-2 bg-gray-300 rounded shadow hover:bg-gray-400">
-          Cancel
-        </button>
-      </div>
-    </form>
-  </div>
+                <div class="space-y-3">
+                    <label for="deleteStaffName" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Staff Name</label>
+                    <div class="relative">
+                        <i class="absolute -translate-y-1/2 text-slate-400 left-4 top-1/2 fas fa-user"></i>
+                        <input type="text" id="deleteStaffName" readonly 
+                               class="w-full pl-11 pr-4 py-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-slate-500 font-medium outline-none cursor-not-allowed">
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <label for="deleteStaffCategory" class="block ml-1 text-xs font-bold tracking-widest uppercase text-slate-500">Category</label>
+                    <div class="relative">
+                        <i class="absolute -translate-y-1/2 text-slate-400 left-4 top-1/2 fas fa-tag"></i>
+                        <input type="text" id="deleteStaffCategory" readonly 
+                               class="w-full pl-11 pr-4 py-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-slate-500 font-medium outline-none cursor-not-allowed">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 p-8 bg-slate-50/50">
+                <button type="button" id="cancelDeleteStaffBtn" 
+                        class="flex-1 px-6 py-4 text-sm font-bold transition-all text-slate-600 hover:bg-slate-200/50 rounded-2xl">
+                    Discard
+                </button>
+                <button type="button" id="confirmDeleteStaffBtn" 
+                        class="flex-1 px-6 py-4 text-sm font-bold text-white transition-all bg-red-600 shadow-lg rounded-2xl hover:bg-red-700 shadow-red-200 active:scale-95">
+                    Confirm Delete
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
-
-
-{% endblock %}
-
-{% block javascript %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
 <script src="{% static 'js/staff-management.js' %}"></script>
-
-
 {% endblock %}
