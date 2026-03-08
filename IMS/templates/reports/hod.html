@@ -246,6 +246,7 @@
                                     <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase">Date</th>
                                     <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase">Hall</th>
                                     <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase">Session</th>
+                                    <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase">Dept. Name</th>
                                     <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase">Mobile</th>
                                 </tr>
                             </thead>
@@ -259,6 +260,7 @@
                                     <td class="px-6 py-4 text-sm">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-sm font-medium bg-blue-50 text-blue-700 border border-blue-100">{{ schedule.session }}</span>
                                     </td>
+                                    <td class="px-6 py-4 text-sm text-slate-500">{{ schedule.dept_name }}</td>
                                     <td class="px-6 py-4 text-sm text-slate-500">{{ schedule.staff_mobile }}</td>
                                 </tr>
                                 {% empty %}
@@ -342,6 +344,7 @@
                                     <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase">Session</th>
                                     <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase">Staff Assigned</th>
                                     <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase">Dept Name</th>
+                                    <th class="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase">Mobile</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
@@ -355,6 +358,7 @@
                                     </td>
                                     <td class="px-6 py-4 text-sm font-bold text-slate-900">{{ schedule.staff_name }}</td>
                                     <td class="px-6 py-4 text-sm text-slate-500">{{ schedule.staff_dept }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-500">{{ schedule.staff_mobile }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

@@ -159,6 +159,7 @@ def hod_view(request):
         staff_obj = staff_map_sched.get(item['staff_id'])
         item['staff_name'] = staff_obj.name if staff_obj else 'Unknown'
         item['staff_mobile'] = staff_obj.mobile if staff_obj else ''
+        item['dept_name'] = staff_obj.dept_name if staff_obj else 'Unknown'
         staff_schedule.append(item)
 
     context = {
