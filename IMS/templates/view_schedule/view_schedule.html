@@ -474,18 +474,31 @@
                         </div>
                     </div>
 
-                    <div class="space-y-2">
-                        <label for="staffSelect" class="block mb-2 text-xs font-bold tracking-widest uppercase text-slate-500">Select Staff ID</label>
-                        <div class="relative">
-                            <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-user-tie"></i>
-                            <select id="staffSelect" name="staff-edit" 
-                                class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium appearance-none">
-                                <option value="">-- Select Staff --</option>
-                            </select>
-                            <i class="absolute text-xs -translate-y-1/2 pointer-events-none text-slate-400 right-4 top-1/2 fas fa-chevron-down"></i>
-                        </div>
-                    </div>
-                </div>
+    <div class="space-y-2">
+    <label class="block mb-2 text-xs font-bold tracking-widest uppercase text-slate-500">Select Staff ID</label>
+
+    <!-- Hidden actual select for form submission -->
+    <select id="staffSelect" name="staff-edit" hidden></select>
+
+    <!-- Searchable dropdown wrapper -->
+    <div class="relative" id="staffDropdownWrapper">
+        <i class="absolute text-indigo-500 -translate-y-1/2 left-4 top-1/2 fas fa-user-tie z-10"></i>
+        <input
+            type="text"
+            id="staffSearchInput"
+            placeholder="Search by name or ID..."
+            autocomplete="off"
+            class="w-full pl-11 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium"
+        />
+        <i class="absolute text-xs -translate-y-1/2 pointer-events-none text-slate-400 right-4 top-1/2 fas fa-chevron-down"></i>
+
+        <!-- Dropdown list -->
+        <div id="staffDropdownList" class="absolute z-50 hidden w-full mt-1 overflow-y-auto bg-white border border-slate-200 shadow-xl rounded-2xl max-h-52">
+            <div id="staffDropdownItems" class="py-1"></div>
+            <div id="staffDropdownEmpty" class="hidden px-4 py-3 text-sm text-center text-slate-400">No results found</div>
+        </div>
+    </div>
+</div>
 
                 <div class="flex items-center gap-3 p-8 bg-slate-50/50">
                     <button id="cancelEditBtn" type="button" class="flex-1 px-6 py-3.5 text-sm font-bold text-slate-600 hover:bg-slate-200/50 rounded-2xl transition-all">

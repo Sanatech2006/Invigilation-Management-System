@@ -521,11 +521,65 @@ document.addEventListener("DOMContentLoaded", function () {
                     .then((data) => {
                         const staffSelect = document.getElementById("staffSelect");
                         staffSelect.innerHTML = '<option value="">-- Select Staff --</option>';
+
+                        const allOptions = [];
                         (data.staff || []).forEach((s) => {
                             const opt = document.createElement("option");
                             opt.value = s.staff_id;
                             opt.textContent = `${s.staff_id} - ${s.name}`;
                             staffSelect.appendChild(opt);
+                            allOptions.push({ value: s.staff_id, label: opt.textContent });
+                        });
+
+                        const searchInput   = document.getElementById("staffSearchInput");
+                        const dropdownItems = document.getElementById("staffDropdownItems");
+                        const dropdownEmpty = document.getElementById("staffDropdownEmpty");
+                        const dropdownList  = document.getElementById("staffDropdownList");
+
+                        searchInput.value = "";
+                        let selectedValue = null;
+
+                        function renderItems(filtered) {
+                            dropdownItems.innerHTML = "";
+                            if (filtered.length === 0) {
+                                dropdownEmpty.classList.remove("hidden");
+                                return;
+                            }
+                            dropdownEmpty.classList.add("hidden");
+                            filtered.forEach(({ value, label }) => {
+                                const el = document.createElement("div");
+                                el.className =
+                                    "px-4 py-2.5 text-sm cursor-pointer transition-colors hover:bg-indigo-50 " +
+                                    (value === selectedValue ? "bg-indigo-50 font-bold text-indigo-600" : "text-slate-700");
+                                el.textContent = label;
+                                el.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    selectedValue = value;
+    staffSelect.value = value;
+    document.getElementById("staffSearchInput").value = label;
+    dropdownList.classList.add("hidden");
+});
+                                dropdownItems.appendChild(el);
+                            });
+                        }
+
+                        const newSearchInput = searchInput.cloneNode(true);
+                        searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+
+                        newSearchInput.addEventListener("focus", () => {
+                            const q = newSearchInput.value.trim().toLowerCase();
+                            const filtered = q ? allOptions.filter(o => o.label.toLowerCase().includes(q)) : allOptions;
+                            renderItems(filtered);
+                            dropdownList.classList.remove("hidden");
+                        });
+
+                        newSearchInput.addEventListener("input", () => {
+                            selectedValue = null;
+                            staffSelect.value = "";
+                            const q = newSearchInput.value.trim().toLowerCase();
+                            const filtered = q ? allOptions.filter(o => o.label.toLowerCase().includes(q)) : allOptions;
+                            renderItems(filtered);
+                            dropdownList.classList.remove("hidden");
                         });
                     })
                     .catch((err) => console.error("get_available_staff error:", err));
@@ -572,5 +626,7 @@ function formatDateForBackend(dateStr) {
     const d = new Date(dateStr);
     return d.toISOString().split("T")[0];
 }
+
+
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
