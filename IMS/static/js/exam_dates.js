@@ -83,8 +83,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify({ date, day_number: day })
             });
             const data = await response.json();
-            if (data.success) location.reload();
-        } catch (err) { console.error(err); }
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error || "An error occurred");
+            }
+        } catch (err) { 
+            console.error(err); 
+            alert("Network or server error while saving.");
+        }
     };
 
     // --- Delete Action ---

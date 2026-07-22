@@ -35,13 +35,16 @@ def save_exam_date(request):
     if not date_obj or not day_no:
         return JsonResponse({"success": False, "error": "Invalid input"})
 
-    obj, created = ExamDate.objects.get_or_create(
-        date=date_obj,
-        defaults={"day_no": day_no}
-    )
+    if ExamDate.objects.filter(date=date_obj).exists():
+        return JsonResponse({"success": False, "error": "This date already exists."})
 
-    if not created:
-        return JsonResponse({"success": False, "error": "Date already exists"})
+    if ExamDate.objects.filter(day_no=day_no).exists():
+        return JsonResponse({"success": False, "error": "This day sequence already exists."})
+
+    obj = ExamDate.objects.create(
+        date=date_obj,
+        day_no=day_no
+    )
 
     return JsonResponse({
         "success": True,
@@ -62,10 +65,10 @@ def update_exam_date(request, pk):
             return JsonResponse({"success": False, "error": "Invalid input"})
 
         if ExamDate.objects.filter(date=date_obj).exclude(pk=pk).exists():
-            return JsonResponse({"success": False, "error": "Date already exists"})
+            return JsonResponse({"success": False, "error": "This date already exists."})
             
         if ExamDate.objects.filter(day_no=day_no).exclude(pk=pk).exists():
-            return JsonResponse({"success": False, "error": "Day sequence already exists"})
+            return JsonResponse({"success": False, "error": "This day sequence already exists."})
 
         ExamDate.objects.filter(pk=pk).update(date=date_obj, day_no=day_no)
         return JsonResponse({"success": True})
