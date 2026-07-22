@@ -50,9 +50,9 @@ INSTALLED_APPS = [
     'apps.login',
     'apps.common',
     'apps.reports',
+    'apps.settings',
     "django_extensions",
     # 'apps.scheduling',
-    # 'apps.reports',
     # 'apps.core',
 ]
 

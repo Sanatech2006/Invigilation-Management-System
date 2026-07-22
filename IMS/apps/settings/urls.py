@@ -8,5 +8,6 @@ urlpatterns = [
     path('', views.settings_home, name='settings_home'),
     path('change-password/', views.change_password_no_auth, name='change_password'),
     path('upload-schedule/', upload_schedule, name='upload_schedule'),
+    path('toggle-report-visibility/', views.toggle_report_visibility, name='toggle_report_visibility'),
 ]
 

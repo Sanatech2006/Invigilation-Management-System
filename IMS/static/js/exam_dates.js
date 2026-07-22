@@ -109,6 +109,57 @@ document.addEventListener("DOMContentLoaded", () => {
         return document.cookie.split("; ").find(row => row.startsWith("csrftoken="))?.split("=")[1];
     }
 
+    // --- Report Visibility Toggle ---
+    const visibilityToggle = document.getElementById("displayReportsToggle");
+    const visibilityModal = document.getElementById("visibilityModal");
+    const confirmVisibilityBtn = document.getElementById("confirmVisibilityBtn");
+    const cancelVisibilityBtn = document.getElementById("cancelVisibilityBtn");
+    let pendingVisibilityState = null;
+
+    if (visibilityToggle) {
+        visibilityToggle.addEventListener('change', (e) => {
+            e.preventDefault();
+            // Revert state temporarily until confirmed
+            pendingVisibilityState = visibilityToggle.checked;
+            visibilityToggle.checked = !pendingVisibilityState;
+            
+            document.getElementById("visibilityModalText").innerText = pendingVisibilityState 
+                ? "Are you sure you want to make the reports visible to HOD and Staff? Once enabled, they will be able to access the reports."
+                : "Are you sure you want to hide the reports from HOD and Staff?";
+            
+            visibilityModal.classList.remove("hidden");
+        });
+
+        cancelVisibilityBtn.addEventListener('click', () => {
+            visibilityModal.classList.add("hidden");
+            pendingVisibilityState = null;
+        });
+
+        confirmVisibilityBtn.addEventListener('click', async () => {
+            if (pendingVisibilityState === null) return;
+            
+            try {
+                const response = await fetch("/settings/toggle-report-visibility/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": getCSRFToken() },
+                    body: JSON.stringify({ is_visible: pendingVisibilityState })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    visibilityToggle.checked = data.is_visible;
+                } else {
+                    console.error("Failed to update visibility:", data.message);
+                }
+            } catch (err) { 
+                console.error("Error updating visibility:", err); 
+            } finally {
+                visibilityModal.classList.add("hidden");
+                pendingVisibilityState = null;
+            }
+        });
+    }
+
     // Initial Load (assumes your list endpoint returns IDs)
     fetch("/exam-dates/list/").then(res => res.json()).then(data => {
         tableBody.innerHTML = "";

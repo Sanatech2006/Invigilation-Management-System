@@ -200,6 +200,7 @@
                             <i class="w-5 text-xs text-center fas fa-house-chimney"></i>
                             Dashboard
                         </a>
+                        {% if display_reports_to_staff %}
                         <a
                             href="{% url 'reports:reports' %}"
                             class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if 'reports' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
@@ -207,6 +208,7 @@
                             <i class="w-5 text-xs text-center fas fa-calendar-alt"></i>
                             My Schedule
                         </a>
+                        {% endif %}
                     {% endif %} 
 
                     <!---------------------------------- Hod Menus  ------------------------------------------->
@@ -223,6 +225,7 @@
                             <span>Dashboard</span>
                         </a>
 
+                        {% if display_reports_to_staff %}
                         <a href="{{ my_schedule_url }}"
                         class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == my_schedule_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
                             <i class="w-5 text-center fas fa-calendar-alt text-xs"></i>
@@ -234,6 +237,7 @@
                             <i class="w-5 text-center fas fa-chart-bar text-xs"></i>
                             <span>Reports</span>
                         </a>
+                        {% endif %}
                     {% endif %}
  
                     <!---------------------------------- Staff Menu  ------------------------------------------->
@@ -249,11 +253,13 @@
                             <span>Dashboard</span>
                         </a>
 
+                        {% if display_reports_to_staff %}
                         <a href="{{ my_schedule_url }}"
                         class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == my_schedule_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
                             <i class="w-5 text-center fas fa-calendar-alt text-xs"></i>
                             <span>My Schedule</span>
                         </a>
+                        {% endif %}
                     {% endif %}
 
                 </nav>

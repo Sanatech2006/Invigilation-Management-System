@@ -1,17 +1,14 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib import messages
 from apps.staff.models import Staff
 from django.db.models import Count, Q
 from apps.invigilation_schedule.models import InvigilationSchedule
-from apps.staff.models import Staff
 from apps.hall.models import Room 
 from django.db.models import OuterRef, Subquery, Count, IntegerField, F, Sum
 from django.db.models.functions import Coalesce
 from collections import defaultdict
-from django.shortcuts import render, redirect
-from apps.staff.models import Staff
-from apps.invigilation_schedule.models import InvigilationSchedule
-from apps.hall.models import Room  # Assuming Room is your hall model
 from apps.exam_dates.models import ExamDate
+from apps.settings.models import GlobalSettings
 
 
 
@@ -27,7 +24,11 @@ def reports_view(request):
             staff_name = staff.name
             role = staff.role
             
-            # --- REMOVED THE IF ROLE == 3 REDIRECT FROM HERE ---
+            # Check GlobalSettings for access
+            settings = GlobalSettings.get_settings()
+            if role != 1 and not settings.display_reports_to_staff:
+                messages.error(request, "Reports are currently hidden by the administrator.")
+                return redirect('staff:dashboard')
             
             welcome_message = f"WELCOME, {staff_name}"
             
@@ -59,6 +60,12 @@ def hod_view(request):
 
     if not hod:
         return render(request, 'error.html', {'message': 'Unauthorized or invalid user'})
+
+    # Check GlobalSettings for access
+    settings = GlobalSettings.get_settings()
+    if hod.role != 1 and not settings.display_reports_to_staff:
+        messages.error(request, "Reports are currently hidden by the administrator.")
+        return redirect('staff:dashboard')
 
     dept_name = hod.dept_name
 

@@ -8,11 +8,29 @@ from django.views.decorators.http import require_POST
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from ..invigilation_schedule.models import InvigilationSchedule
+from .models import GlobalSettings
 import logging
+import json
 from datetime import datetime
 import pandas as pd
 from apps.staff.logic import allocate_sessions  # reuse the Calculate Schedule logic
 
+@csrf_exempt
+@require_POST
+def toggle_report_visibility(request):
+    try:
+        data = json.loads(request.body)
+        is_visible = data.get('is_visible', False)
+        
+        # Only admin should probably do this, check role if needed
+        # but for now we just change the setting
+        settings = GlobalSettings.get_settings()
+        settings.display_reports_to_staff = is_visible
+        settings.save()
+        
+        return JsonResponse({'success': True, 'is_visible': settings.display_reports_to_staff})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
 
 
 def settings_home(request):

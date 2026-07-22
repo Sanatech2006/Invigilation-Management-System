@@ -13,11 +13,20 @@
                 <h2 class="text-xl font-extrabold tracking-tight text-gray-800">Exam Schedule</h2>
                 <p class="text-sm font-medium text-gray-500">Configure sequence order and calendar dates for examinations.</p>
             </div>
-            <button id="openModalBtn"
-                class="mt-6 md:mt-0 group inline-flex items-center justify-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl transition-all duration-200 shadow-xl shadow-indigo-100 hover:-translate-y-0.5">
-                <i class="mr-2 transition-transform fas fa-plus group-hover:rotate-90"></i> 
-                Add Schedule
-            </button>
+            <div class="flex items-center gap-6 mt-6 md:mt-0">
+                <div class="flex items-center gap-3">
+                    <span class="text-sm font-bold text-gray-700">Display Reports to HOD & Staff (preferred)</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="displayReportsToggle" class="sr-only peer" {% if display_reports %}checked{% endif %}>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                </div>
+                <button id="openModalBtn"
+                    class="group inline-flex items-center justify-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl transition-all duration-200 shadow-xl shadow-indigo-100 hover:-translate-y-0.5">
+                    <i class="mr-2 transition-transform fas fa-plus group-hover:rotate-90"></i> 
+                    Add Schedule
+                </button>
+            </div>
         </div>
 
         <div class="overflow-hidden bg-white border shadow-sm border-slate-200 rounded-2xl">
@@ -99,6 +108,24 @@
                 Yes, Delete it
             </button>
             <button id="cancelDeleteBtn" class="w-full py-3.5 text-slate-500 font-bold hover:bg-slate-100 rounded-2xl transition-all">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+<div id="visibilityModal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-4 bg-slate-900/60 backdrop-blur-md">
+    <div class="w-full max-w-md p-8 overflow-hidden text-center transform bg-white shadow-2xl rounded-3xl">
+        <div class="flex items-center justify-center w-20 h-20 mx-auto mb-6 text-indigo-500 rounded-full bg-indigo-50">
+            <i class="text-3xl fas fa-eye"></i>
+        </div>
+        <h3 class="mb-2 text-xl font-black text-slate-900">Confirm Report Visibility</h3>
+        <p class="mb-8 text-slate-500" id="visibilityModalText">Are you sure you want to change the report visibility?</p>
+        
+        <div class="flex flex-col gap-3">
+            <button id="confirmVisibilityBtn" class="w-full py-3.5 bg-indigo-500 text-white font-bold rounded-2xl hover:bg-indigo-600 transition-all">
+                Yes, Change
+            </button>
+            <button id="cancelVisibilityBtn" class="w-full py-3.5 text-slate-500 font-bold hover:bg-slate-100 rounded-2xl transition-all">
                 Cancel
             </button>
         </div>
