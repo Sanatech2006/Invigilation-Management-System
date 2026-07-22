@@ -20,15 +20,16 @@ from apps.staff.logic import allocate_sessions  # reuse the Calculate Schedule l
 def toggle_report_visibility(request):
     try:
         data = json.loads(request.body)
-        is_visible = data.get('is_visible', False)
-        
-        # Only admin should probably do this, check role if needed
-        # but for now we just change the setting
-        settings = GlobalSettings.get_settings()
-        settings.display_reports_to_staff = is_visible
-        settings.save()
-        
-        return JsonResponse({'success': True, 'is_visible': settings.display_reports_to_staff})
+        is_visible = bool(data.get('is_visible', False))
+
+        # Use update_or_create to atomically set the value — guarantees
+        # the row always exists and the new value is committed in one step.
+        gs, _ = GlobalSettings.objects.update_or_create(
+            id=1,
+            defaults={'display_reports_to_staff': is_visible}
+        )
+
+        return JsonResponse({'success': True, 'is_visible': gs.display_reports_to_staff})
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
 

@@ -8,10 +8,19 @@ from .models import ExamDate
 from apps.settings.models import GlobalSettings
 
 def exam_dates_view(request):
-    settings = GlobalSettings.get_settings()
-    return render(request, 'exam_dates/exam_dates.html', {
-        'display_reports': settings.display_reports_to_staff
+    # Always read fresh from DB — never use a cached row
+    gs = GlobalSettings.objects.filter(id=1).first()
+    display_reports = gs.display_reports_to_staff if gs else False
+
+    response = render(request, 'exam_dates/exam_dates.html', {
+        'display_reports': display_reports
     })
+    # Prevent the browser from caching this page so the toggle state
+    # is always loaded fresh from the database on every visit.
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
 
 
 @require_POST
