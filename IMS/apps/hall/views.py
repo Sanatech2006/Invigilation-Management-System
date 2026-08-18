@@ -105,11 +105,18 @@ def hall_management(request):
                     sessions = 2  # Assuming 2 sessions per day as per your requirement
                     required_session = staff_required * sessions * days
                     
+                    raw_cat = str(row.get('dept_category', '')).strip().upper()
+                    if raw_cat in ['SF MEN', 'SF-MEN', 'SF_MEN']:
+                        dept_category = 'SFM'
+                    elif raw_cat in ['SF WOMEN', 'SF-WOMEN', 'SFWOMEN']:
+                        dept_category = 'SFW'
+                    else:
+                        dept_category = raw_cat
                     
                     Room.objects.create(
                         hall_no=hall_no,
-                        dept_category=str(row.get('dept_category', '')),
-                        dept_name=str(row.get('dept_name', '')),
+                        dept_category=dept_category,
+                        dept_name=str(row.get('dept_name', '')).strip(),
                         strength=strength,
                         days=int(row.get('days', 0)),
                         staff_required=staff_required,
