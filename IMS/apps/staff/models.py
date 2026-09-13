@@ -37,7 +37,7 @@ class Staff(models.Model):
         help_text="Original department name from Excel import"
     )
     
-    staff_id = models.CharField(max_length=20, unique=True)
+    staff_id = models.CharField(max_length=100, unique=True)
     name = models.CharField(max_length=100)
     
     # New fields replacing department FK and category
@@ -50,7 +50,7 @@ class Staff(models.Model):
         regex=r'^\+?1?\d{9,15}$',
         message="Phone number must be entered in the format: '+999999999'"
     )
-    mobile = models.CharField(validators=[phone_regex], max_length=20, blank=True)
+    mobile = models.CharField(validators=[phone_regex], max_length=50, blank=True)
     email = models.EmailField(validators=[validate_email], blank=True)
     
     date_of_joining = models.TextField(null=True, blank=True)  

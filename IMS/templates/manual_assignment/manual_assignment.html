@@ -20,8 +20,8 @@
 <body class="bg-slate-50 text-slate-900">
     <div>
         <div class="mb-6">
-            <h2 class="text-xl font-extrabold tracking-tight text-gray-800">Manual Assignment</h2>
-            <p class="text-sm font-medium text-gray-500">Manage staff allocations and hall schedules efficiently.</p>
+            <h2 class="text-xl font-extrabold tracking-tight text-gray-800">Manual Assignment <span class="text-slate-400 font-normal">/</span> Assign Staff</h2>
+            <p class="text-sm font-medium text-gray-500">Directly assign unallotted staff members to unassigned hall slots.</p>
         </div>
         <div class="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden mb-10 transition-all hover:shadow-md">
             <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50">
@@ -124,11 +124,21 @@
                         {{ unassigned_slots|length }} Halls
                     </span>
                 </div>
-                <div class="relative group">
-                    <input type="text" id="hallSearch" placeholder="Search halls..." 
-                           class="pl-11 text-sm pr-4 py-2.5 w-full md:w-72 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <div class="flex items-center gap-3">
+                    <button type="button" id="autoAssignStaffBtn" class="inline-flex items-center px-4 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/20 transition-all shadow-sm whitespace-nowrap">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <span id="autoAssignStaffText">Assign Staff</span>
+                        <svg id="autoAssignStaffSpinner" class="animate-spin ml-2 h-4 w-4 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </button>
+                    <div class="relative group">
+                        <input type="text" id="hallSearch" placeholder="Search halls..." 
+                               class="pl-11 text-sm pr-4 py-2.5 w-full md:w-72 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -347,7 +357,7 @@
     </div>
     
     {% load static %}
-    <script src="{% static 'js/manual-assignment.js' %}"></script>
+    <script src="{% static 'js/manual-assignment.js' %}?v=2"></script>
 </body>
 </html>
 {% endblock %}

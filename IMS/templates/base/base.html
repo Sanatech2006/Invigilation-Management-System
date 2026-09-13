@@ -145,7 +145,8 @@
                             <div class="space-y-2">
                                 {% url 'generate_schedule' as gen_url %}
                                 {% url 'view_schedule' as view_url %}
-                                {% url 'manual_assignment:manual_assignment' as manual_url %}
+                                {% url 'manual_assignment:manual_assignment' as manual_assign_url %}
+                                {% url 'manual_assignment:staff_swap' as staff_swap_url %}
 
                                 <a href="{{ gen_url }}"
                                 class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == gen_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
@@ -159,11 +160,25 @@
                                     View Schedule
                                 </a>
 
-                                <a href="{{ manual_url }}"
-                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == manual_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
-                                    <i class="w-5 text-xs text-center fas fa-tasks"></i>
-                                    Manual Assignment
-                                </a>
+                                <div class="space-y-1">
+                                    <div class="px-4 py-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                        <i class="w-5 text-xs text-center fas fa-tasks text-slate-400"></i>
+                                        Manual Assignment
+                                    </div>
+                                    <div class="pl-6 space-y-1 border-l-2 border-slate-700/50 ml-6">
+                                        <a href="{{ manual_assign_url }}"
+                                        class="nav-item flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors {% if request.path == manual_assign_url or request.path == '/manual-assignment/assign-staff/' %} nav-active {% else %} text-slate-400 hover:text-white hover:bg-slate-800/50 {% endif %}">
+                                            <i class="w-4 text-[10px] text-center fas fa-user-plus"></i>
+                                            Assign Staff
+                                        </a>
+
+                                        <a href="{{ staff_swap_url }}"
+                                        class="nav-item flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors {% if request.path == staff_swap_url %} nav-active {% else %} text-slate-400 hover:text-white hover:bg-slate-800/50 {% endif %}">
+                                            <i class="w-4 text-[10px] text-center fas fa-arrow-right-arrow-left"></i>
+                                            Staff Swap
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

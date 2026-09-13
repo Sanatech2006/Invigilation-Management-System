@@ -474,3 +474,54 @@ document.addEventListener("DOMContentLoaded", function () {
     setupSearch();
     setupAllotFunctionality();
 });
+
+// -------------------------------------------------------------------------------------------------
+
+// Auto-Assign Staff Fallback Feature
+document.addEventListener('DOMContentLoaded', function() {
+    const autoAssignBtn = document.getElementById('autoAssignStaffBtn');
+    if (autoAssignBtn) {
+        autoAssignBtn.addEventListener('click', function() {
+            if (!confirm('This will automatically assign available staff to unassigned halls using the existing rules. Proceed?')) {
+                return;
+            }
+
+            const btnText = document.getElementById('autoAssignStaffText');
+            const btnSpinner = document.getElementById('autoAssignStaffSpinner');
+            
+            // Show loading state
+            autoAssignBtn.disabled = true;
+            btnText.textContent = 'Assigning...';
+            btnSpinner.classList.remove('hidden');
+
+            fetch('/manual-assignment/auto-assign/', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCSRFToken(),
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                    resetAutoAssignBtn();
+                }
+            })
+            .catch(error => {
+                console.error('Error during auto-assign:', error);
+                alert('An error occurred during automatic staff assignment.');
+                resetAutoAssignBtn();
+            });
+            
+            function resetAutoAssignBtn() {
+                autoAssignBtn.disabled = false;
+                btnText.textContent = 'Assign Staff';
+                btnSpinner.classList.add('hidden');
+            }
+        });
+    }
+});

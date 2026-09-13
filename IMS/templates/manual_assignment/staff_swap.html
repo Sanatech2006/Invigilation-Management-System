@@ -1,0 +1,229 @@
+{% extends 'base/base.html' %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Swap - Manual Assignment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+    <div>
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h2 class="text-xl font-extrabold tracking-tight text-gray-800">
+                Manual Assignment <span class="text-slate-400 font-normal">/</span> Staff Swap
+            </h2>
+            <p class="text-sm font-medium text-gray-500">
+                Swap assignments between unallotted and assigned staff members through multi-step feasibility verification.
+            </p>
+        </div>
+
+        <!-- Workflow Progress Steps Header -->
+        <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div id="stepHeader1" class="flex items-center gap-3 p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-700">
+                    <span class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm shrink-0">1</span>
+                    <div>
+                        <div class="text-xs font-bold uppercase tracking-wider">Step 1 & 2</div>
+                        <div class="text-sm font-semibold">Select Staff & Slot</div>
+                    </div>
+                </div>
+                <div id="stepHeader2" class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-400">
+                    <span class="w-8 h-8 rounded-lg bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm shrink-0">2</span>
+                    <div>
+                        <div class="text-xs font-bold uppercase tracking-wider">Step 3</div>
+                        <div class="text-sm font-semibold">Available Date</div>
+                    </div>
+                </div>
+                <div id="stepHeader3" class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-400">
+                    <span class="w-8 h-8 rounded-lg bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm shrink-0">3</span>
+                    <div>
+                        <div class="text-xs font-bold uppercase tracking-wider">Step 4 & 5</div>
+                        <div class="text-sm font-semibold">Eligible Candidates</div>
+                    </div>
+                </div>
+                <div id="stepHeader4" class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-400">
+                    <span class="w-8 h-8 rounded-lg bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm shrink-0">4</span>
+                    <div>
+                        <div class="text-xs font-bold uppercase tracking-wider">Step 6 - 8</div>
+                        <div class="text-sm font-semibold">Confirm Swap</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Form Container -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- Left 2 Columns: Step Controls -->
+            <div class="lg:col-span-2 space-y-8">
+
+                <!-- Step 1: Select Unallotted Staff (Staff A) -->
+                <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-md font-bold text-slate-800">Step 1 — Select Unallotted Staff (Staff A)</h3>
+                                <p class="text-xs text-slate-500">Select an unallotted staff member needing assignment</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label for="selectStaffA" class="block text-xs font-bold uppercase tracking-wider text-slate-500">Unallotted Staff Member</label>
+                        <select id="selectStaffA" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all">
+                            <option value="">-- Choose Unallotted Staff --</option>
+                            {% for staff in unassigned_staff %}
+                            <option value="{{ staff.staff_id }}" 
+                                    data-name="{{ staff.name }}" 
+                                    data-dept="{{ staff.dept_name }}" 
+                                    data-category="{{ staff.staff_category }}"
+                                    data-dept-category="{{ staff.dept_category }}"
+                                    data-available="{{ staff.available_sessions }}">
+                                {{ staff.name }} ({{ staff.staff_id }}) — {{ staff.dept_name }} [{{ staff.staff_category }} | {{ staff.dept_category }}] ({{ staff.available_sessions }} free sessions)
+                            </option>
+                            {% empty %}
+                            <option value="" disabled>No unallotted staff members available</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Step 2: Select Unallotted Hall Assignment (Slot 1) -->
+                <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 v5m-4 0h4"></path></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-md font-bold text-slate-800">Step 2 — Select Unallotted Hall Assignment</h3>
+                                <p class="text-xs text-slate-500">Select the unallotted hall assignment (Hall, Date, Session)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label for="selectSlot1" class="block text-xs font-bold uppercase tracking-wider text-slate-500">Unallotted Hall Assignment</label>
+                        <select id="selectSlot1" disabled class="w-full p-3 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all">
+                            <option value="">Select Staff A first to load matching unallotted halls</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Step 3: Identify Available Dates for Staff A -->
+                <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-amber-100 text-amber-600 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-md font-bold text-slate-800">Step 3 — Identify Available Dates for Staff A</h3>
+                                <p class="text-xs text-slate-500">Select a date on which Staff A is free to receive the swapped assignment</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label for="selectAvailableDate" class="block text-xs font-bold uppercase tracking-wider text-slate-500">Available Date for Staff A</label>
+                        <select id="selectAvailableDate" disabled class="w-full p-3 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            <option value="">Select Staff A first to load available dates</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Step 4 & 5: Find Eligible Staff for Swap -->
+                <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-purple-100 text-purple-600 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-md font-bold text-slate-800">Step 4 & 5 — Find & Validate Eligible Swap Candidates</h3>
+                                <p class="text-xs text-slate-500">Enforces Category, Existing Assignment, Parent Department, and Session Clash constraints</p>
+                            </div>
+                        </div>
+                        <button type="button" id="btnFindCandidates" disabled class="px-5 py-2.5 bg-blue-600 text-white font-bold text-sm rounded-xl hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-2">
+                            <svg id="spinnerFind" class="animate-spin h-4 w-4 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <span>Find Eligible Staff</span>
+                        </button>
+                    </div>
+
+                    <!-- Candidates Results Container -->
+                    <div id="candidatesContainer" class="space-y-4 hidden">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Eligible Assigned Staff Members (Staff B)</label>
+                        <div id="candidatesList" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar p-1">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <!-- No Eligible Staff Alert -->
+                    <div id="alertNoCandidates" class="hidden p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 font-bold text-sm flex items-center gap-3">
+                        <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        <span>No valid staff swap found.</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right 1 Column: Summary & Confirmation -->
+            <div class="space-y-8">
+                <div class="bg-slate-900 text-white border border-slate-800 shadow-xl rounded-2xl p-6 sticky top-6">
+                    <h3 class="text-lg font-black tracking-tight mb-4 flex items-center gap-2 text-indigo-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                        Swap Workflow Summary
+                    </h3>
+
+                    <!-- Unallotted Staff A Summary -->
+                    <div class="p-4 bg-slate-800/80 rounded-xl border border-slate-700 mb-4 space-y-1">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Unallotted Staff (Staff A)</div>
+                        <div id="summaryStaffAName" class="font-extrabold text-sm text-white">Not Selected</div>
+                        <div id="summaryStaffADetails" class="text-xs text-slate-400">--</div>
+                    </div>
+
+                    <!-- Target Unallotted Hall (Slot 1) Summary -->
+                    <div class="p-4 bg-slate-800/80 rounded-xl border border-slate-700 mb-4 space-y-1">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Unallotted Hall Assignment (Slot 1)</div>
+                        <div id="summarySlot1Hall" class="font-extrabold text-sm text-white">Not Selected</div>
+                        <div id="summarySlot1Details" class="text-xs text-slate-400">--</div>
+                    </div>
+
+                    <!-- Candidate Staff B Summary -->
+                    <div class="p-4 bg-slate-800/80 rounded-xl border border-slate-700 mb-6 space-y-1">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-purple-400">Assigned Candidate (Staff B) & Slot 2</div>
+                        <div id="summaryStaffBName" class="font-extrabold text-sm text-white">Not Selected</div>
+                        <div id="summarySlot2Details" class="text-xs text-slate-400">--</div>
+                    </div>
+
+                    <!-- Confirm Button -->
+                    <button type="button" id="btnPerformSwap" disabled class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-sm rounded-xl disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
+                        <svg id="spinnerSwap" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <span>Perform Staff Swap</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    {% load static %}
+    <script src="{% static 'js/staff-swap.js' %}?v=1"></script>
+</body>
+</html>
+{% endblock %}
