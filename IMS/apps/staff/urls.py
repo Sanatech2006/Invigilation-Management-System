@@ -13,4 +13,6 @@ urlpatterns = [
     path('api/test/', views.test_api, name='test_api'),
     path('api/update-staff/', views.update_staff, name='update_staff'),
     path('api/delete-staff/', views.delete_staff, name='delete_staff'),
+    path('api/preview-upload/', views.preview_staff_upload, name='preview_staff_upload'),
+    path('api/confirm-import/', views.confirm_staff_import, name='confirm_staff_import'),
 ]

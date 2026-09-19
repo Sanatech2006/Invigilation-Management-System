@@ -31,6 +31,8 @@
             <form method="post" enctype="multipart/form-data" action="{% url 'staff:staff-management' %}">
                 {% csrf_token %}
 
+                <div id="ajaxAlertContainer" class="mb-5 space-y-2 hidden"></div>
+
                 {% if messages %}
                 <div class="mb-5 space-y-2">
                     {% for message in messages %}
@@ -53,8 +55,77 @@
                 </div>
                 {% endif %}
 
+                {% if upload_errors %}
+                <div id="uploadErrorPanel" class="mb-5 rounded-2xl border border-rose-200 bg-rose-50/40 overflow-hidden">
+                    <!-- Panel Header -->
+                    <div class="flex items-center justify-between px-4 py-3 bg-rose-500 text-white">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                            </svg>
+                            <span class="text-sm font-bold">
+                                Upload Errors &mdash; {{ upload_errors|length }} row{{ upload_errors|length|pluralize }} need{{ upload_errors|length|pluralize:",s" }} correction
+                            </span>
+                        </div>
+                        <button type="button" onclick="document.getElementById('uploadErrorPanel').remove()"
+                                class="text-rose-200 hover:text-white transition-colors" title="Dismiss">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Scrollable error table -->
+                    <div class="overflow-auto" style="max-height: 300px;">
+                        <table class="w-full text-left text-xs border-separate border-spacing-0">
+                            <thead class="sticky top-0 bg-rose-100 z-10">
+                                <tr>
+                                    <th class="px-3 py-2 font-bold text-rose-700 uppercase tracking-wider border-b border-rose-200 whitespace-nowrap w-16">Row</th>
+                                    <th class="px-3 py-2 font-bold text-rose-700 uppercase tracking-wider border-b border-rose-200 whitespace-nowrap">Staff ID</th>
+                                    <th class="px-3 py-2 font-bold text-rose-700 uppercase tracking-wider border-b border-rose-200 whitespace-nowrap">Field</th>
+                                    <th class="px-3 py-2 font-bold text-rose-700 uppercase tracking-wider border-b border-rose-200">Bad Value</th>
+                                    <th class="px-3 py-2 font-bold text-rose-700 uppercase tracking-wider border-b border-rose-200">Error</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-rose-100">
+                                {% for err in upload_errors %}
+                                <tr class="{% cycle 'bg-white' 'bg-rose-50/30' %} hover:bg-rose-50/70 transition-colors">
+                                    <td class="px-3 py-2 font-mono font-bold text-rose-600 whitespace-nowrap">
+                                        Row {{ err.row }}
+                                    </td>
+                                    <td class="px-3 py-2 font-mono text-gray-700 whitespace-nowrap">
+                                        {% if err.staff_id %}{{ err.staff_id }}{% else %}<span class="text-gray-400 italic">—</span>{% endif %}
+                                    </td>
+                                    <td class="px-3 py-2 whitespace-nowrap">
+                                        <span class="inline-block px-2 py-0.5 rounded bg-rose-100 text-rose-700 font-semibold uppercase tracking-wide text-[10px]">
+                                            {{ err.field }}
+                                        </span>
+                                    </td>
+                                    <td class="px-3 py-2 text-gray-600 max-w-[140px] truncate" title="{{ err.value }}">
+                                        {% if err.value %}&ldquo;{{ err.value }}&rdquo;{% else %}<span class="text-gray-400 italic">empty</span>{% endif %}
+                                    </td>
+                                    <td class="px-3 py-2 text-rose-700 font-medium">{{ err.message }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Panel Footer: row counts -->
+                    {% if upload_summary %}
+                    <div class="px-4 py-2 bg-rose-100/60 border-t border-rose-200 flex items-center gap-4 text-[11px] font-semibold text-rose-700">
+                        <span>Total rows: {{ upload_summary.total }}</span>
+                        <span class="text-emerald-700">&#10003; Stored: {{ upload_summary.ready_to_store|default:upload_summary.success }}</span>
+                        {% if upload_summary.duplicate_count %}<span class="text-amber-700">&#9888; Duplicates: {{ upload_summary.duplicate_count }}</span>{% endif %}
+                        <span class="text-rose-600">&#10007; Errors: {{ upload_summary.error_count }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-12">
-                    <div class="space-y-5 md:col-span-7">
+                    <div class="space-y-4 md:col-span-7">
                         <div class="relative group">
                             <input type="file" name="excel_file" accept=".xlsx,.xls" required 
                                    class="absolute inset-0 z-10 w-full h-full opacity-0 cursor-pointer" id="fileInput">
@@ -62,15 +133,30 @@
                                 <div class="p-3 text-indigo-500 transition-transform bg-white border border-indigo-100 shadow-sm rounded-xl group-hover:scale-110">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                                 </div>
-                                <div>
+                                <div class="text-left">
                                     <p id="fileName" class="text-sm font-bold text-gray-700">Drop Excel File Here</p>
-                                    <p class="text-[11px] text-gray-400 font-medium">or click to browse local files</p>
+                                    <p id="fileSubtext" class="text-[11px] text-gray-400 font-medium">or click to browse local files (.xlsx, .xls)</p>
                                 </div>
                             </div>
                         </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-gray-200">
-                            Upload Records
-                        </button>
+
+                        <div class="flex items-center gap-3">
+                            <button type="button" id="previewUploadBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-bold py-3.5 rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-indigo-100 flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                <span>Preview Records</span>
+                            </button>
+                            <button type="button" id="clearFileBtn" class="hidden px-4 py-3.5 border border-gray-200 text-gray-500 hover:text-gray-800 hover:bg-gray-50 text-[13px] font-bold rounded-xl transition-colors">
+                                Clear
+                            </button>
+                            <button type="submit" id="directSubmitBtn" title="Direct upload without preview" class="px-4 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[13px] font-bold rounded-xl transition-colors hidden sm:block">
+                                Direct Import
+                            </button>
+                        </div>
+
+                        <div id="uploadSpinner" class="hidden flex items-center justify-center gap-2 py-2 text-indigo-600 font-bold text-xs">
+                            <svg class="w-4 h-4 animate-spin text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <span>Analyzing Excel file and validating records...</span>
+                        </div>
                     </div>
 
                     <div class="flex flex-col gap-3 md:col-span-5">
@@ -718,6 +804,187 @@
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+<!------------------------------- Excel Preview Modal -------------------------------------------->
+<div id="excelPreviewModal" class="fixed inset-0 z-50 flex items-center justify-center hidden p-3 sm:p-5 bg-slate-900/60 backdrop-blur-md">
+    <div class="w-full max-w-7xl h-[92vh] flex flex-col bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+        
+        <!-- Modal Top Bar -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/70 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2.5">
+                        <h3 class="text-lg font-black text-gray-900 tracking-tight">Excel Import Preview</h3>
+                        <span id="previewModalFilename" class="text-xs font-mono font-bold bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full border border-indigo-100">
+                            file.xlsx
+                        </span>
+                    </div>
+                    <p class="text-xs font-medium text-gray-500 mt-0.5">Verify parsed records, review conflict resolutions, and confirm database import.</p>
+                </div>
+            </div>
+            <button type="button" id="closePreviewModalBtn" class="text-gray-400 hover:text-gray-700 p-2 rounded-xl hover:bg-gray-100 transition-colors" title="Close">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Summary KPI Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 px-6 py-3.5 bg-white border-b border-gray-100 shrink-0">
+            <!-- Total Rows in File -->
+            <div class="p-3 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total in File</p>
+                    <p id="statTotalRows" class="text-xl font-extrabold text-gray-800 mt-0.5">0</p>
+                </div>
+                <div class="w-8 h-8 rounded-lg bg-gray-200/70 text-gray-600 flex items-center justify-center font-bold text-xs">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                </div>
+            </div>
+
+            <!-- Ready to Store in DB -->
+            <div class="p-3 bg-emerald-50/60 rounded-2xl border border-emerald-100 flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">Ready to Store in DB</p>
+                    <div class="flex items-baseline gap-2 mt-0.5">
+                        <span id="statReadyToStore" class="text-xl font-extrabold text-emerald-700">0</span>
+                        <span class="text-[11px] font-semibold text-emerald-600">
+                            (<span id="statNewCount">0</span> new, <span id="statUpdateCount">0</span> to update)
+                        </span>
+                    </div>
+                </div>
+                <div class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center font-bold text-xs shadow-sm shadow-emerald-200">
+                    &#10003;
+                </div>
+            </div>
+
+            <!-- Duplicates Skipped -->
+            <div class="p-3 bg-amber-50/60 rounded-2xl border border-amber-100 flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Duplicates (Skipped)</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <span id="statDuplicateCount" class="text-xl font-extrabold text-amber-800">0</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.2 rounded bg-amber-100 text-amber-800">Filtered</span>
+                    </div>
+                </div>
+                <div class="w-8 h-8 rounded-lg bg-amber-400 text-white flex items-center justify-center font-bold text-xs shadow-sm shadow-amber-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                </div>
+            </div>
+
+            <!-- Validation Errors -->
+            <div class="p-3 bg-rose-50/60 rounded-2xl border border-rose-100 flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold text-rose-700 uppercase tracking-widest">Validation Errors</p>
+                    <div class="flex items-baseline gap-1.5 mt-0.5">
+                        <span id="statErrorCount" class="text-xl font-extrabold text-rose-700">0</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.2 rounded bg-rose-100 text-rose-700">Needs Fix</span>
+                    </div>
+                </div>
+                <div class="w-8 h-8 rounded-lg bg-rose-500 text-white flex items-center justify-center font-bold text-xs shadow-sm shadow-rose-200">
+                    &#10007;
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs and Search Bar -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-2.5 bg-gray-50/50 border-b border-gray-100 shrink-0">
+            <!-- Tabs -->
+            <div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto" id="previewFilterTabs">
+                <button type="button" data-filter="all" class="preview-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-indigo-600 text-white shadow-sm">
+                    All (<span id="tabCountAll">0</span>)
+                </button>
+                <button type="button" data-filter="ready" class="preview-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-600 hover:bg-gray-100">
+                    Ready to Store (<span id="tabCountReady">0</span>)
+                </button>
+                <button type="button" data-filter="insert" class="preview-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-600 hover:bg-gray-100">
+                    New (<span id="tabCountInsert">0</span>)
+                </button>
+                <button type="button" data-filter="update" class="preview-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-600 hover:bg-gray-100">
+                    Update (<span id="tabCountUpdate">0</span>)
+                </button>
+                <button type="button" data-filter="duplicate" class="preview-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-600 hover:bg-gray-100">
+                    Duplicates (<span id="tabCountDuplicate">0</span>)
+                </button>
+                <button type="button" data-filter="error" class="preview-filter-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-600 hover:bg-gray-100">
+                    Errors (<span id="tabCountError">0</span>)
+                </button>
+            </div>
+
+            <!-- Search and Page Size -->
+            <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                <div class="relative">
+                    <input type="text" id="previewTableSearch" placeholder="Filter preview (ID, name, dept)..." 
+                           class="py-1.5 pr-3 pl-8 text-xs bg-white border border-gray-200 rounded-lg outline-none w-48 sm:w-60 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400">
+                    <svg class="absolute left-2.5 top-2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+                <div class="flex items-center gap-1 text-xs text-gray-500 font-medium">
+                    <label for="previewPageSize" class="whitespace-nowrap">Per page:</label>
+                    <select id="previewPageSize" class="bg-white border border-gray-200 text-gray-700 text-xs rounded-lg px-2 py-1 outline-none">
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="500">All</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Viewport -->
+        <div class="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar bg-white">
+            <table class="w-full text-left border-separate border-spacing-0" id="previewTable">
+                <thead class="sticky top-0 z-20 bg-gray-50 shadow-sm">
+                    <tr class="h-10 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-2 text-center border-b border-gray-200 w-12">Row</th>
+                        <th class="px-3 py-2 text-center border-b border-gray-200 w-28">Action</th>
+                        <th class="px-3 py-2 border-b border-gray-200 w-28 whitespace-nowrap">Staff ID</th>
+                        <th class="px-3 py-2 border-b border-gray-200 w-44 whitespace-nowrap">Staff Name</th>
+                        <th class="px-3 py-2 text-center border-b border-gray-200 w-24 whitespace-nowrap">Staff Cat.</th>
+                        <th class="px-3 py-2 border-b border-gray-200 w-36 whitespace-nowrap">Designation</th>
+                        <th class="px-3 py-2 text-center border-b border-gray-200 w-24 whitespace-nowrap">Dept Cat.</th>
+                        <th class="px-3 py-2 border-b border-gray-200 w-36 whitespace-nowrap">Department</th>
+                        <th class="px-3 py-2 text-center border-b border-gray-200 w-28 whitespace-nowrap">Mobile</th>
+                        <th class="px-3 py-2 border-b border-gray-200 w-40 whitespace-nowrap">Email</th>
+                        <th class="px-3 py-2 text-center border-b border-gray-200 w-24 whitespace-nowrap">DOJ</th>
+                        <th class="px-3 py-2 text-center border-b border-gray-200 w-16 whitespace-nowrap">Role</th>
+                        <th class="px-3 py-2 border-b border-gray-200 min-w-[200px]">Resolution Details</th>
+                    </tr>
+                </thead>
+                <tbody id="previewTableBody" class="divide-y divide-gray-100 text-xs">
+                    <!-- Dynamic preview rows will be injected here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer / Action Controls -->
+        <div class="px-6 py-3.5 bg-gray-50/80 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+            <div class="flex items-center gap-3 text-xs text-gray-500 font-medium w-full sm:w-auto justify-between sm:justify-start">
+                <span id="previewShowingText">Showing 0-0 of 0 records</span>
+                <div class="flex items-center gap-1" id="previewPagination">
+                    <button type="button" id="previewPrevBtn" class="px-2.5 py-1 bg-white border border-gray-200 rounded text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                        &larr; Prev
+                    </button>
+                    <span id="previewPageIndicator" class="px-2 text-xs font-bold text-gray-700">Page 1 / 1</span>
+                    <button type="button" id="previewNextBtn" class="px-2.5 py-1 bg-white border border-gray-200 rounded text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                        Next &rarr;
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <button type="button" id="cancelPreviewModalBtn" class="flex-1 sm:flex-initial px-5 py-2.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 text-xs font-bold rounded-xl transition-colors">
+                    Discard
+                </button>
+                <button type="button" id="confirmImportBtn" class="flex-1 sm:flex-initial px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-100 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    <span>Confirm &amp; Store <span id="btnConfirmStoreCount">0</span> Records</span>
+                </button>
+            </div>
+        </div>
+
     </div>
 </div>
 
