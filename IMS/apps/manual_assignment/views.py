@@ -850,11 +850,10 @@ def get_swap_available_dates(request):
     available_dates = []
     for d in all_dates:
         # Check if staff has assignments on this date
-        existing_on_date = InvigilationSchedule.objects.filter(staff_id=staff_id, date=d)
-        sessions_occupied = list(existing_on_date.values_list('session', flat=True))
+        has_assignment = InvigilationSchedule.objects.filter(staff_id=staff_id, date=d).exists()
         
-        # Staff is available on date d if they don't occupy both sessions
-        if len(sessions_occupied) < 2:
+        # Staff is available on date d only if they do not already have an assignment on this date
+        if not has_assignment:
             available_dates.append({
                 'date_str': d.strftime('%Y-%m-%d'),
                 'display': d.strftime('%Y-%m-%d (%A)')

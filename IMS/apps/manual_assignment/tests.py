@@ -95,11 +95,30 @@ class StaffSwapTestCase(TestCase):
         self.assertNotIn(self.slot3.serial_number, serials)
 
     def test_get_swap_available_dates(self):
+        # When Staff A has no assignments, all exam dates are available
         response = self.client.get(reverse('manual_assignment:get_swap_available_dates'), {'staff_id': self.staff_a.staff_id})
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertTrue(data['success'])
-        self.assertTrue(len(data['available_dates']) > 0)
+        dates = [d['date_str'] for d in data['available_dates']]
+        self.assertIn(self.date1.strftime('%Y-%m-%d'), dates)
+        self.assertIn(self.date2.strftime('%Y-%m-%d'), dates)
+
+        # Assign Staff A to date1
+        self.slot1.staff_id = self.staff_a.staff_id
+        self.slot1.save()
+
+        # Date 1 must now be excluded, only Date 2 should remain
+        response2 = self.client.get(reverse('manual_assignment:get_swap_available_dates'), {'staff_id': self.staff_a.staff_id})
+        self.assertEqual(response2.status_code, 200)
+        data2 = response2.json()
+        dates2 = [d['date_str'] for d in data2['available_dates']]
+        self.assertNotIn(self.date1.strftime('%Y-%m-%d'), dates2)
+        self.assertIn(self.date2.strftime('%Y-%m-%d'), dates2)
+
+        # Reset slot1 for subsequent tests
+        self.slot1.staff_id = None
+        self.slot1.save()
 
     def test_find_eligible_swap_staff_success(self):
         response = self.client.get(reverse('manual_assignment:find_eligible_swap_staff'), {
@@ -206,6 +225,10 @@ class StaffSwapTestCase(TestCase):
         self.assertIn('id="summaryStaffADetails"', content)
         self.assertIn('id="summaryStaffBName"', content)
         self.assertIn('id="summarySlot2Details"', content)
+
+        # Section headings
+        self.assertIn('UNALLOTTED STAFF', content)
+        self.assertIn('SWAPPING STAFF', content)
 
     def test_manual_assignment_unallotted_staff_badge(self):
         response = self.client.get(reverse('manual_assignment:manual_assignment'))
