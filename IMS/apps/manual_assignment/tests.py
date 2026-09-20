@@ -147,3 +147,63 @@ class StaffSwapTestCase(TestCase):
         self.assertEqual(self.slot1.staff_id, self.staff_b.staff_id)
         self.assertEqual(self.slot2.staff_id, self.staff_a.staff_id)
 
+    def test_manual_assignment_menu_structure(self):
+        session = self.client.session
+        session['role'] = 1
+        session.save()
+
+        # 1. On staff_swap page (Manual Assignment submenu):
+        # Dropdown remains visible (not hidden) so navigating to submenu pages keeps dropdown open
+        response = self.client.get(reverse('manual_assignment:staff_swap'))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+
+        self.assertIn('id="manualAssignmentToggle"', content)
+        self.assertIn('onclick="toggleManualAssignment(event)"', content)
+        self.assertIn('function toggleManualAssignment', content)
+        self.assertIn('keepManualAssignmentOpen', content)
+        self.assertIn('Manual Assignment', content)
+        self.assertIn('id="manualAssignmentChevron"', content)
+
+        # On manual assignment pages, submenu is open by default (not hidden)
+        self.assertIn('id="manualAssignmentSubmenu"', content)
+        self.assertIn('id="manualAssignmentSubmenu" class="pl-6 space-y-1 border-l-2 border-slate-700/50 ml-6 pt-1"', content)
+
+        # Submenu links are present
+        self.assertIn('Assign Staff', content)
+        self.assertIn('Staff Swap', content)
+        self.assertIn(reverse('manual_assignment:manual_assignment'), content)
+        self.assertIn(reverse('manual_assignment:staff_swap'), content)
+
+        # 2. On non-manual assignment page (dashboard):
+        # Dropdown is hidden by default
+        response_dash = self.client.get(reverse('dashboard:dashboard'))
+        self.assertEqual(response_dash.status_code, 200)
+        dash_content = response_dash.content.decode('utf-8')
+        self.assertIn('id="manualAssignmentSubmenu" class="hidden pl-6 space-y-1 border-l-2 border-slate-700/50 ml-6 pt-1"', dash_content)
+
+    def test_staff_swap_workflow_summary_wording(self):
+        response = self.client.get(reverse('manual_assignment:staff_swap'))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+
+        # Check title
+        self.assertIn('Swap Workflow Summary', content)
+
+        # Step 4 wording
+        self.assertIn('Step 4 — Find and Swap Candidates', content)
+        self.assertNotIn('Step 4 & 5', content)
+        self.assertNotIn('Step 4 and 5', content)
+        self.assertNotIn('Step 4 and Step 5', content)
+
+        # Old explanatory labels must be removed
+        self.assertNotIn('UNALLOTTED STAFF (STAFF A)', content)
+        self.assertNotIn('UNALLOTTED HALL ASSIGNMENT (SLOT 1)', content)
+        self.assertNotIn('ASSIGNED CANDIDATE (STAFF B) & SLOT 2', content)
+
+        # Dynamic summary elements exist
+        self.assertIn('id="summaryStaffAName"', content)
+        self.assertIn('id="summaryStaffADetails"', content)
+        self.assertIn('id="summaryStaffBName"', content)
+        self.assertIn('id="summarySlot2Details"', content)
+

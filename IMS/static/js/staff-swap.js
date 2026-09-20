@@ -66,6 +66,68 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Format Hall Name helper: ensures "Hall LH 118" without duplicating "Hall"
+    function formatHallName(hall) {
+        if (!hall) return '';
+        const h = String(hall).trim();
+        if (h.toLowerCase().startsWith('hall ')) {
+            return h;
+        }
+        return `Hall ${h}`;
+    }
+
+    // Format Slot String helper: "Hall LH 118 | 2026-10-12 (Session 2) — COMPUTER APPLICATIONS"
+    function formatSlotString(slot) {
+        if (!slot) return '';
+        const hallName = formatHallName(slot.hall || slot.hall_no);
+        return `${hallName} | ${slot.date} (Session ${slot.session}) \u2014 ${slot.dept || slot.hall_department}`;
+    }
+
+    // Format Candidate Slot 2 helper: "Hall LH 118 | 2026-10-12 (Session 2) — COMPUTER APPLICATIONS"
+    function formatCandidateSlot2String(cand) {
+        if (!cand) return '';
+        const hallName = formatHallName(cand.slot2_hall);
+        return `${hallName} | ${cand.slot2_date} (Session ${cand.slot2_session}) \u2014 ${cand.slot2_dept}`;
+    }
+
+    // Update Swap Workflow Summary Display
+    function updateSummary() {
+        if (!summaryStaffAName || !summaryStaffADetails || !summaryStaffBName || !summarySlot2Details) return;
+
+        // Staff A
+        if (selectedStaffAData) {
+            summaryStaffAName.textContent = `${selectedStaffAData.name} (${selectedStaffAData.id})`;
+            if (selectedCandidateBData) {
+                const slot2Text = formatCandidateSlot2String(selectedCandidateBData);
+                summaryStaffADetails.textContent = `Unallotted To ${slot2Text}`;
+            } else {
+                summaryStaffADetails.textContent = 'Unallotted To --';
+            }
+        } else {
+            summaryStaffAName.textContent = 'Not Selected';
+            summaryStaffADetails.textContent = '--';
+        }
+
+        // Staff B
+        if (selectedCandidateBData && selectedSlot1Data) {
+            summaryStaffBName.textContent = `${selectedCandidateBData.staff_b_name} (${selectedCandidateBData.staff_b_id})`;
+            const slot2Text = formatCandidateSlot2String(selectedCandidateBData);
+            const slot1Text = formatSlotString(selectedSlot1Data);
+            summarySlot2Details.textContent = `${slot2Text} To ${slot1Text}`;
+        } else {
+            summaryStaffBName.textContent = 'Not Selected';
+            summarySlot2Details.textContent = '--';
+        }
+
+        // Backward compatibility if older elements exist
+        if (summarySlot1Hall) {
+            summarySlot1Hall.textContent = selectedSlot1Data ? `Hall ${selectedSlot1Data.hall} (${selectedSlot1Data.date})` : 'Not Selected';
+        }
+        if (summarySlot1Details) {
+            summarySlot1Details.textContent = selectedSlot1Data ? `Session: ${selectedSlot1Data.session} | Dept: ${selectedSlot1Data.dept} [${selectedSlot1Data.category}]` : '--';
+        }
+    }
+
     // Reset Candidate Search State
     function resetCandidatesState() {
         selectedCandidateBData = null;
@@ -73,16 +135,14 @@ document.addEventListener('DOMContentLoaded', function () {
         alertNoCandidates.classList.add('hidden');
         candidatesList.innerHTML = '';
         btnPerformSwap.disabled = true;
-        summaryStaffBName.textContent = 'Not Selected';
-        summarySlot2Details.textContent = '--';
+        updateSummary();
     }
 
     // Reset Slot 1 (Unallotted Hall) State
     function resetSlot1State() {
         selectedSlot1Data = null;
         selectSlot1.value = '';
-        summarySlot1Hall.textContent = 'Not Selected';
-        summarySlot1Details.textContent = '--';
+        updateSummary();
     }
 
     // Check if ready to enable "Find Eligible Staff" button
@@ -157,8 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 available: opt.getAttribute('data-available')
             };
 
-            summaryStaffAName.textContent = `${selectedStaffAData.name} (${selectedStaffAData.id})`;
-            summaryStaffADetails.textContent = `${selectedStaffAData.dept} | ${selectedStaffAData.category} (${selectedStaffAData.deptCategory})`;
+            updateSummary();
 
             // Load Unassigned Halls matching Staff A's dept_category
             loadUnassignedHallsForStaff(selectedStaffAData.id);
@@ -194,9 +253,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         } else {
             selectedStaffAData = null;
-            summaryStaffAName.textContent = 'Not Selected';
-            summaryStaffADetails.textContent = '--';
             resetSlot1State();
+            updateSummary();
             selectSlot1.disabled = true;
             selectSlot1.className = "w-full p-3 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none transition-all";
             selectSlot1.innerHTML = '<option value="">Select Staff A first to load matching unallotted halls</option>';
@@ -220,14 +278,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 dept: opt.getAttribute('data-dept'),
                 category: opt.getAttribute('data-category')
             };
-
-            summarySlot1Hall.textContent = `Hall ${selectedSlot1Data.hall} (${selectedSlot1Data.date})`;
-            summarySlot1Details.textContent = `Session: ${selectedSlot1Data.session} | Dept: ${selectedSlot1Data.dept} [${selectedSlot1Data.category}]`;
         } else {
             selectedSlot1Data = null;
-            summarySlot1Hall.textContent = 'Not Selected';
-            summarySlot1Details.textContent = '--';
         }
+        updateSummary();
         checkReadyForSearch();
     });
 
@@ -286,8 +340,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         const radio = item.querySelector('input[type="radio"]');
                         radio.addEventListener('change', function () {
                             selectedCandidateBData = cand;
-                            summaryStaffBName.textContent = `${cand.staff_b_name} (${cand.staff_b_id})`;
-                            summarySlot2Details.textContent = `Hall ${cand.slot2_hall} | ${cand.slot2_date} (Session ${cand.slot2_session}) — ${cand.slot2_dept}`;
+                            updateSummary();
                             btnPerformSwap.disabled = false;
                             updateStepHeaders(4);
                         });
