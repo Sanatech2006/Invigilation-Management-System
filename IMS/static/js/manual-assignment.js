@@ -473,7 +473,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
     setupSearch();
     setupAllotFunctionality();
+    updateUnallottedStaffSessions();
 });
+
+// Helper to dynamically calculate total unallotted sessions from the staff table
+function updateUnallottedStaffSessions() {
+    const staffRows = document.querySelectorAll('#staffTable tbody tr');
+    let totalSessions = 0;
+    staffRows.forEach(row => {
+        const sessionSpan = row.querySelector('td:nth-child(5) span');
+        if (sessionSpan) {
+            const val = parseInt(sessionSpan.textContent.trim(), 10);
+            if (!isNaN(val)) {
+                totalSessions += val;
+            }
+        }
+    });
+    const sessionsEl = document.getElementById('staffSessionsTotal');
+    if (sessionsEl && totalSessions > 0) {
+        sessionsEl.textContent = `${totalSessions} Session${totalSessions !== 1 ? 's' : ''}`;
+    }
+}
 
 // -------------------------------------------------------------------------------------------------
 
@@ -503,12 +523,18 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(data => {
+                resetAutoAssignBtn();
                 if (data.success) {
-                    alert(data.message);
-                    location.reload();
+                    if (data.assignments_made === 0 && data.remaining_unassigned > 0) {
+                        const remainingHalls = data.remaining_unassigned;
+                        const remainingSessions = data.remaining_sessions !== undefined ? data.remaining_sessions : remainingHalls;
+                        showNoFurtherAssignmentsModal(remainingHalls, remainingSessions);
+                    } else {
+                        alert(data.message);
+                        location.reload();
+                    }
                 } else {
                     alert('Error: ' + data.message);
-                    resetAutoAssignBtn();
                 }
             })
             .catch(error => {
@@ -525,3 +551,48 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Show styled modal popup when no further automatic assignments are possible
+function showNoFurtherAssignmentsModal(halls, sessions) {
+    const modal = document.getElementById('noFurtherAssignmentsModal');
+    const hallWord = halls === 1 ? 'Hall' : 'Halls';
+    const sessionWord = sessions === 1 ? 'Session' : 'Sessions';
+
+    if (!modal) {
+        // Fallback to browser alert if modal element is not found
+        const msg = `No Further Assignments Possible\n\n${halls} ${hallWord} and ${sessions} ${sessionWord} remain unassigned.\n\nClick Staff Swap to find eligible swap candidates and complete the remaining assignments.`;
+        alert(msg);
+        location.reload();
+        return;
+    }
+
+    const hallsSpan = document.getElementById('noAssignHallsCount');
+    const sessionsSpan = document.getElementById('noAssignSessionsCount');
+    if (hallsSpan) {
+        hallsSpan.textContent = `${halls} ${hallWord}`;
+    }
+    if (sessionsSpan) {
+        sessionsSpan.textContent = `${sessions} ${sessionWord}`;
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    function closeModalAndReload() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        location.reload();
+    }
+
+    const okBtn = document.getElementById('closeNoAssignmentsOkBtn');
+    const xBtn = document.getElementById('closeNoAssignmentsXBtn');
+
+    if (okBtn) okBtn.onclick = closeModalAndReload;
+    if (xBtn) xBtn.onclick = closeModalAndReload;
+
+    modal.onclick = function(e) {
+        if (e.target === modal) {
+            closeModalAndReload();
+        }
+    };
+}

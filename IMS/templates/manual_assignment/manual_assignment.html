@@ -30,9 +30,11 @@
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                     </div>
                     <h2 class="text-md font-bold text-slate-800">Unallotted Staff</h2>
-                    <span class="text-[11px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full uppercase" id="staffTotal">
-                        {{ unassigned_staff|length }} Staff
-                    </span>
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-300 text-xs font-bold text-slate-800 uppercase tracking-wider shadow-sm" id="staffTotalBadge">
+                        <span id="staffTotal">{{ unassigned_staff|length }} Staff</span>
+                        <span class="text-slate-400 font-semibold select-none">|</span>
+                        <span id="staffSessionsTotal">{{ total_unassigned_sessions|default:0 }} Session{{ total_unassigned_sessions|pluralize }}</span>
+                    </div>
                 </div>
                 <div class="relative group">
                     <input type="text" id="staffSearch" placeholder="Search staff..." 
@@ -120,7 +122,7 @@
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                     </div>
                     <h2 class="text-md font-bold text-slate-800">Unassigned Hall Slots</h2>
-                    <span class="text-[11px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full uppercase" id="hallTotal">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 border border-slate-300 text-xs font-bold text-slate-800 uppercase tracking-wider shadow-sm" id="hallTotal">
                         {{ unassigned_slots|length }} Halls
                     </span>
                 </div>
@@ -352,6 +354,63 @@
                 <button id="closeStaffDetailsBtn2" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-black py-4 rounded-2xl transition-all shadow-lg shadow-indigo-100 active:scale-[0.97]">
                     Close Window
                 </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- No Further Assignments Modal -->
+    <div id="noFurtherAssignmentsModal" class="fixed inset-0 z-[120] hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-all duration-300">
+        <div class="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all">
+            <!-- Header bar with badge & close button -->
+            <div class="flex items-center justify-between px-6 pt-6 pb-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-700 text-[11px] font-bold uppercase tracking-wider rounded-full shadow-xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    Assignment Notice
+                </span>
+                <button type="button" id="closeNoAssignmentsXBtn" class="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-full transition-colors" title="Close">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="p-6 pt-2 text-center">
+                <!-- Icon badge -->
+                <div class="mx-auto w-16 h-16 rounded-2xl bg-amber-100/70 border border-amber-200/80 flex items-center justify-center text-amber-600 shadow-sm mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+
+                <!-- Heading: No Further Assignments Possible -->
+                <h3 class="text-xl font-extrabold text-slate-900 tracking-tight mb-3">
+                    No Further Assignments Possible
+                </h3>
+
+                <!-- Dynamic Status Box: e.g. 2 Halls and 2 Sessions remain unassigned. -->
+                <div class="my-4 py-3.5 px-4 bg-slate-50 border border-slate-200 rounded-2xl shadow-xs">
+                    <p class="text-base font-bold text-slate-800 tracking-tight" id="noAssignmentsModalCounts">
+                        <span id="noAssignHallsCount">2 Halls</span> and <span id="noAssignSessionsCount">2 Sessions</span> remain unassigned.
+                    </p>
+                </div>
+
+                <!-- Description: Click Staff Swap to find eligible swap candidates and complete the remaining assignments. -->
+                <p class="text-sm font-medium text-slate-600 leading-relaxed max-w-md mx-auto mb-6">
+                    Click Staff Swap to find eligible swap candidates and complete the remaining assignments.
+                </p>
+
+                <!-- Actions -->
+                <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
+                    <a href="{% url 'manual_assignment:staff_swap' %}" id="goToStaffSwapBtn" class="w-full sm:flex-1 inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-5 rounded-xl shadow-md shadow-blue-500/20 hover:shadow-blue-500/30 transition-all text-sm active:scale-[0.98]">
+                        <span>Staff Swap</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </a>
+                    <button type="button" id="closeNoAssignmentsOkBtn" class="w-full sm:flex-1 inline-flex items-center justify-center py-3 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl border border-slate-200/80 transition-all text-sm active:scale-[0.98]">
+                        OK
+                    </button>
+                </div>
             </div>
         </div>
     </div>

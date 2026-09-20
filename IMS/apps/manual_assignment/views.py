@@ -62,6 +62,7 @@ def manual_assignment(request):
     context = {
         'unassigned_staff': staff_with_availability,
         'unassigned_slots': unassigned_slots,
+        'total_unassigned_sessions': sum(s['available_sessions'] for s in staff_with_availability),
     }
     
     return render(request, 'manual_assignment/manual_assignment.html', context)
@@ -394,15 +395,21 @@ def auto_assign_staff(request):
                 staff_objects[st.staff_id] = st
 
         if not staff_objects:
-            remaining = len(unassigned_slots)
+            remaining_slots = list(unassigned_slots)
+            remaining_halls = len(remaining_slots)
+            remaining_sessions = len(set((s.date, s.session) for s in remaining_slots))
+            msg = (
+                f"No Further Assignments Possible\n\n"
+                f"{remaining_halls} Hall{'s' if remaining_halls != 1 else ''} and "
+                f"{remaining_sessions} Session{'s' if remaining_sessions != 1 else ''} remain unassigned.\n\n"
+                f"Click Staff Swap to find eligible swap candidates and complete the remaining assignments."
+            )
             return JsonResponse({
                 'success': True,
-                'message': (
-                    f'No staff with remaining capacity found. '
-                    f'{remaining} hall{"s" if remaining != 1 else ""} remain unassigned.'
-                ),
+                'message': msg,
                 'assignments_made': 0,
-                'remaining_unassigned': remaining,
+                'remaining_unassigned': remaining_halls,
+                'remaining_sessions': remaining_sessions,
             })
 
         # ── 3. Build candidate lists per slot (adjacency list) ────────────────
@@ -651,6 +658,9 @@ def auto_assign_staff(request):
             key = ', '.join(reasons) if reasons else 'unknown'
             reason_summary[key] = reason_summary.get(key, 0) + 1
 
+        remaining_halls = remaining
+        remaining_sessions = len(set((s.date, s.session) for s in remaining_slots))
+
         # ── 8. Compose response ───────────────────────────────────────────────
         if assignments_made > 0:
             msg = (
@@ -664,9 +674,10 @@ def auto_assign_staff(request):
                 )
         elif remaining > 0:
             msg = (
-                f'No assignments possible. {remaining} hall'
-                f'{"s" if remaining != 1 else ""} remain unassigned '
-                f'(constraint analysis: {reason_summary}).'
+                f"No Further Assignments Possible\n\n"
+                f"{remaining_halls} Hall{'s' if remaining_halls != 1 else ''} and "
+                f"{remaining_sessions} Session{'s' if remaining_sessions != 1 else ''} remain unassigned.\n\n"
+                f"Click Staff Swap to find eligible swap candidates and complete the remaining assignments."
             )
         else:
             msg = 'All slots already assigned.'
@@ -676,6 +687,7 @@ def auto_assign_staff(request):
             'message': msg,
             'assignments_made': assignments_made,
             'remaining_unassigned': remaining,
+            'remaining_sessions': remaining_sessions,
             'impossibility_reasons': reason_summary,
         })
 

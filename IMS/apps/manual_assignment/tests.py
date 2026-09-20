@@ -207,3 +207,57 @@ class StaffSwapTestCase(TestCase):
         self.assertIn('id="summaryStaffBName"', content)
         self.assertIn('id="summarySlot2Details"', content)
 
+    def test_manual_assignment_unallotted_staff_badge(self):
+        response = self.client.get(reverse('manual_assignment:manual_assignment'))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+
+        # Check Unallotted Staff badge contains staff and session counts
+        self.assertIn('id="staffTotalBadge"', content)
+        self.assertIn('id="staffTotal"', content)
+        self.assertIn('id="staffSessionsTotal"', content)
+        self.assertIn('Staff', content)
+        self.assertIn('Session', content)
+
+        # Check visual styling is high contrast and matches
+        self.assertIn('text-slate-800', content)
+        self.assertIn('border-slate-300', content)
+
+    def test_auto_assign_no_further_assignments_message(self):
+        # Staff A is Computer Science (cannot take Mathematics hall slot1 if parent dept or capacity rule applies)
+        # Make staff_a capacity 0 so no staff are available
+        self.staff_a.session = 0
+        self.staff_a.save()
+        self.staff_b.session = 1  # already has 1 assignment (slot2)
+        self.staff_b.save()
+
+        response = self.client.post(reverse('manual_assignment:auto_assign_staff'), HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['success'])
+        self.assertEqual(data['assignments_made'], 0)
+        self.assertGreater(data['remaining_unassigned'], 0)
+
+        expected_prefix = "No Further Assignments Possible\n\n"
+        expected_suffix = "\n\nClick Staff Swap to find eligible swap candidates and complete the remaining assignments."
+        self.assertTrue(data['message'].startswith(expected_prefix))
+        self.assertTrue(data['message'].endswith(expected_suffix))
+        self.assertIn("remain unassigned.", data['message'])
+
+    def test_manual_assignment_no_further_assignments_modal(self):
+        response = self.client.get(reverse('manual_assignment:manual_assignment'))
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+
+        # Check modal structure and elements exist
+        self.assertIn('id="noFurtherAssignmentsModal"', content)
+        self.assertIn('No Further Assignments Possible', content)
+        self.assertIn('id="noAssignHallsCount"', content)
+        self.assertIn('id="noAssignSessionsCount"', content)
+        self.assertIn('Click Staff Swap to find eligible swap candidates and complete the remaining assignments.', content)
+        self.assertIn('id="goToStaffSwapBtn"', content)
+        self.assertIn('id="closeNoAssignmentsOkBtn"', content)
+        self.assertIn('id="closeNoAssignmentsXBtn"', content)
+        self.assertIn(reverse('manual_assignment:staff_swap'), content)
+
+
