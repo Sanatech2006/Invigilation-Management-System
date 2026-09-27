@@ -38,8 +38,7 @@ SECRET_KEY = 'django-insecure-cnqsuh!3yhbq=a#8g)b6&k@_bj)s-49wh=o^!l-v#o064#9u^4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ["192.168.10.38", "localhost", "127.0.0.1"]
 
 # Application definition
 
@@ -106,10 +105,10 @@ WSGI_APPLICATION = 'IMS.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'ims'),
+        'NAME': os.environ.get('DB_NAME', 'IMS'),
         'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'), 
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'jamal@786'),
+        'HOST': os.environ.get('DB_HOST', ''), 
         'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
@@ -176,5 +175,3 @@ import sys
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
-
-
