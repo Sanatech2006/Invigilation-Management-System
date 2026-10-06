@@ -131,8 +131,8 @@ document.addEventListener("DOMContentLoaded", () => {
             visibilityToggle.checked = !pendingVisibilityState;
             
             document.getElementById("visibilityModalText").innerText = pendingVisibilityState 
-                ? "Are you sure you want to make the reports visible to HOD and Staff? Once enabled, they will be able to access the reports."
-                : "Are you sure you want to hide the reports from HOD and Staff?";
+                ? "Are you sure you want to make the schedule visible to HOD and Staff? Once enabled, they will be able to access the schedule."
+                : "Are you sure you want to hide the schedule from HOD and Staff?";
             
             visibilityModal.classList.remove("hidden");
         });

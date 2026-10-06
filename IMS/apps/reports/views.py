@@ -27,8 +27,8 @@ def reports_view(request):
             # Check GlobalSettings for access
             settings = GlobalSettings.get_settings()
             if role != 1 and not settings.display_reports_to_staff:
-                messages.error(request, "Reports are currently hidden by the administrator.")
-                return redirect('staff:dashboard')
+                messages.error(request, "Schedule is currently hidden by the administrator.")
+                return redirect('dashboard:dashboard')
             
             welcome_message = f"WELCOME, {staff_name}"
             
@@ -63,9 +63,6 @@ def hod_view(request):
 
     # Check GlobalSettings for access
     settings = GlobalSettings.get_settings()
-    if hod.role != 1 and not settings.display_reports_to_staff:
-        messages.error(request, "Reports are currently hidden by the administrator.")
-        return redirect('staff:dashboard')
 
     dept_name = hod.dept_name
 
@@ -181,6 +178,8 @@ def hod_view(request):
         'hall_details': hall_details,
         'hall_schedule': hall_schedule,
         'staff_schedule': staff_schedule,
+        'display_schedule': settings.display_reports_to_staff,
+        'display_reports_to_staff': settings.display_reports_to_staff,
     }
 
     return render(request, 'reports/hod.html', context)
