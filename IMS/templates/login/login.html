@@ -94,6 +94,8 @@
                     <p class="mt-2 font-medium text-slate-500">Access your invigilation schedule and duties.</p>
                 </div>
 
+                <div id="clientAlert" class="hidden mb-6"></div>
+
                 {% if messages %}
                 <div class="mb-6">
                     {% for message in messages %}
@@ -117,15 +119,14 @@
                             <input 
                                 autofocus type="text" id="staff_id" name="staff_id" required 
                                 placeholder="JMCMTS0000"
-                                class="block w-full pl-14 pr-5 mt-4 py-4.5 bg-slate-50 border-2 border-transparent rounded-2xl text-slate-900 text-sm font-bold placeholder:text-slate-300 placeholder:font-normal outline-none focus:bg-white focus:border-indigo-600/20 transition-all py-4"
+                                class="block w-full pl-14 pr-5 mt-4 py-4 bg-slate-50 border-2 border-transparent rounded-2xl text-slate-900 text-sm font-bold placeholder:text-slate-300 placeholder:font-normal outline-none focus:bg-white focus:border-indigo-600/20 transition-all"
                             />
                         </div>
                     </div>
 
                     <div class="space-y-2">
                         <div class="flex items-center justify-between px-1">
-                            <label for="password" class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Password</label>
-                            <a href="#" class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider">Support</a>
+                            <label for="password" class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Password</label>
                         </div>
                         <div class="relative group">
                             <div class="absolute inset-y-0 left-0 flex items-center pl-5 transition-colors pointer-events-none text-slate-400 group-focus-within:text-indigo-600">
@@ -133,16 +134,25 @@
                             </div>
                             <input 
                                 type="password" id="password" name="password" required placeholder="••••••••"
-                                class="block w-full pl-14 pr-14 py-4.5 mt-4 bg-slate-50 border-2 border-transparent rounded-2xl text-slate-900 text-sm font-bold outline-none focus:bg-white focus:border-indigo-600/20 transition-all py-4"
+                                class="block w-full pl-14 pr-14 mt-4 py-4 bg-slate-50 border-2 border-transparent rounded-2xl text-slate-900 text-sm font-bold outline-none focus:bg-white focus:border-indigo-600/20 transition-all"
                             />
-                            <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 flex items-center pr-5 transition-colors text-slate-300 hover:text-indigo-600">
+                            <button type="button" onclick="togglePassword()" aria-label="Toggle password visibility" class="absolute inset-y-0 right-0 flex items-center pr-5 transition-colors text-slate-300 hover:text-indigo-600">
                                 <i id="eyeIcon" class="text-xs fa-solid fa-eye-slash"></i>
                             </button>
                         </div>
                     </div>
 
+                    <div class="flex items-center justify-between px-1 pt-0.5">
+                        <button type="button" id="forgotPasswordBtn" onclick="openForgotPasswordModal()" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider transition-colors hover:underline">
+                            Forgot Password?
+                        </button>
+                        <button type="button" id="supportBtn" onclick="openSupportModal()" class="text-[10px] font-bold text-slate-400 hover:text-indigo-600 uppercase tracking-wider transition-colors">
+                            Support
+                        </button>
+                    </div>
+
                     <div class="pt-2">
-                        <button type="submit" class="w-full group relative flex items-center justify-center gap-3 py-4.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-[11px] uppercase tracking-[0.25em] transition-all duration-300 shadow-xl shadow-indigo-100 hover:shadow-indigo-200 py-4">
+                        <button type="submit" class="w-full group relative flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-[11px] uppercase tracking-[0.25em] transition-all duration-300 shadow-xl shadow-indigo-100 hover:shadow-indigo-200 py-4">
                             <span>Continue to System</span>
                             <i class="fa-solid fa-chevron-right text-[10px] transition-transform group-hover:translate-x-1"></i>
                         </button>
@@ -154,6 +164,183 @@
                         &copy; 2024 Jamal Mohamed College <br/> 
                         <span class="font-medium tracking-normal normal-case">Technical Support: IT Management Section</span>
                     </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forgot Password Modal -->
+        <div id="forgotPasswordModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="fpModalTitle">
+            <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 sm:p-8 overflow-hidden transform transition-all">
+                
+                <!-- Close Button -->
+                <button type="button" onclick="closeForgotPasswordModal()" aria-label="Close modal" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-xl hover:bg-slate-50">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+
+                <!-- Modal Header -->
+                <div class="mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4 shadow-sm">
+                        <i class="fa-solid fa-key text-xl"></i>
+                    </div>
+                    <h3 id="fpModalTitle" class="text-2xl font-extrabold text-slate-900 tracking-tight">Reset Password</h3>
+                    <p id="fpModalSubtitle" class="text-xs font-medium text-slate-500 mt-1">Verify your staff identity to set a new password.</p>
+                </div>
+
+                <!-- Alert Box Inside Modal -->
+                <div id="modalAlert" class="hidden mb-5"></div>
+
+                <!-- Step 1: Verification Form -->
+                <form id="fpVerifyForm" onsubmit="handleVerifySubmit(event)" class="space-y-4">
+                    <div class="space-y-1.5">
+                        <label for="fpStaffId" class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Staff ID Number</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-4 transition-colors pointer-events-none text-slate-400 group-focus-within:text-indigo-600">
+                                <i class="fa-solid fa-address-card text-sm"></i>
+                            </div>
+                            <input 
+                                type="text" id="fpStaffId" name="staff_id" required 
+                                placeholder="JMCMTS0000"
+                                class="block w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-transparent rounded-2xl text-slate-900 text-sm font-bold placeholder:text-slate-300 outline-none focus:bg-white focus:border-indigo-600/20 transition-all"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label for="fpDoj" class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Date of Joining (DOJ)</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-4 transition-colors pointer-events-none text-slate-400 group-focus-within:text-indigo-600">
+                                <i class="fa-solid fa-calendar-days text-sm"></i>
+                            </div>
+                            <input 
+                                type="date" id="fpDoj" name="date_of_joining" required 
+                                class="block w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-transparent rounded-2xl text-slate-900 text-sm font-bold placeholder:text-slate-300 outline-none focus:bg-white focus:border-indigo-600/20 transition-all"
+                            />
+                        </div>
+                        <p class="text-[11px] text-slate-400 ml-1">As registered in college staff records</p>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" id="fpVerifyBtn" class="w-full flex items-center justify-center gap-2.5 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-indigo-100 hover:shadow-indigo-200">
+                            <span>Verify Details</span>
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Step 2: Set New Password Form (Initially Hidden) -->
+                <form id="fpResetForm" onsubmit="handleResetSubmit(event)" class="hidden space-y-4">
+                    <!-- Verified Staff Badge -->
+                    <div id="fpVerifiedBadge" class="p-3 bg-indigo-50/70 border border-indigo-100 rounded-2xl flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-xs shrink-0">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">Identity Verified</p>
+                            <p id="fpVerifiedStaffText" class="text-xs font-bold text-slate-800 truncate"></p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label for="fpNewPassword" class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">New Password</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-4 transition-colors pointer-events-none text-slate-400 group-focus-within:text-indigo-600">
+                                <i class="fa-solid fa-lock text-sm"></i>
+                            </div>
+                            <input 
+                                type="password" id="fpNewPassword" name="new_password" required placeholder="••••••••"
+                                class="block w-full pl-11 pr-11 py-3 bg-slate-50 border-2 border-transparent rounded-2xl text-slate-900 text-sm font-bold placeholder:text-slate-300 outline-none focus:bg-white focus:border-indigo-600/20 transition-all"
+                            />
+                            <button type="button" onclick="toggleModalPwd('fpNewPassword', 'fpNewEyeIcon')" aria-label="Toggle password visibility" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-300 hover:text-indigo-600">
+                                <i id="fpNewEyeIcon" class="text-xs fa-solid fa-eye-slash"></i>
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-slate-400 ml-1">Must be at least 6 characters</p>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label for="fpConfirmPassword" class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Confirm New Password</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-4 transition-colors pointer-events-none text-slate-400 group-focus-within:text-indigo-600">
+                                <i class="fa-solid fa-shield-halved text-sm"></i>
+                            </div>
+                            <input 
+                                type="password" id="fpConfirmPassword" name="confirm_password" required placeholder="••••••••"
+                                class="block w-full pl-11 pr-11 py-3 bg-slate-50 border-2 border-transparent rounded-2xl text-slate-900 text-sm font-bold placeholder:text-slate-300 outline-none focus:bg-white focus:border-indigo-600/20 transition-all"
+                            />
+                            <button type="button" onclick="toggleModalPwd('fpConfirmPassword', 'fpConfirmEyeIcon')" aria-label="Toggle password visibility" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-300 hover:text-indigo-600">
+                                <i id="fpConfirmEyeIcon" class="text-xs fa-solid fa-eye-slash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 flex items-center gap-3">
+                        <button type="button" onclick="backToStep1()" class="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all">
+                            Back
+                        </button>
+                        <button type="submit" id="fpResetBtn" class="flex-1 flex items-center justify-center gap-2.5 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-indigo-100 hover:shadow-indigo-200">
+                            <span>Reset Password</span>
+                            <i class="fa-solid fa-check text-xs"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Step 3: Success Screen (Initially Hidden) -->
+                <div id="fpStep3" class="hidden text-center py-4 space-y-4">
+                    <div class="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-500 shadow-sm">
+                        <i class="fa-solid fa-circle-check text-3xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-extrabold text-slate-900">Password Reset Successful!</h4>
+                        <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">Your password has been securely updated. You can now log in with your Staff ID and new password.</p>
+                    </div>
+                    <div class="pt-2">
+                        <button type="button" onclick="closeForgotPasswordModal()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-lg shadow-indigo-100 hover:shadow-indigo-200">
+                            Proceed to Sign In
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Support Info Modal -->
+        <div id="supportModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="supportModalTitle">
+            <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 sm:p-8 overflow-hidden transform transition-all">
+                <button type="button" onclick="closeSupportModal()" aria-label="Close modal" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-xl hover:bg-slate-50">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+                <div class="mb-5">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4 shadow-sm">
+                        <i class="fa-solid fa-headset text-xl"></i>
+                    </div>
+                    <h3 id="supportModalTitle" class="text-2xl font-extrabold text-slate-900 tracking-tight">Technical Support</h3>
+                    <p class="text-xs font-medium text-slate-500 mt-1">Invigilation Management System Help Desk</p>
+                </div>
+                <div class="space-y-3 text-xs text-slate-600 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <div class="flex items-start gap-3">
+                        <i class="fa-solid fa-building-columns text-indigo-500 mt-0.5"></i>
+                        <div>
+                            <p class="font-bold text-slate-900">IT Management Section</p>
+                            <p class="text-slate-500">Jamal Mohamed College (Autonomous)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-location-dot text-indigo-500"></i>
+                        <span>Admin Block, IT Operations Wing</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-phone text-indigo-500"></i>
+                        <span>Ext: 104 / 105 (College EPABX)</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-envelope text-indigo-500"></i>
+                        <span>support@jmc.edu</span>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <button type="button" onclick="closeSupportModal()" class="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all">
+                        Close
+                    </button>
                 </div>
             </div>
         </div>
@@ -170,6 +357,252 @@
                     eye.classList.replace("fa-eye", "fa-eye-slash");
                 }
             }
+
+            function toggleModalPwd(inputId, iconId) {
+                const input = document.getElementById(inputId);
+                const eye = document.getElementById(iconId);
+                if (input.type === "password") {
+                    input.type = "text";
+                    eye.classList.replace("fa-eye-slash", "fa-eye");
+                } else {
+                    input.type = "password";
+                    eye.classList.replace("fa-eye", "fa-eye-slash");
+                }
+            }
+
+            let passwordResetCompleted = false;
+
+            function showModalAlert(message, isSuccess = false) {
+                const alert = document.getElementById('modalAlert');
+                alert.className = isSuccess 
+                    ? 'mb-5 flex items-center gap-3 p-3.5 text-xs font-bold text-emerald-800 uppercase tracking-wide border border-emerald-200 bg-emerald-50 rounded-2xl'
+                    : 'mb-5 flex items-center gap-3 p-3.5 text-xs font-bold text-red-700 uppercase tracking-wide border border-red-200 bg-red-50 rounded-2xl';
+                alert.innerHTML = `<i class="fa-solid ${isSuccess ? 'fa-circle-check text-emerald-600' : 'fa-circle-exclamation text-red-600'} text-sm shrink-0"></i> <span>${message}</span>`;
+                alert.classList.remove('hidden');
+            }
+
+            function hideModalAlert() {
+                const alert = document.getElementById('modalAlert');
+                alert.classList.add('hidden');
+                alert.innerHTML = '';
+            }
+
+            function openForgotPasswordModal() {
+                passwordResetCompleted = false;
+                hideModalAlert();
+
+                // Reset forms
+                document.getElementById('fpVerifyForm').classList.remove('hidden');
+                document.getElementById('fpResetForm').classList.add('hidden');
+                document.getElementById('fpStep3').classList.add('hidden');
+
+                document.getElementById('fpModalTitle').textContent = 'Reset Password';
+                document.getElementById('fpModalSubtitle').textContent = 'Verify your staff identity to set a new password.';
+
+                // If user entered a staff ID on the login form, prefill it
+                const loginStaffId = document.getElementById('staff_id').value.trim();
+                const fpStaffId = document.getElementById('fpStaffId');
+                const fpDoj = document.getElementById('fpDoj');
+                
+                if (loginStaffId) {
+                    fpStaffId.value = loginStaffId;
+                    setTimeout(() => fpDoj.focus(), 50);
+                } else {
+                    fpStaffId.value = '';
+                    fpDoj.value = '';
+                    setTimeout(() => fpStaffId.focus(), 50);
+                }
+
+                document.getElementById('fpNewPassword').value = '';
+                document.getElementById('fpConfirmPassword').value = '';
+
+                document.getElementById('forgotPasswordModal').classList.remove('hidden');
+            }
+
+            function closeForgotPasswordModal() {
+                document.getElementById('forgotPasswordModal').classList.add('hidden');
+                if (passwordResetCompleted) {
+                    document.getElementById('password').focus();
+                } else {
+                    document.getElementById('forgotPasswordBtn').focus();
+                }
+            }
+
+            function openSupportModal() {
+                document.getElementById('supportModal').classList.remove('hidden');
+            }
+
+            function closeSupportModal() {
+                document.getElementById('supportModal').classList.add('hidden');
+                document.getElementById('supportBtn').focus();
+            }
+
+            function backToStep1() {
+                hideModalAlert();
+                document.getElementById('fpVerifyForm').classList.remove('hidden');
+                document.getElementById('fpResetForm').classList.add('hidden');
+                document.getElementById('fpStep3').classList.add('hidden');
+                document.getElementById('fpDoj').focus();
+            }
+
+            function getCsrfToken() {
+                const el = document.querySelector('[name=csrfmiddlewaretoken]');
+                return el ? el.value : '';
+            }
+
+            async function handleVerifySubmit(e) {
+                e.preventDefault();
+                hideModalAlert();
+
+                const staffId = document.getElementById('fpStaffId').value.trim();
+                const doj = document.getElementById('fpDoj').value;
+                const btn = document.getElementById('fpVerifyBtn');
+
+                if (!staffId || !doj) {
+                    showModalAlert('Please enter both Staff ID and Date of Joining.');
+                    return;
+                }
+
+                btn.disabled = true;
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<span>Verifying Details</span> <i class="fa-solid fa-spinner animate-spin"></i>';
+
+                try {
+                    const response = await fetch("{% url 'forgot_password_verify' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCsrfToken()
+                        },
+                        body: JSON.stringify({
+                            staff_id: staffId,
+                            date_of_joining: doj
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        showModalAlert(data.message || 'Invalid Staff ID or Date of Joining.');
+                        return;
+                    }
+
+                    // Success - advance to Step 2
+                    document.getElementById('fpVerifiedStaffText').textContent = `${data.staff_id} — ${data.name}`;
+                    document.getElementById('fpVerifyForm').classList.add('hidden');
+                    document.getElementById('fpResetForm').classList.remove('hidden');
+                    document.getElementById('fpModalTitle').textContent = 'Set New Password';
+                    document.getElementById('fpModalSubtitle').textContent = 'Create a new secure password for your account.';
+                    document.getElementById('fpNewPassword').value = '';
+                    document.getElementById('fpConfirmPassword').value = '';
+                    setTimeout(() => document.getElementById('fpNewPassword').focus(), 50);
+
+                } catch (err) {
+                    showModalAlert('A network error occurred. Please try again.');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            }
+
+            async function handleResetSubmit(e) {
+                e.preventDefault();
+                hideModalAlert();
+
+                const staffId = document.getElementById('fpStaffId').value.trim();
+                const doj = document.getElementById('fpDoj').value;
+                const newPassword = document.getElementById('fpNewPassword').value;
+                const confirmPassword = document.getElementById('fpConfirmPassword').value;
+                const btn = document.getElementById('fpResetBtn');
+
+                if (!newPassword || !confirmPassword) {
+                    showModalAlert('Please fill in both password fields.');
+                    return;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    showModalAlert('New password and confirm password do not match.');
+                    return;
+                }
+
+                if (newPassword.length < 6) {
+                    showModalAlert('Password must be at least 6 characters long.');
+                    return;
+                }
+
+                btn.disabled = true;
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<span>Updating Password</span> <i class="fa-solid fa-spinner animate-spin"></i>';
+
+                try {
+                    const response = await fetch("{% url 'forgot_password_reset' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCsrfToken()
+                        },
+                        body: JSON.stringify({
+                            staff_id: staffId,
+                            date_of_joining: doj,
+                            new_password: newPassword,
+                            confirm_password: confirmPassword
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        showModalAlert(data.message || 'Unable to reset password. Please check your details.');
+                        return;
+                    }
+
+                    // Success
+                    passwordResetCompleted = true;
+                    document.getElementById('fpResetForm').classList.add('hidden');
+                    document.getElementById('fpStep3').classList.remove('hidden');
+                    document.getElementById('fpModalTitle').textContent = 'Password Updated';
+                    document.getElementById('fpModalSubtitle').textContent = 'Your credentials have been updated securely.';
+
+                    // Populate login form
+                    document.getElementById('staff_id').value = data.staff_id || staffId;
+                    document.getElementById('password').value = '';
+
+                    // Show success banner on login page
+                    const clientAlert = document.getElementById('clientAlert');
+                    clientAlert.className = 'mb-6 flex items-center gap-3 p-4 text-xs font-bold tracking-wider text-emerald-800 uppercase border border-emerald-100 bg-emerald-50 rounded-2xl';
+                    clientAlert.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i> <span>Password reset successfully! Please log in using your Staff ID and new password.</span>`;
+                    clientAlert.classList.remove('hidden');
+
+                } catch (err) {
+                    showModalAlert('A network error occurred. Please try again.');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            }
+
+            // Keyboard and Backdrop handlers
+            window.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    if (!document.getElementById('forgotPasswordModal').classList.contains('hidden')) {
+                        closeForgotPasswordModal();
+                    } else if (!document.getElementById('supportModal').classList.contains('hidden')) {
+                        closeSupportModal();
+                    }
+                }
+            });
+
+            document.getElementById('forgotPasswordModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeForgotPasswordModal();
+                }
+            });
+
+            document.getElementById('supportModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeSupportModal();
+                }
+            });
 
             document.getElementById('loginForm').onsubmit = function() {
                 const btn = this.querySelector('button[type="submit"]');
