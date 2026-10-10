@@ -9,5 +9,6 @@ def user_role(request):
         
     return {
         'user_role': request.session.get('role'),
-        'display_reports_to_staff': display_reports
+        'display_reports_to_staff': display_reports,
+        'display_schedule': display_reports
     }

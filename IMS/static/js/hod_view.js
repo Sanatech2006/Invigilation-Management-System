@@ -1,23 +1,24 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Hide all tables at start (should already be hidden via 'hidden' class)
-  // Show instructions at start
-  document.getElementById('reportInstructions').style.display = '';
-
   // Tab buttons
   const tabs = document.querySelectorAll('.tab-btn');
   const containers = document.querySelectorAll('.table-container');
   const instructions = document.getElementById('reportInstructions');
+  if (instructions) instructions.style.display = '';
 
   tabs.forEach(tab => {
     tab.addEventListener('click', function() {
       const targetId = tab.dataset.target;
+      const targetEl = document.getElementById(targetId);
 
-      // Hide all tables
-      containers.forEach(c => c.classList.add('hidden'));
-      // Hide instructions
-      instructions.style.display = 'none';
-      // Show only selected table container
-      document.getElementById(targetId).classList.remove('hidden');
+      if (targetEl) {
+        // Hide all tables
+        containers.forEach(c => c.classList.add('hidden'));
+        // Hide instructions
+        if (instructions) instructions.style.display = 'none';
+        // Show only selected table container
+        targetEl.classList.remove('hidden');
+      }
     });
   });
 });

@@ -173,8 +173,10 @@
                 <button data-target="instructions" class="tab-btn px-4 py-2 rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 transition-all active-tab">Instructions</button>
                 <button data-target="staffDetails" class="tab-btn px-4 py-2 rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 transition-all">Staff Details</button>
                 <button data-target="hallDetails" class="tab-btn px-4 py-2 rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 transition-all">Hall Details</button>
+                {% if display_reports_to_staff %}
                 <button data-target="staffSchedule" class="tab-btn px-4 py-2 rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 transition-all">Staff Schedule</button>
                 <button data-target="hallSchedule" class="tab-btn px-4 py-2 rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 transition-all">Hall Schedule</button>
+                {% endif %}
             </div>
             <div id="activeTabDisplay" class="hidden md:block px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-widest rounded border border-indigo-100">
                 Instructions
@@ -212,6 +214,7 @@
                         <p class="text-[13px] text-slate-500 leading-relaxed">List of halls designated for CIA tests, including seating capacity and locations.</p>
                     </div>
 
+                    {% if display_reports_to_staff %}
                     <div class="group bg-white p-5 rounded-2xl border border-slate-200 shadow-sm transition-all hover:shadow-md hover:border-blue-200">
                         <div class="flex items-center gap-3 mb-3">
                             <div class="w-10 h-10 flex items-center justify-center bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
@@ -231,10 +234,12 @@
                         </div>
                         <p class="text-[13px] text-slate-500 leading-relaxed">Check which staff members are allotted to specifically monitor your assigned halls.</p>
                     </div>
+                    {% endif %}
 
                 </div>
             </div>
 
+            {% if display_reports_to_staff %}
             <div id="staffSchedule" class="table-container hidden">
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
@@ -271,6 +276,7 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
 
             <div id="staffDetails" class="table-container hidden">
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -332,6 +338,7 @@
                 </div>
             </div>
 
+            {% if display_reports_to_staff %}
             <div id="hallSchedule" class="table-container hidden">
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
@@ -366,6 +373,7 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
             
         </main>
     </div>

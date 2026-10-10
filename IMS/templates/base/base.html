@@ -250,13 +250,13 @@
                             <i class="w-5 text-center fas fa-calendar-alt text-xs"></i>
                             <span>My Schedule</span>
                         </a>
+                        {% endif %}
 
                         <a href="{{ reports_url }}"
                         class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == reports_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
                             <i class="w-5 text-center fas fa-chart-bar text-xs"></i>
                             <span>Reports</span>
                         </a>
-                        {% endif %}
                     {% endif %}
  
                     <!---------------------------------- Staff Menu  ------------------------------------------->
@@ -265,6 +265,7 @@
 
                         {% url 'dashboard:dashboard' as dashboard_url %}
                         {% url 'reports:reports' as my_schedule_url %}
+                        {% url 'reports:hod_reports' as reports_url %}
 
                         <a href="{{ dashboard_url }}"
                         class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == dashboard_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
@@ -279,6 +280,12 @@
                             <span>My Schedule</span>
                         </a>
                         {% endif %}
+
+                        <a href="{{ reports_url }}"
+                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == reports_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <i class="w-5 text-center fas fa-chart-bar text-xs"></i>
+                            <span>Reports</span>
+                        </a>
                     {% endif %}
 
                 </nav>
