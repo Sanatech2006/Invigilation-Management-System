@@ -240,19 +240,19 @@ class StaffAvailabilityView(View):
         if not my_s1_assigned and not my_s2_assigned:
             available_session_options.append({
                 'value': 'BOTH SESSIONS',
-                'label': 'BOTH SESSIONS (Priority 1)',
+                'label': 'BOTH SESSIONS',
             })
 
         if not my_s1_assigned:
             available_session_options.append({
                 'value': 'SESSION 1',
-                'label': 'SESSION 1 (Priority 2)',
+                'label': 'SESSION 1',
             })
 
         if not my_s2_assigned:
             available_session_options.append({
                 'value': 'SESSION 2',
-                'label': 'SESSION 2 (Priority 2)',
+                'label': 'SESSION 2',
             })
 
         allowed_session_values = [opt['value'] for opt in available_session_options]

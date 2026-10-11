@@ -825,3 +825,42 @@ class StaffAvailabilityCheckerTests(TestCase):
         self.assertIn('Assigned Invigilation Duties', dash_content)
         self.assertIn(self.date1.strftime('%d %b %Y'), dash_content)
         self.assertIn('LH-101', dash_content)
+
+    def test_session_dropdown_displays_only_three_values(self):
+        """
+        Verify that Staff Availability (By Session) dropdown displays only:
+        BOTH SESSIONS, SESSION 1, SESSION 2, and removes Priority 1, Option 1, etc.
+        """
+        self._login_as_staff()
+
+        # Date 2 is selected date; logged_staff has NO duties on date2 -> all 3 options available
+        resp = self.client.get(
+            reverse('staff_availability'),
+            {
+                'selected_date': self.date2_str,
+                'comparison_date': self.date1_str,
+            }
+        )
+        self.assertEqual(resp.status_code, 200)
+        content = resp.content.decode('utf-8')
+
+        # Check label is "Staff Availability (By Session)"
+        self.assertIn('Staff Availability (By Session)', content)
+
+        # Extract options inside select id="sessionFilter"
+        import re
+        select_match = re.search(r'<select[^>]*id="sessionFilter"[^>]*>(.*?)</select>', content, re.DOTALL)
+        self.assertIsNotNone(select_match)
+        select_html = select_match.group(1)
+
+        options = re.findall(r'<option[^>]*>(.*?)</option>', select_html, re.DOTALL)
+        cleaned_options = [re.sub(r'\s+', ' ', opt).strip() for opt in options if opt.strip()]
+
+        # The dropdown should contain only these three values: BOTH SESSIONS, SESSION 1, SESSION 2
+        self.assertEqual(cleaned_options, ['BOTH SESSIONS', 'SESSION 1', 'SESSION 2'])
+
+        # Options must not contain "Priority 1", "Priority 2", "Option 1", or "All Available"
+        self.assertNotIn('Priority 1', select_html)
+        self.assertNotIn('Priority 2', select_html)
+        self.assertNotIn('Option 1', select_html)
+        self.assertNotIn('All Available', select_html)
