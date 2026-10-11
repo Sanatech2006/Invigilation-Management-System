@@ -20,30 +20,39 @@ from django.db.models.functions import Coalesce
 from django.views.decorators.http import require_GET
 from django.db.models.functions import Cast
 
+from apps.exam_dates.models import ExamDate
+from apps.exam_dates.utils import sync_invigilation_schedule_dates
+
 def view_schedule(request):
     print("\n===== VIEW SCHEDULE REQUEST =====")  # Debug
     print(f"Request method: {request.method}")  # Debug
     
-    # Initialize context with all required data
+    # Synchronize schedule with current exam dates table
+    sync_invigilation_schedule_dates()
+    current_dates = list(ExamDate.objects.order_by('date').values_list('date', flat=True))
+    
+    # Initialize context with data only for currently available exam dates
     context = {
-    'schedules': InvigilationSchedule.objects.all().order_by(
-        'dept_category', 'date',  'hall_department', 'hall_no'
-    ),
-    'dates': InvigilationSchedule.objects.dates('date', 'day').distinct(),
-    'sessions': InvigilationSchedule.objects.values_list('session', flat=True).distinct(),
-    'hall_numbers': InvigilationSchedule.objects.values_list('hall_no', flat=True).distinct(),
-    'staff_names': InvigilationSchedule.objects.exclude(name__isnull=True)
-                                               .exclude(name__exact='')
-                                               .values_list('name', flat=True)
-                                               .distinct(),
+        'schedules': InvigilationSchedule.objects.filter(
+            date__in=current_dates
+        ).order_by(
+            'dept_category', 'date',  'hall_department', 'hall_no'
+        ),
+        'dates': [d.strftime('%b. %d, %Y') for d in current_dates],
+        'sessions': InvigilationSchedule.objects.filter(date__in=current_dates).values_list('session', flat=True).distinct(),
+        'hall_numbers': InvigilationSchedule.objects.filter(date__in=current_dates).values_list('hall_no', flat=True).distinct(),
+        'staff_names': InvigilationSchedule.objects.filter(date__in=current_dates).exclude(name__isnull=True)
+                                                   .exclude(name__exact='')
+                                                   .values_list('name', flat=True)
+                                                   .distinct(),
 
-    # Additional fields
-    'hall_dept_categories': InvigilationSchedule.objects.values_list('hall_dept_category', flat=True).distinct(),
-    'designations': InvigilationSchedule.objects.values_list('designation', flat=True).distinct(),
-    'staff_categories': InvigilationSchedule.objects.values_list('staff_category', flat=True).distinct(),
-    'dept_categories': InvigilationSchedule.objects.values_list('dept_category', flat=True).distinct(),
-    'double_sessions': InvigilationSchedule.objects.values_list('double_session', flat=True).distinct(),
-}
+        # Additional fields
+        'hall_dept_categories': InvigilationSchedule.objects.filter(date__in=current_dates).values_list('hall_dept_category', flat=True).distinct(),
+        'designations': InvigilationSchedule.objects.filter(date__in=current_dates).values_list('designation', flat=True).distinct(),
+        'staff_categories': InvigilationSchedule.objects.filter(date__in=current_dates).values_list('staff_category', flat=True).distinct(),
+        'dept_categories': InvigilationSchedule.objects.filter(date__in=current_dates).values_list('dept_category', flat=True).distinct(),
+        'double_sessions': InvigilationSchedule.objects.filter(date__in=current_dates).values_list('double_session', flat=True).distinct(),
+    }
     
     return render(request, 'view_schedule/view_schedule.html', context)
 
@@ -62,8 +71,10 @@ def download_schedule_excel(request):
     ]
     ws.append(headers)
 
-    # Get all data
-    schedules = InvigilationSchedule.objects.all()
+    # Get data for current exam dates only
+    sync_invigilation_schedule_dates()
+    current_dates = ExamDate.objects.values_list('date', flat=True)
+    schedules = InvigilationSchedule.objects.filter(date__in=current_dates).order_by('date', 'hall_no', 'session')
     for schedule in schedules:
         row = [
             schedule.serial_number,
@@ -97,7 +108,8 @@ def filter_schedule(request):
     staff_id = request.GET.get('staff_id')
     dept_category = request.GET.get('dept_category')
 
-    filters = Q()
+    current_dates = ExamDate.objects.values_list('date', flat=True)
+    filters = Q(date__in=current_dates)
     if date:
         filters &= Q(date=date)
     if hall_department:
@@ -305,16 +317,12 @@ def staff_edit_session(request):
 
 
 def filter_options(request):
-    # Dates (DateField → already date-only)
-    dates_qs = (InvigilationSchedule.objects
-                .exclude(date__isnull=True)
-                .values_list('date', flat=True)
-                .distinct()
-                .order_by('date'))
-    dates = [d.strftime('%Y-%m-%d') for d in dates_qs]
+    current_dates = ExamDate.objects.order_by('date').values_list('date', flat=True)
+    dates = [d.strftime('%Y-%m-%d') for d in current_dates]
 
     # Department Category (trim + case-fold to avoid dupes like "AIDED" vs "aided")
     dept_cat_qs = (InvigilationSchedule.objects
+                   .filter(date__in=current_dates)
                    .exclude(dept_category__isnull=True)
                    .exclude(dept_category='')
                    .annotate(v=Lower(Trim('dept_category')))
@@ -325,6 +333,7 @@ def filter_options(request):
 
     # Hall Department (trim + case-fold)
     hall_dept_qs = (InvigilationSchedule.objects
+                    .filter(date__in=current_dates)
                     .exclude(hall_department__isnull=True)
                     .exclude(hall_department='')
                     .annotate(v=Lower(Trim('hall_department')))

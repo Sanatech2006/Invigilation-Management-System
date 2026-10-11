@@ -273,11 +273,11 @@ def export_schedule_excel(request):
     return response
 
 def generate_session(request):
-    InvigilationSchedule.objects.all().delete()
     if request.method == "POST":
+        InvigilationSchedule.objects.all().delete()
         print("this is the route")
         halls = Room.objects.all().values() 
-        dates=ExamDate.objects.all()
+        dates=ExamDate.objects.all().order_by('date')
         print("dates",dates)
 
         # Assuming you already have dates and halls loaded
@@ -443,7 +443,10 @@ def assign_staff(request):
 
     # 🚀 Begin assignment loop
     for staff in eligible_staff:
-        current_assignments = InvigilationSchedule.objects.filter(staff_id=staff.staff_id).count()
+        current_assignments = InvigilationSchedule.objects.filter(
+            staff_id=staff.staff_id,
+            date__in=[d.date for d in exam_dates]
+        ).count()
         remaining_assignments = staff.session - current_assignments
         if remaining_assignments <= 0:
             continue

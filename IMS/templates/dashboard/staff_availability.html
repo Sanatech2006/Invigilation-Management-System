@@ -1,0 +1,755 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Check Staff Availability{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Header Section -->
+    <div class="flex flex-col gap-4 pb-6 border-b md:flex-row md:items-center md:justify-between border-slate-200">
+        <div>
+            <div class="flex flex-wrap items-center gap-2 mb-1">
+                <span class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
+                    Staff Portal
+                </span>
+                <span class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-md bg-slate-100 text-slate-700 border border-slate-200 flex items-center gap-1">
+                    <i class="fas fa-lock text-[9px] text-slate-500"></i> Read-Only View
+                </span>
+                {% if logged_in_dept_category %}
+                <span class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-md bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1">
+                    <i class="fas fa-layer-group text-[9px] text-purple-500"></i> {{ logged_in_dept_category }} Category
+                </span>
+                {% endif %}
+            </div>
+            <h1 class="text-3xl font-black tracking-tight text-slate-900">Check Staff Availability</h1>
+            <p class="mt-1 text-sm font-medium text-slate-500">
+                Identify invigilation staff available on a selected examination date who hold an existing duty on the comparison date.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a href="{% url 'dashboard:dashboard' %}" 
+               class="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition shadow-sm">
+                <i class="fas fa-arrow-left text-[10px]"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Enhanced Assigned Invigilation Duties Box (Clean, Bright, High Contrast) -->
+    <div class="relative overflow-hidden bg-white rounded-2xl border-2 border-indigo-200/90 shadow-md shadow-indigo-100/50">
+        <!-- Vibrant Top Accent Bar -->
+        <div class="h-1.5 w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+
+        <!-- Box Header -->
+        <div class="p-6 bg-gradient-to-b from-indigo-50/40 to-white flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-indigo-100/70">
+            <div class="flex items-center gap-4">
+                <div class="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-800 text-white shadow-md shadow-indigo-300/50">
+                    <i class="fas fa-calendar-check text-xl"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-black tracking-tight text-slate-900">Your Assigned Invigilation Duties</h2>
+                        {% if my_duties %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 text-xs font-black rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            {{ my_duties|length }} Active Duty{{ my_duties|length|pluralize }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <p class="text-xs font-medium text-slate-500 mt-0.5">
+                        {% if logged_in_staff %}
+                        Logged in as <strong class="text-slate-800 font-bold">{{ logged_in_staff.name }}</strong> ({{ logged_in_staff.staff_id }}) &bull; Department: {{ logged_in_staff.dept_name|default:logged_in_dept_category }}
+                        {% else %}
+                        Review your assigned duty schedule across active examination dates.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            {% if logged_in_dept_category %}
+            <div class="flex items-center gap-2">
+                <div class="px-3.5 py-1.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-bold flex items-center gap-2 shadow-2xs">
+                    <i class="fas fa-shield-halved text-indigo-600"></i>
+                    <span>Category: <span class="font-black text-indigo-700">{{ logged_in_dept_category }}</span></span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Box Body: Duty Cards Grid or Empty Notice -->
+        <div class="p-6 bg-slate-50/50">
+            {% if my_duties %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {% for duty in my_duties %}
+                <div class="bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-indigo-300 transition-all duration-200 flex flex-col justify-between gap-3">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 font-black text-xs flex items-center justify-center border border-indigo-100 shadow-2xs">
+                                {{ forloop.counter }}
+                            </span>
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Exam Date</span>
+                                <h4 class="text-sm font-extrabold text-slate-900 leading-tight">{{ duty.date|date:"d M Y" }}</h4>
+                            </div>
+                        </div>
+                        <span class="px-2 py-0.5 text-[11px] font-black rounded-md bg-slate-100 text-slate-600 border border-slate-200">
+                            {{ duty.date|date:"D" }}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+                        <div class="p-2 rounded-lg {% if duty.session == '1' or duty.session == 1 %}bg-amber-50/80 border border-amber-200/80 text-amber-900{% else %}bg-indigo-50/80 border border-indigo-200/80 text-indigo-900{% endif %}">
+                            <span class="text-[9px] font-extrabold uppercase tracking-wider block opacity-75">Session</span>
+                            <span class="text-xs font-black flex items-center gap-1.5 mt-0.5">
+                                {% if duty.session == '1' or duty.session == 1 %}
+                                <i class="fas fa-sun text-amber-500 text-[11px]"></i> Session 1 (FN)
+                                {% else %}
+                                <i class="fas fa-moon text-indigo-500 text-[11px]"></i> Session 2 (AN)
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="p-2 rounded-lg bg-purple-50/80 border border-purple-200/80 text-purple-900">
+                            <span class="text-[9px] font-extrabold uppercase tracking-wider block opacity-75">Hall Assigned</span>
+                            <span class="text-xs font-black flex items-center gap-1 mt-0.5">
+                                <i class="fas fa-door-open text-purple-500 text-[11px]"></i> {{ duty.hall_no }}
+                            </span>
+                        </div>
+                    </div>
+
+                    {% if duty.hall_department %}
+                    <div class="text-[11px] font-medium text-slate-500 flex items-center gap-1.5 truncate pt-1 border-t border-slate-100/70">
+                        <i class="fas fa-building text-slate-400 text-[10px]"></i>
+                        <span class="truncate">{{ duty.hall_department }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="p-8 text-center bg-white rounded-xl border border-dashed border-slate-200 flex flex-col items-center justify-center">
+                <div class="w-12 h-12 mb-3 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center">
+                    <i class="fas fa-calendar-xmark text-lg"></i>
+                </div>
+                <h4 class="text-sm font-bold text-slate-800">No Invigilation Duties Assigned</h4>
+                <p class="text-xs text-slate-500 mt-1 max-w-md">
+                    You currently have no invigilation duties assigned for the active examination dates.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Date Selection & Filters Card -->
+    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6">
+        {% if logged_in_dept_category %}
+        <div class="p-3 bg-purple-50/60 rounded-xl border border-purple-100 flex items-center justify-between text-xs text-purple-900">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-circle-info text-purple-600"></i>
+                <span>Showing staff members belonging strictly to your Department Category: <strong class="font-black text-purple-800">{{ logged_in_dept_category }}</strong>.</span>
+            </div>
+            <span class="text-[11px] font-bold text-purple-600 uppercase tracking-wider">Category Restriction Enforced</span>
+        </div>
+        {% endif %}
+
+        <form method="get" id="availabilityForm" class="space-y-6">
+            <!-- Retain page_size across filter submits -->
+            <input type="hidden" name="page_size" value="{{ page_size }}" />
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                
+                <!-- 1. Selected Exam Date (Date to check availability on) -->
+                <div>
+                    <label for="selectedDate" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                        <i class="fas fa-calendar-day text-indigo-500 mr-1.5"></i>
+                        Release Date
+                    </label>
+                    <select id="selectedDate" name="selected_date" onchange="handleDateChange(this.value)"
+                            class="w-full px-3.5 py-2.5 text-sm font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition cursor-pointer">
+                        {% for d in exam_dates %}
+                        {% with d_str=d.date|date:"Y-m-d" %}
+                        <option value="{{ d_str }}" {% if selected_date == d_str %}selected{% endif %}>
+                            {{ d.date|date:"d M Y" }} ({{ d.date|date:"D" }})
+                        </option>
+                        {% endwith %}
+                        {% empty %}
+                        <option value="">No exam dates found</option>
+                        {% endfor %}
+                    </select>
+                    <p class="mt-1.5 text-[11px] text-slate-400">Date on which staff must be free.</p>
+                </div>
+
+                <!-- 2. Comparison Date (Date with existing duty) -->
+                <div>
+                    <label for="comparisonDate" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                        <i class="fas fa-clock-rotate-left text-purple-500 mr-1.5"></i>
+                        Compensation Date 
+                    </label>
+                    <select id="comparisonDate" name="comparison_date" onchange="this.form.submit()"
+                            class="w-full px-3.5 py-2.5 text-sm font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition cursor-pointer">
+                        {% for d in exam_dates %}
+                        {% with d_str=d.date|date:"Y-m-d" %}
+                        <option value="{{ d_str }}" {% if comparison_date == d_str %}selected{% endif %}>
+                            {{ d.date|date:"d M Y" }} ({{ d.date|date:"D" }})
+                            {% if d_str in my_duty_date_strs %}&bull; (Your Duty){% endif %}
+                        </option>
+                        {% endwith %}
+                        {% empty %}
+                        <option value="">No exam dates found</option>
+                        {% endfor %}
+                    </select>
+                    <p class="mt-1.5 text-[11px] text-slate-400">Date on which staff has an existing duty.</p>
+                </div>
+
+                <!-- 3. Department Filter (Strictly restricted to staff's own dept category) -->
+                <div>
+                    <label for="deptFilter" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                        <i class="fas fa-building text-slate-500 mr-1.5"></i>
+                        Department Filter
+                    </label>
+                    <select id="deptFilter" name="department" onchange="this.form.submit()"
+                            class="w-full px-3.5 py-2.5 text-sm font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition cursor-pointer">
+                        <option value="">All Departments</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept }}" {% if dept_filter == dept %}selected{% endif %}>
+                            {{ dept }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <p class="mt-1.5 text-[11px] text-slate-400">
+                        {% if logged_in_dept_category %}{{ logged_in_dept_category }} departments only{% else %}Filter by department{% endif %}
+                    </p>
+                </div>
+
+                <!-- 4. Session Availability Filter (Dynamically calculated based on logged-in staff's schedule on selected date) -->
+                <div>
+                    <label for="sessionFilter" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                        <i class="fas fa-filter text-slate-500 mr-1.5"></i>
+                        Session Availability
+                    </label>
+                    <select id="sessionFilter" name="session_availability" onchange="this.form.submit()"
+                            class="w-full px-3.5 py-2.5 text-sm font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition cursor-pointer"
+                            {% if not available_session_options %}disabled{% endif %}>
+                        {% if available_session_options %}
+                            <option value="">All Available ({{ available_session_options|length }} option{{ available_session_options|length|pluralize }})</option>
+                            {% for opt in available_session_options %}
+                            <option value="{{ opt.value }}" {% if session_filter == opt.value %}selected{% endif %}>
+                                {{ opt.label }}
+                            </option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="" disabled selected>No Sessions Available (Assigned to Both Sessions)</option>
+                        {% endif %}
+                    </select>
+                    <p class="mt-1.5 text-[11px] text-slate-400" id="sessionFilterHelpText">
+                        {% if my_s1_assigned and my_s2_assigned %}
+                            <span class="text-rose-500 font-semibold">You are assigned to both sessions on {{ selected_date }}.</span>
+                        {% elif my_s1_assigned %}
+                            <span class="text-amber-600 font-semibold">Assigned to Session 1; only Session 2 options shown.</span>
+                        {% elif my_s2_assigned %}
+                            <span class="text-amber-600 font-semibold">Assigned to Session 2; only Session 1 options shown.</span>
+                        {% else %}
+                            Dynamically adjusted to your duty schedule.
+                        {% endif %}
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Filter Controls and Quick Search -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-slate-100">
+                <div class="relative flex-1 max-w-md">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                        <i class="fas fa-magnifying-glass text-xs"></i>
+                    </span>
+                    <input type="text" id="staffSearchInput" placeholder="Quick search by Name, Staff ID, or Department..."
+                           class="w-full pl-9 pr-4 py-2 text-xs font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition" />
+                </div>
+
+                <div class="flex items-center gap-2">
+                    {% if dept_filter or session_filter %}
+                    <a href="{% url 'staff_availability' %}?selected_date={{ selected_date }}&comparison_date={{ comparison_date }}&page_size={{ page_size }}" 
+                       class="px-3.5 py-2 text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 rounded-xl hover:bg-rose-100 transition flex items-center gap-1.5">
+                        <i class="fas fa-times text-[10px]"></i> Clear Filters
+                    </a>
+                    {% endif %}
+                    
+                    <button type="submit" 
+                            class="px-4 py-2 text-xs font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition shadow-sm shadow-indigo-200 flex items-center gap-1.5">
+                        <i class="fas fa-rotate text-[10px]"></i> Refresh Table
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Priority & Metric Overview Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs flex items-center gap-4">
+            <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-slate-100 text-slate-700">
+                <i class="fas fa-users text-lg"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Available Staff</p>
+                <h3 class="text-2xl font-black text-slate-800" id="statTotal">{{ total_available }}</h3>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-2xs flex items-center gap-4">
+            <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600">
+                <i class="fas fa-check-double text-lg"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Both Sessions (Priority 1)</p>
+                <h3 class="text-2xl font-black text-emerald-700" id="statBoth">{{ count_both_sessions }}</h3>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-indigo-100 shadow-2xs flex items-center gap-4">
+            <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600">
+                <i class="fas fa-sun text-lg"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-indigo-700">Session 1 (Priority 2)</p>
+                <h3 class="text-2xl font-black text-indigo-700" id="statS1">{{ count_session_1 }}</h3>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-amber-100 shadow-2xs flex items-center gap-4">
+            <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-amber-50 text-amber-600">
+                <i class="fas fa-moon text-lg"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-amber-700">Session 2 (Priority 2)</p>
+                <h3 class="text-2xl font-black text-amber-700" id="statS2">{{ count_session_2 }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Availability Display Table Card with Horizontal & Vertical Pagination -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        
+        <!-- Table Card Header & Horizontal Pagination Controls -->
+        <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/70 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+                <div class="flex items-center gap-2">
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-800">
+                        Staff Availability Results
+                    </h2>
+                    <span class="px-2 py-0.5 text-[10px] font-extrabold rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
+                        {{ total_available }} Total Matched
+                    </span>
+                </div>
+                <p class="text-xs text-slate-500 mt-0.5">
+                    Showing staff holding duties on <span class="font-bold text-slate-700">{{ comparison_date }}</span> who are free on <span class="font-bold text-slate-700">{{ selected_date }}</span>.
+                </p>
+            </div>
+
+            <!-- Horizontal Pagination / Column Navigation Bar -->
+            <div class="flex items-center gap-2">
+                <span class="text-[11px] font-semibold text-slate-400 hidden sm:inline-block">
+                    <i class="fas fa-columns text-slate-400 mr-1"></i> 9 Columns
+                </span>
+                <div class="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
+                    <button type="button" id="scrollLeftBtn" title="Scroll columns left"
+                            class="px-2.5 py-1 text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition disabled:opacity-40 flex items-center gap-1">
+                        <i class="fas fa-chevron-left text-[10px]"></i>
+                        <span class="hidden sm:inline">Left</span>
+                    </button>
+                    <span class="w-px h-3.5 bg-slate-200"></span>
+                    <button type="button" id="scrollRightBtn" title="Scroll columns right"
+                            class="px-2.5 py-1 text-xs font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition disabled:opacity-40 flex items-center gap-1">
+                        <span class="hidden sm:inline">Right</span>
+                        <i class="fas fa-chevron-right text-[10px]"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scrollable Table Wrapper (Horizontal Pagination) -->
+        <div class="overflow-x-auto scroll-smooth relative" id="tableScrollContainer" style="scrollbar-width: thin;">
+            <table class="min-w-full divide-y divide-slate-200 text-left" id="availabilityTable">
+                <thead class="bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-600">
+                    <tr>
+                        <th scope="col" class="px-4 py-3.5 text-center w-12 text-slate-400 font-semibold">
+                            #
+                        </th>
+                        <!-- Sticky Staff ID Column for Horizontal Context -->
+                        <th scope="col" class="sticky left-0 bg-slate-50 z-10 px-5 py-3.5 border-r border-slate-200/80 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] text-slate-700">
+                            Staff ID
+                        </th>
+                        <th scope="col" class="px-5 py-3.5 text-slate-700">
+                            Name
+                        </th>
+                        <th scope="col" class="px-5 py-3.5 text-slate-700">
+                            Designation
+                        </th>
+                        <th scope="col" class="px-5 py-3.5 text-slate-700">
+                            Category
+                        </th>
+                        <th scope="col" class="px-5 py-3.5 text-slate-700">
+                            Department
+                        </th>
+                        <th scope="col" class="px-5 py-3.5 text-slate-700">
+                            Mobile Number
+                        </th>
+                        <th scope="col" class="px-5 py-3.5 text-slate-700">
+                            Compensation Duty
+                        </th>
+                        <th scope="col" class="px-6 py-3.5 text-center text-slate-700">
+                            STAFF AVAILABLE
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-slate-100" id="availabilityTableBody">
+                    {% for item in page_obj %}
+                    <tr class="hover:bg-indigo-50/30 transition-colors duration-150 staff-row"
+                        data-search="{{ item.staff_id|lower }} {{ item.name|lower }} {{ item.department|lower }} {{ item.designation|lower }}"
+                        data-priority="{{ item.priority }}"
+                        data-availability="{{ item.availability }}">
+                        
+                        <!-- Row Counter -->
+                        <td class="px-4 py-4 text-xs font-mono text-center text-slate-400">
+                            {{ forloop.counter0|add:page_obj.start_index }}
+                        </td>
+
+                        <!-- Sticky Staff ID -->
+                        <td class="sticky left-0 bg-white z-10 px-5 py-4 whitespace-nowrap text-sm font-mono font-bold text-indigo-700 border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                            {{ item.staff_id }}
+                        </td>
+
+                        <!-- Name & Priority Pill -->
+                        <td class="px-5 py-4 whitespace-nowrap text-sm font-semibold text-slate-900">
+                            <div class="flex items-center gap-2">
+                                <span>{{ item.name }}</span>
+                                {% if item.priority == 1 %}
+                                <span class="px-1.5 py-0.5 text-[9px] font-black uppercase rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                    P1
+                                </span>
+                                {% else %}
+                                <span class="px-1.5 py-0.5 text-[9px] font-black rounded bg-slate-100 text-slate-600 border border-slate-200">
+                                    P2
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <!-- Designation -->
+                        <td class="px-5 py-4 whitespace-nowrap text-xs text-slate-600">
+                            {{ item.designation|default:"-" }}
+                        </td>
+
+                        <!-- Department Category -->
+                        <td class="px-5 py-4 whitespace-nowrap text-xs">
+                            <span class="px-2 py-0.5 font-bold rounded-md bg-purple-50 text-purple-700 border border-purple-200">
+                                {{ item.dept_category }}
+                            </span>
+                        </td>
+
+                        <!-- Department -->
+                        <td class="px-5 py-4 whitespace-nowrap text-sm text-slate-600 font-medium">
+                            {{ item.department }}
+                        </td>
+
+                        <!-- Mobile Number -->
+                        <td class="px-5 py-4 whitespace-nowrap text-sm font-mono text-slate-600">
+                            {% if item.mobile and item.mobile != '-' %}
+                            <a href="tel:{{ item.mobile }}" class="hover:text-indigo-600 hover:underline inline-flex items-center gap-1.5">
+                                <i class="fas fa-phone text-[10px] text-slate-400"></i>
+                                <span>{{ item.mobile }}</span>
+                            </a>
+                            {% else %}
+                            <span class="text-slate-400">-</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Duty on Comparison Date -->
+                        <td class="px-5 py-4 whitespace-nowrap text-xs text-slate-600 font-medium">
+                            <span class="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-slate-700">
+                                <i class="fas fa-calendar-day text-[10px] text-slate-400 mr-1"></i>
+                                {{ item.comp_duty|default:"Assigned" }}
+                            </span>
+                        </td>
+
+                        <!-- STAFF AVAILABLE -->
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                            {% if item.availability == 'BOTH SESSIONS' %}
+                            <span class="inline-flex items-center px-3 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
+                                <i class="fas fa-circle-check text-[10px] mr-1.5 text-emerald-600"></i>
+                                BOTH SESSIONS
+                            </span>
+                            {% elif item.availability == 'SESSION 1' %}
+                            <span class="inline-flex items-center px-3 py-1 text-xs font-bold rounded-full bg-indigo-100 text-indigo-800 border border-indigo-300 shadow-2xs">
+                                <i class="fas fa-sun text-[10px] mr-1.5 text-indigo-600"></i>
+                                SESSION 1
+                            </span>
+                            {% elif item.availability == 'SESSION 2' %}
+                            <span class="inline-flex items-center px-3 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs">
+                                <i class="fas fa-moon text-[10px] mr-1.5 text-amber-600"></i>
+                                SESSION 2
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-600">
+                                {{ item.availability }}
+                            </span>
+                            {% endif %}
+                        </td>
+
+                    </tr>
+                    {% empty %}
+                    <tr id="noDataRow">
+                        <td colspan="9" class="px-6 py-16 text-center">
+                            <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
+                                <div class="w-14 h-14 mb-4 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
+                                    <i class="fas fa-user-slash text-xl"></i>
+                                </div>
+                                <h3 class="text-base font-bold text-slate-800">No Available Staff Found</h3>
+                                <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                                    No staff members holding duties on {{ comparison_date }} are free on {{ selected_date }} matching your current filter selections.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table Footer: Vertical Pagination Controls & Rows Counter -->
+        <div class="px-6 py-4 bg-slate-50/70 border-t border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs text-slate-600">
+            
+            <div class="flex flex-wrap items-center gap-4">
+                <div>
+                    {% if total_available > 0 %}
+                    Showing <span class="font-bold text-slate-800">{{ page_obj.start_index }}</span> to 
+                    <span class="font-bold text-slate-800">{{ page_obj.end_index }}</span> of 
+                    <span class="font-bold text-slate-800">{{ total_available }}</span> staff member(s)
+                    {% else %}
+                    Showing 0 staff members
+                    {% endif %}
+                </div>
+
+                <!-- Page Size Selector -->
+                <div class="flex items-center gap-2">
+                    <label for="pageSizeSelect" class="text-xs text-slate-500">Per page:</label>
+                    <select id="pageSizeSelect" onchange="changePageSize(this.value)"
+                            class="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                        <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+                        <option value="15" {% if page_size == 15 %}selected{% endif %}>15</option>
+                        <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
+                        <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Vertical Pagination Navigation Links -->
+            {% if paginator.num_pages > 1 %}
+            <nav class="flex items-center gap-1.5 justify-center" aria-label="Staff Availability Pagination">
+                <!-- First Page -->
+                {% if page_obj.has_previous %}
+                <a href="?{{ pagination_query_string }}{% if pagination_query_string %}&{% endif %}page=1"
+                   class="px-2.5 py-1 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+                   title="First Page">
+                    <i class="fas fa-angles-left text-[10px]"></i>
+                </a>
+                <a href="?{{ pagination_query_string }}{% if pagination_query_string %}&{% endif %}page={{ page_obj.previous_page_number }}"
+                   class="px-3 py-1 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition flex items-center gap-1">
+                    <i class="fas fa-angle-left text-[10px]"></i> Prev
+                </a>
+                {% else %}
+                <span class="px-2.5 py-1 text-xs font-bold text-slate-300 bg-slate-50 border border-slate-200 rounded-lg cursor-not-allowed">
+                    <i class="fas fa-angles-left text-[10px]"></i>
+                </span>
+                <span class="px-3 py-1 text-xs font-bold text-slate-300 bg-slate-50 border border-slate-200 rounded-lg cursor-not-allowed">
+                    <i class="fas fa-angle-left text-[10px]"></i> Prev
+                </span>
+                {% endif %}
+
+                <!-- Page Indicator Pill -->
+                <span class="px-3.5 py-1 text-xs font-black bg-indigo-600 text-white rounded-lg shadow-2xs">
+                    Page {{ page_obj.number }} of {{ paginator.num_pages }}
+                </span>
+
+                <!-- Next Page -->
+                {% if page_obj.has_next %}
+                <a href="?{{ pagination_query_string }}{% if pagination_query_string %}&{% endif %}page={{ page_obj.next_page_number }}"
+                   class="px-3 py-1 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition flex items-center gap-1">
+                    Next <i class="fas fa-angle-right text-[10px]"></i>
+                </a>
+                <a href="?{{ pagination_query_string }}{% if pagination_query_string %}&{% endif %}page={{ paginator.num_pages }}"
+                   class="px-2.5 py-1 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+                   title="Last Page">
+                    <i class="fas fa-angles-right text-[10px]"></i>
+                </a>
+                {% else %}
+                <span class="px-3 py-1 text-xs font-bold text-slate-300 bg-slate-50 border border-slate-200 rounded-lg cursor-not-allowed">
+                    Next <i class="fas fa-angle-right text-[10px]"></i>
+                </span>
+                <span class="px-2.5 py-1 text-xs font-bold text-slate-300 bg-slate-50 border border-slate-200 rounded-lg cursor-not-allowed">
+                    <i class="fas fa-angles-right text-[10px]"></i>
+                </span>
+                {% endif %}
+            </nav>
+            {% else %}
+            <div class="flex items-center gap-1.5 text-slate-400 text-xs">
+                <i class="fas fa-info-circle"></i>
+                <span>Sorted by Priority 1 (Both Sessions) then Priority 2 (Single Session).</span>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <!-- Official Read-Only Policy Disclaimer -->
+    <div class="p-6 bg-slate-50 rounded-2xl border border-slate-200/80 text-slate-600 space-y-2">
+        <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
+            <i class="fas fa-shield-halved text-indigo-600"></i>
+            Invigilation Duty Adjustment Guidelines
+        </div>
+        <p class="text-xs leading-relaxed text-slate-500">
+            This module provides a strictly <strong>read-only inquiry service</strong> to help faculty identify potential replacement invigilators. 
+            Direct modification of examination schedules, uncoordinated swapping, or automated reallocation is prohibited. 
+            All duty adjustments must be formally routed through the departmental Head and approved by the Controller of Examinations (COE) using the standard Duty Adjustment Form.
+        </p>
+    </div>
+
+</div>
+
+<!-- Client-side Scripts: Quick Search, Horizontal Scroll, and Dynamic Session Options -->
+<script>
+const myDutiesByDate = {{ my_duties_by_date_json|safe }};
+
+// Dynamically update session options when selectedDate changes before submit
+function handleDateChange(newDateVal) {
+    const sessionSelect = document.getElementById("sessionFilter");
+    const helpText = document.getElementById("sessionFilterHelpText");
+    
+    if (sessionSelect && myDutiesByDate) {
+        const assignedSessions = myDutiesByDate[newDateVal] || [];
+        const hasS1 = assignedSessions.includes("1");
+        const hasS2 = assignedSessions.includes("2");
+
+        let options = [];
+        if (!hasS1 && !hasS2) {
+            options.push({ value: "BOTH SESSIONS", label: "BOTH SESSIONS (Priority 1)" });
+        }
+        if (!hasS1) {
+            options.push({ value: "SESSION 1", label: "SESSION 1 (Priority 2)" });
+        }
+        if (!hasS2) {
+            options.push({ value: "SESSION 2", label: "SESSION 2 (Priority 2)" });
+        }
+
+        sessionSelect.innerHTML = "";
+
+        if (options.length === 0) {
+            sessionSelect.disabled = true;
+            const opt = document.createElement("option");
+            opt.value = "";
+            opt.textContent = "No Sessions Available (Assigned to Both Sessions)";
+            opt.disabled = true;
+            opt.selected = true;
+            sessionSelect.appendChild(opt);
+            if (helpText) {
+                helpText.innerHTML = '<span class="text-rose-500 font-semibold">You are assigned to both sessions on this date.</span>';
+            }
+        } else {
+            sessionSelect.disabled = false;
+            const allOpt = document.createElement("option");
+            allOpt.value = "";
+            allOpt.textContent = `All Available (${options.length} options)`;
+            allOpt.selected = true;
+            sessionSelect.appendChild(allOpt);
+
+            options.forEach(o => {
+                const opt = document.createElement("option");
+                opt.value = o.value;
+                opt.textContent = o.label;
+                sessionSelect.appendChild(opt);
+            });
+
+            if (helpText) {
+                if (hasS1) {
+                    helpText.innerHTML = '<span class="text-amber-600 font-semibold">Assigned to Session 1; only Session 2 options shown.</span>';
+                } else if (hasS2) {
+                    helpText.innerHTML = '<span class="text-amber-600 font-semibold">Assigned to Session 2; only Session 1 options shown.</span>';
+                } else {
+                    helpText.textContent = "Dynamically adjusted to your duty schedule.";
+                }
+            }
+        }
+    }
+
+    // Submit the form so the backend synchronizes the full state
+    const form = document.getElementById("availabilityForm");
+    if (form) {
+        form.submit();
+    }
+}
+
+// Change page size and reload page 1
+function changePageSize(newSize) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("page_size", newSize);
+    url.searchParams.set("page", "1");
+    window.location.href = url.toString();
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Horizontal Scroll Controls
+    const scrollContainer = document.getElementById("tableScrollContainer");
+    const leftBtn = document.getElementById("scrollLeftBtn");
+    const rightBtn = document.getElementById("scrollRightBtn");
+
+    if (scrollContainer && leftBtn && rightBtn) {
+        const scrollStep = 320;
+
+        leftBtn.addEventListener("click", function() {
+            scrollContainer.scrollBy({ left: -scrollStep, behavior: "smooth" });
+        });
+
+        rightBtn.addEventListener("click", function() {
+            scrollContainer.scrollBy({ left: scrollStep, behavior: "smooth" });
+        });
+
+        function updateScrollButtons() {
+            const atLeft = scrollContainer.scrollLeft <= 5;
+            const atRight = scrollContainer.scrollLeft + scrollContainer.clientWidth >= scrollContainer.scrollWidth - 5;
+            
+            leftBtn.disabled = atLeft;
+            leftBtn.classList.toggle("opacity-40", atLeft);
+            leftBtn.classList.toggle("cursor-not-allowed", atLeft);
+
+            rightBtn.disabled = atRight;
+            rightBtn.classList.toggle("opacity-40", atRight);
+            rightBtn.classList.toggle("cursor-not-allowed", atRight);
+        }
+
+        scrollContainer.addEventListener("scroll", updateScrollButtons);
+        window.addEventListener("resize", updateScrollButtons);
+        updateScrollButtons();
+    }
+
+    // 2. Client-side Quick Search for current page rows
+    const searchInput = document.getElementById("staffSearchInput");
+    const tableBody = document.getElementById("availabilityTableBody");
+    const rows = Array.from(tableBody.querySelectorAll("tr.staff-row"));
+
+    if (searchInput) {
+        searchInput.addEventListener("input", function() {
+            const query = this.value.trim().toLowerCase();
+
+            rows.forEach(function(row) {
+                const text = row.getAttribute("data-search") || "";
+                if (!query || text.includes(query)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

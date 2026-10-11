@@ -356,11 +356,12 @@ def auto_assign_staff(request):
         from django.db.models.functions import Coalesce
         from apps.exam_dates.models import ExamDate
 
+        current_dates = ExamDate.objects.values_list('date', flat=True)
         total_exam_days = ExamDate.objects.count()
 
         # ── 1. Load unassigned slots ──────────────────────────────────────────
         unassigned_slots = list(
-            InvigilationSchedule.objects.filter(staff_id__isnull=True)
+            InvigilationSchedule.objects.filter(staff_id__isnull=True, date__in=current_dates)
             .exclude(hall_dept_category__isnull=True)
             .exclude(hall_dept_category='')
             .order_by('hall_dept_category', 'date', 'session', 'serial_number')

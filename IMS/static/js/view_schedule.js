@@ -120,11 +120,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Initial Setup
-    loadFilters().then(() => {
-        setTimeout(() => {
-            applyFilters();
-        }, 100);
-    });
+    loadFilters();
+    setTimeout(() => {
+        applyFilters();
+    }, 100);
 });
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------

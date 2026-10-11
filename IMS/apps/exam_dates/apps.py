@@ -4,3 +4,6 @@ from django.apps import AppConfig
 class SchedulingConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'apps.exam_dates'
+
+    def ready(self):
+        import apps.exam_dates.signals  # noqa

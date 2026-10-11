@@ -21,7 +21,7 @@ def generate_schedule(request):
                 print("=== STARTING SCHEDULE GENERATION ===", file=sys.stderr)
                 
                 # 1. Get all required data
-                exam_dates = list(ExamDate.objects.filter(date__gte=now().date()))
+                exam_dates = list(ExamDate.objects.all().order_by('date'))
                 rooms = list(Room.objects.all())
                 
                 if not exam_dates:
@@ -93,10 +93,13 @@ def generate_schedule(request):
 
 def schedule_api(request):
     try:
-        schedules = InvigilationSchedule.objects.all().order_by(
+        from apps.exam_dates.utils import sync_invigilation_schedule_dates
+        sync_invigilation_schedule_dates()
+        current_dates = ExamDate.objects.values_list('date', flat=True)
+        schedules = InvigilationSchedule.objects.filter(date__in=current_dates).order_by(
             'date', 'hall_no', 'session'
         ).values(
-            'id', 'date', 'session', 'hall_no', 'hall_department',
+            'serial_number', 'date', 'session', 'hall_no', 'hall_department',
             'staff_id', 'name', 'designation', 'staff_category',
             'dept_category', 'double_session', 'dept_name',
         )
@@ -115,22 +118,13 @@ def view_schedule(request):  # THIS MUST EXIST
     return render(request, 'view_schedule/view_schedule.html')
 
 def get_filter_options(request):
-    dates = InvigilationSchedule.objects.values_list("date", flat=True).distinct().order_by("date")
-    dept_categories = InvigilationSchedule.objects.values_list("dept_category", flat=True).distinct().order_by("dept_category")
-    hall_departments = InvigilationSchedule.objects.values_list("hall_department", flat=True).distinct().order_by("hall_department")
+    current_dates = ExamDate.objects.order_by("date").values_list("date", flat=True)
+    dates = [d.strftime('%Y-%m-%d') for d in current_dates]
+    dept_categories = InvigilationSchedule.objects.filter(date__in=current_dates).values_list("dept_category", flat=True).distinct().order_by("dept_category")
+    hall_departments = InvigilationSchedule.objects.filter(date__in=current_dates).values_list("hall_department", flat=True).distinct().order_by("hall_department")
     
-    # DEBUG: Check what the query returns
-    print("DEBUG: Dates:", list(dates))
-    print("DEBUG: Dept categories:", list(dept_categories))
-    print("DEBUG: Hall departments:", list(hall_departments))
-    print("DEBUG: Hall departments count:", hall_departments.count())
-    
-    # Check if there are any non-empty hall departments
-    non_empty_hall_depts = InvigilationSchedule.objects.exclude(hall_department__isnull=True).exclude(hall_department='').values_list("hall_department", flat=True).distinct()
-    print("DEBUG: Non-empty hall departments:", list(non_empty_hall_depts))
-
     return JsonResponse({
-        "dates": list(dates),
+        "dates": dates,
         "dept_categories": list(dept_categories),
         "hall_departments": list(hall_departments),
     })
@@ -141,7 +135,8 @@ def get_filtered_schedule(request):
     dept_category = request.GET.get("dept_category")
     hall_department = request.GET.get("hall_department")
     
-    qs = InvigilationSchedule.objects.all()
+    current_dates = ExamDate.objects.values_list('date', flat=True)
+    qs = InvigilationSchedule.objects.filter(date__in=current_dates)
 
     if date:
         qs = qs.filter(date=date)
@@ -151,7 +146,7 @@ def get_filtered_schedule(request):
         qs = qs.filter(hall_department=hall_department)
 
     # return only required fields
-    data = list(qs.values("id", "date", "dept_category", "hall_department"))
+    data = list(qs.values("serial_number", "date", "dept_category", "hall_department"))
     return JsonResponse(data, safe=False)
 
 @require_GET

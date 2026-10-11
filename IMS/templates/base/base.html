@@ -160,6 +160,13 @@
                                     View Schedule
                                 </a>
 
+                                {% url 'staff_availability' as staff_avail_url %}
+                                <a href="{{ staff_avail_url }}"
+                                class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == staff_avail_url or '/staff-availability/' in request.path or '/check-staff-availability/' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                                    <i class="w-5 text-xs text-center fas fa-user-check"></i>
+                                    Check Staff Availability
+                                </a>
+
                                 <div class="space-y-1">
                                     <button type="button" id="manualAssignmentToggle" onclick="toggleManualAssignment(event)"
                                         class="nav-item flex items-center justify-between w-[calc(100%-24px)] px-4 py-3 text-sm font-medium text-slate-400 hover:text-white transition-colors cursor-pointer focus:outline-none {% if '/manual-assignment/' in request.path %} text-white bg-white/5 {% endif %}">
@@ -212,12 +219,20 @@
                     {% if user_role == 2 %}
                     
                         {% url 'dashboard:dashboard' as dashboard_url %}
+                        {% url 'staff_availability' as staff_avail_url %}
                         <a
                             href="{{ dashboard_url }}"
                             class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == dashboard_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
                         >
                             <i class="w-5 text-xs text-center fas fa-house-chimney"></i>
                             Dashboard
+                        </a>
+                        <a
+                            href="{{ staff_avail_url }}"
+                            class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == staff_avail_url or '/staff-availability/' in request.path or '/check-staff-availability/' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}"
+                        >
+                            <i class="w-5 text-xs text-center fas fa-user-check"></i>
+                            Check Staff Availability
                         </a>
                         {% if display_reports_to_staff %}
                         <a
@@ -237,11 +252,18 @@
                         {% url 'dashboard:dashboard' as dashboard_url %}
                         {% url 'reports:reports' as my_schedule_url %}
                         {% url 'reports:hod_reports' as reports_url %}
+                        {% url 'staff_availability' as staff_avail_url %}
 
                         <a href="{{ dashboard_url }}"
                         class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == dashboard_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
                             <i class="w-5 text-center fas fa-house-chimney text-xs"></i>
                             <span>Dashboard</span>
+                        </a>
+
+                        <a href="{{ staff_avail_url }}"
+                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == staff_avail_url or '/staff-availability/' in request.path or '/check-staff-availability/' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <i class="w-5 text-center fas fa-user-check text-xs"></i>
+                            <span>Check Staff Availability</span>
                         </a>
 
                         {% if display_reports_to_staff %}
@@ -266,11 +288,18 @@
                         {% url 'dashboard:dashboard' as dashboard_url %}
                         {% url 'reports:reports' as my_schedule_url %}
                         {% url 'reports:hod_reports' as reports_url %}
+                        {% url 'staff_availability' as staff_avail_url %}
 
                         <a href="{{ dashboard_url }}"
                         class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == dashboard_url %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
                             <i class="w-5 text-center fas fa-house-chimney text-xs"></i>
                             <span>Dashboard</span>
+                        </a>
+
+                        <a href="{{ staff_avail_url }}"
+                        class="nav-item flex items-center gap-3 px-4 py-3 text-sm font-medium {% if request.path == staff_avail_url or '/staff-availability/' in request.path or '/check-staff-availability/' in request.path %} nav-active {% else %} text-slate-400 hover:text-white {% endif %}">
+                            <i class="w-5 text-center fas fa-user-check text-xs"></i>
+                            <span>Check Staff Availability</span>
                         </a>
 
                         {% if display_reports_to_staff %}

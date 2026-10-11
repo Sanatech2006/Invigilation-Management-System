@@ -32,10 +32,11 @@ def reports_view(request):
             
             welcome_message = f"WELCOME, {staff_name}"
             
-            # Fetch ONLY the personal schedule for whoever is logged in (Role 3 or 4)
+            # Fetch ONLY the personal schedule for whoever is logged in on current exam dates
+            current_dates = ExamDate.objects.values_list('date', flat=True)
             schedules = (
                 InvigilationSchedule.objects
-                .filter(staff_id=staff.staff_id)
+                .filter(staff_id=staff.staff_id, date__in=current_dates)
                 .values('date', 'session', 'hall_no', 'hall_department')
                 .order_by('date', 'session')
             )
@@ -78,15 +79,17 @@ def hod_view(request):
         dept_category=hod.dept_category
     ).count()
 
+    current_dates = ExamDate.objects.values_list('date', flat=True)
     total_sessions = InvigilationSchedule.objects.filter(
         hall_dept_category=hod.dept_category,
-        hall_department=dept_name
+        hall_department=dept_name,
+        date__in=current_dates
         ).count()
 
 
 
     # My Schedule (logged-in HOD schedule)
-    my_schedule = InvigilationSchedule.objects.filter(staff_id=hod.staff_id).values(
+    my_schedule = InvigilationSchedule.objects.filter(staff_id=hod.staff_id, date__in=current_dates).values(
         'date', 'session', 'hall_no', 'hall_department'
     ).order_by('date', 'session')
 
@@ -125,7 +128,8 @@ def hod_view(request):
   
     hall_schedule_qs = InvigilationSchedule.objects.filter(
         hall_department=dept_name,
-        hall_dept_category=hod.dept_category  # add department category filter
+        hall_dept_category=hod.dept_category,  # add department category filter
+        date__in=current_dates
     ).values(
         'hall_no', 'date', 'session', 'staff_id', 'hall_department'
     ).order_by('date', 'hall_no', 'session')
@@ -147,7 +151,8 @@ def hod_view(request):
 
     staff_schedule_qs = InvigilationSchedule.objects.filter(
         dept_name=dept_name,
-        dept_category=hod.dept_category
+        dept_category=hod.dept_category,
+        date__in=current_dates
     ).values(
         'staff_id', 'date', 'session', 'hall_no', 'hall_department'
     ).order_by('date', 'staff_id')
@@ -187,20 +192,23 @@ def hod_view(request):
 # This is ONLY for "My Schedule"
 def personal_schedule_view(request):
     staff_id = request.session.get('staff_id')
-    # Just get this one person's schedule
-    my_data = InvigilationSchedule.objects.filter(staff_id=staff_id)
+    current_dates = ExamDate.objects.values_list('date', flat=True)
+    # Just get this one person's schedule on active exam dates
+    my_data = InvigilationSchedule.objects.filter(staff_id=staff_id, date__in=current_dates)
     
     return render(request, 'reports/re.html', {'my_schedule': my_data})
 
 def admin_view(request):
+    current_dates = ExamDate.objects.values_list('date', flat=True)
     total_staff = Staff.objects.count()
     total_halls = Room.objects.count()
-    total_sessions = InvigilationSchedule.objects.count()
-    unassigned_sessions = InvigilationSchedule.objects.filter(staff_id__isnull=True).count()
+    total_sessions = InvigilationSchedule.objects.filter(date__in=current_dates).count()
+    unassigned_sessions = InvigilationSchedule.objects.filter(date__in=current_dates, staff_id__isnull=True).count()
     unassigned_halls = Room.objects.filter(staff_allotted="Not Allotted").count()
 
     assigned_sessions_subquery = InvigilationSchedule.objects.filter(
-        staff_id=OuterRef('staff_id')
+        staff_id=OuterRef('staff_id'),
+        date__in=current_dates
     ).values('staff_id').annotate(
         cnt=Count('serial_number')
     ).values('cnt')
@@ -229,7 +237,7 @@ def admin_view(request):
         halls = hall_dept_map.get(name, {}).get('halls_allotted', 0)
         sessions = hall_dept_map.get(name, {}).get('sessions_scheduled', 0)
         unassigned = InvigilationSchedule.objects.filter(
-            hall_department=name, staff_id__isnull=True
+            hall_department=name, staff_id__isnull=True, date__in=current_dates
         ).count()
         dept_summary.append({
             "s_no": idx,
@@ -243,8 +251,8 @@ def admin_view(request):
     all_staff = Staff.objects.all().order_by('dept_name', 'name')
     staff_workload = []
     for idx, staff in enumerate(all_staff, 1):
-        num_sessions = InvigilationSchedule.objects.filter(staff_id=staff.staff_id).count()
-        num_halls = InvigilationSchedule.objects.filter(staff_id=staff.staff_id).values('hall_no').distinct().count()
+        num_sessions = InvigilationSchedule.objects.filter(staff_id=staff.staff_id, date__in=current_dates).count()
+        num_halls = InvigilationSchedule.objects.filter(staff_id=staff.staff_id, date__in=current_dates).values('hall_no').distinct().count()
         staff_workload.append({
             "s_no": idx,
             "staff_id": staff.staff_id,

@@ -23,6 +23,10 @@ def exam_dates_view(request):
     return response
 
 
+from .utils import sync_invigilation_schedule_dates
+from apps.invigilation_schedule.models import InvigilationSchedule
+
+
 @require_POST
 def save_exam_date(request):
     data = json.loads(request.body)
@@ -46,6 +50,8 @@ def save_exam_date(request):
         day_no=day_no
     )
 
+    sync_invigilation_schedule_dates()
+
     return JsonResponse({
         "success": True,
         "date": obj.date.strftime("%Y-%m-%d"),
@@ -64,13 +70,23 @@ def update_exam_date(request, pk):
         if not date_obj or not day_no:
             return JsonResponse({"success": False, "error": "Invalid input"})
 
+        exam_date = ExamDate.objects.filter(pk=pk).first()
+        if not exam_date:
+            return JsonResponse({"success": False, "error": "Exam date not found"}, status=404)
+
         if ExamDate.objects.filter(date=date_obj).exclude(pk=pk).exists():
             return JsonResponse({"success": False, "error": "This date already exists."})
             
         if ExamDate.objects.filter(day_no=day_no).exclude(pk=pk).exists():
             return JsonResponse({"success": False, "error": "This day sequence already exists."})
 
+        old_date = exam_date.date
         ExamDate.objects.filter(pk=pk).update(date=date_obj, day_no=day_no)
+
+        if old_date != date_obj:
+            InvigilationSchedule.objects.filter(date=old_date).update(date=date_obj)
+
+        sync_invigilation_schedule_dates()
         return JsonResponse({"success": True})
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)
@@ -79,7 +95,12 @@ def update_exam_date(request, pk):
 @require_http_methods(["DELETE"])
 def delete_exam_date(request, pk):
     try:
-        ExamDate.objects.filter(pk=pk).delete()
+        exam_date = ExamDate.objects.filter(pk=pk).first()
+        if exam_date:
+            date_to_delete = exam_date.date
+            InvigilationSchedule.objects.filter(date=date_to_delete).delete()
+            exam_date.delete()
+        sync_invigilation_schedule_dates()
         return JsonResponse({"success": True})
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)

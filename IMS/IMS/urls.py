@@ -23,11 +23,16 @@ from apps.login.views import login_view
 from apps.login.views import logout_view
 
 
+from apps.dashboard.views import StaffAvailabilityView
+
+
 urlpatterns = [
     path('', login_view, name='home'),
     
     path('admin/', admin.site.urls),
     path('dashboard/', include('apps.dashboard.urls',namespace='dashboard')),
+    path('check-staff-availability/', StaffAvailabilityView.as_view(), name='check_staff_availability'),
+    path('staff-availability/', StaffAvailabilityView.as_view(), name='staff_availability'),
     path('staff/', include('apps.staff.urls')),
     path('student/', include('apps.student.urls')),
     path('hall/', include('apps.hall.urls')),
