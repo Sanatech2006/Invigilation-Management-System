@@ -189,7 +189,7 @@
                             Compensation Date
                         </span>
                     </label>
-                    <select id="comparisonDate" name="comparison_date" onchange="this.form.submit()"
+                    <select id="comparisonDate" name="comparison_date" onchange="handleCompDateChange(this.value)"
                             class="w-full h-11 px-3.5 text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition cursor-pointer">
                         {% for d in exam_dates %}
                         {% with d_str=d.date|date:"Y-m-d" %}
@@ -236,26 +236,17 @@
                         </span>
                     </label>
                     <select id="sessionFilter" name="session_availability" onchange="this.form.submit()"
-                            class="w-full h-11 px-3.5 text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition cursor-pointer"
-                            {% if not available_session_options %}disabled{% endif %}>
+                            class="w-full h-11 px-3.5 text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition cursor-pointer">
                         {% for opt in available_session_options %}
                         <option value="{{ opt.value }}" {% if session_filter == opt.value %}selected{% endif %}>
                             {{ opt.label }}
                         </option>
                         {% empty %}
-                        <option value="" disabled selected>No Sessions Available (Assigned to Both Sessions)</option>
+                        <option value="" disabled selected>No Sessions Available</option>
                         {% endfor %}
                     </select>
                     <p class="mt-2 text-[11px] text-slate-400 min-h-[32px] leading-normal" id="sessionFilterHelpText">
-                        {% if my_s1_assigned and my_s2_assigned %}
-                            <span class="text-rose-500 font-semibold">You are assigned to both sessions on {{ selected_date }}.</span>
-                        {% elif my_s1_assigned %}
-                            <span class="text-amber-600 font-semibold">Assigned to Session 1; only Session 2 options shown.</span>
-                        {% elif my_s2_assigned %}
-                            <span class="text-amber-600 font-semibold">Assigned to Session 2; only Session 1 options shown.</span>
-                        {% else %}
-                            Dynamically adjusted to your duty schedule.
-                        {% endif %}
+                        Filter candidate replacement staff by their session availability on the release date.
                     </p>
                 </div>
 
@@ -346,7 +337,7 @@
                     </span>
                 </div>
                 <p class="text-xs text-slate-500 mt-0.5">
-                    Showing staff holding duties on <span class="font-bold text-slate-700">{{ comparison_date }}</span> who are free on <span class="font-bold text-slate-700">{{ selected_date }}</span>.
+                    Showing staff available on <span class="font-bold text-slate-700">{{ selected_date }}</span> who hold duties on <span class="font-bold text-slate-700">{{ comparison_date }}</span>.
                 </p>
             </div>
 
@@ -510,7 +501,7 @@
                                 </div>
                                 <h3 class="text-base font-bold text-slate-800">No Available Staff Found</h3>
                                 <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-                                    No staff members holding duties on {{ comparison_date }} are free on {{ selected_date }} matching your current filter selections.
+                                    No staff members available on {{ selected_date }} who hold duties on {{ comparison_date }} matching your current filter selections.
                                 </p>
                             </div>
                         </td>
@@ -625,64 +616,61 @@
 <script>
 const myDutiesByDate = {{ my_duties_by_date_json|safe }};
 
-// Dynamically update session options when selectedDate changes before submit
-function handleDateChange(newDateVal) {
+// Get allowed session options for a release date based on logged-in staff's assigned duties
+function getValidSessionOptions(releaseDateVal) {
+    const duties = myDutiesByDate[releaseDateVal] || [];
+    const hasS1 = duties.includes('1');
+    const hasS2 = duties.includes('2');
+    if (hasS1 && !hasS2) {
+        return ['BOTH SESSIONS', 'SESSION 1'];
+    } else if (!hasS1 && hasS2) {
+        return ['BOTH SESSIONS', 'SESSION 2'];
+    } else {
+        return ['BOTH SESSIONS', 'SESSION 1', 'SESSION 2'];
+    }
+}
+
+// Update the session filter dropdown options and clear stale selections
+function updateSessionDropdownOptions(releaseDateVal) {
     const sessionSelect = document.getElementById("sessionFilter");
-    const helpText = document.getElementById("sessionFilterHelpText");
-    
-    if (sessionSelect && myDutiesByDate) {
-        const assignedSessions = myDutiesByDate[newDateVal] || [];
-        const hasS1 = assignedSessions.includes("1");
-        const hasS2 = assignedSessions.includes("2");
-
-        let options = [];
-        if (!hasS1 && !hasS2) {
-            options.push({ value: "BOTH SESSIONS", label: "BOTH SESSIONS" });
-        }
-        if (!hasS1) {
-            options.push({ value: "SESSION 1", label: "SESSION 1" });
-        }
-        if (!hasS2) {
-            options.push({ value: "SESSION 2", label: "SESSION 2" });
-        }
-
-        sessionSelect.innerHTML = "";
-
-        if (options.length === 0) {
-            sessionSelect.disabled = true;
+    if (!sessionSelect) return;
+    const validOptions = getValidSessionOptions(releaseDateVal);
+    const currentVal = sessionSelect.value;
+    sessionSelect.innerHTML = "";
+    if (validOptions.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.disabled = true;
+        opt.selected = true;
+        opt.textContent = "No Sessions Available";
+        sessionSelect.appendChild(opt);
+    } else {
+        validOptions.forEach(function(val) {
             const opt = document.createElement("option");
-            opt.value = "";
-            opt.textContent = "No Sessions Available (Assigned to Both Sessions)";
-            opt.disabled = true;
-            opt.selected = true;
+            opt.value = val;
+            opt.textContent = val;
+            if (val === currentVal) {
+                opt.selected = true;
+            }
             sessionSelect.appendChild(opt);
-            if (helpText) {
-                helpText.innerHTML = '<span class="text-rose-500 font-semibold">You are assigned to both sessions on this date.</span>';
-            }
-        } else {
-            sessionSelect.disabled = false;
-            const currentVal = sessionSelect.value;
-            options.forEach(o => {
-                const opt = document.createElement("option");
-                opt.value = o.value;
-                opt.textContent = o.label;
-                if (currentVal === o.value) opt.selected = true;
-                sessionSelect.appendChild(opt);
-            });
-
-            if (helpText) {
-                if (hasS1) {
-                    helpText.innerHTML = '<span class="text-amber-600 font-semibold">Assigned to Session 1; only Session 2 options shown.</span>';
-                } else if (hasS2) {
-                    helpText.innerHTML = '<span class="text-amber-600 font-semibold">Assigned to Session 2; only Session 1 options shown.</span>';
-                } else {
-                    helpText.textContent = "Dynamically adjusted to your duty schedule.";
-                }
-            }
+        });
+        if (!validOptions.includes(currentVal)) {
+            sessionSelect.value = "";
         }
     }
+}
 
-    // Submit the form so the backend synchronizes the full state
+// When Release Date changes, update session options, clear stale selections, and submit form
+function handleDateChange(newReleaseDate) {
+    updateSessionDropdownOptions(newReleaseDate);
+    const form = document.getElementById("availabilityForm");
+    if (form) {
+        form.submit();
+    }
+}
+
+// When Compensation Date changes, submit form to recalculate candidate availability
+function handleCompDateChange(newCompDate) {
     const form = document.getElementById("availabilityForm");
     if (form) {
         form.submit();

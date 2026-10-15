@@ -188,32 +188,37 @@ class StaffAvailabilityView(View):
         selected_date_str = normalize_date_str(selected_date_raw) if selected_date_raw else ''
         comparison_date_str = normalize_date_str(comparison_date_raw) if comparison_date_raw else ''
 
-        # Dynamic Resolution of Comparison Date if not explicitly passed:
-        # Default to the logged-in staff's existing duty date when available,
-        # otherwise default to the first available exam date.
-        if not comparison_date_str:
+        # Dynamic Resolution of Selected Exam Date (Release Date) and Comparison Date (Compensation Date):
+        if not selected_date_str and not comparison_date_str:
             if my_duty_date_strs:
-                if selected_date_str and selected_date_str in my_duty_date_strs:
-                    diff_duties = [d for d in my_duty_date_strs if d != selected_date_str]
-                    comparison_date_str = diff_duties[0] if diff_duties else my_duty_date_strs[0]
-                else:
-                    comparison_date_str = my_duty_date_strs[0]
+                selected_date_str = my_duty_date_strs[0]
             elif exam_date_strs:
-                if selected_date_str:
-                    diff_exams = [d for d in exam_date_strs if d != selected_date_str]
-                    comparison_date_str = diff_exams[0] if diff_exams else exam_date_strs[0]
-                else:
-                    comparison_date_str = exam_date_strs[0]
+                selected_date_str = exam_date_strs[0]
+            else:
+                selected_date_str = ''
 
-        # Dynamic Resolution of Selected Exam Date if not explicitly passed:
-        if not selected_date_str:
+            if exam_date_strs:
+                diff_exams = [d for d in exam_date_strs if d != selected_date_str]
+                comparison_date_str = diff_exams[0] if diff_exams else exam_date_strs[0]
+            else:
+                comparison_date_str = ''
+        elif not selected_date_str:
             if exam_date_strs:
                 diff_dates = [d for d in exam_date_strs if d != comparison_date_str]
                 selected_date_str = diff_dates[0] if diff_dates else exam_date_strs[0]
             else:
                 selected_date_str = ''
+        elif not comparison_date_str:
+            if exam_date_strs:
+                diff_exams = [d for d in exam_date_strs if d != selected_date_str]
+                comparison_date_str = diff_exams[0] if diff_exams else exam_date_strs[0]
+            else:
+                comparison_date_str = ''
 
-        # 4. Determine logged-in staff's schedule on selected_date and dynamically compute allowed session options
+        # 4. Determine logged-in staff's schedule on selected_date (Release Date) and comparison_date (Compensation Date)
+        release_session_param = request.GET.get('release_session') or request.GET.get('release_s') or ''
+        release_session_param = release_session_param.strip().upper()
+
         my_s1_assigned = False
         my_s2_assigned = False
         if logged_in_staff and selected_date_str:
@@ -235,27 +240,66 @@ class StaffAvailabilityView(View):
             if '2' in assigned_sessions_on_sel:
                 my_s2_assigned = True
 
-        available_session_options = []
-        # BOTH SESSIONS is available only when relevant: staff is not assigned to any session on selected date
-        if not my_s1_assigned and not my_s2_assigned:
-            available_session_options.append({
-                'value': 'BOTH SESSIONS',
-                'label': 'BOTH SESSIONS',
-            })
+        my_comp_s1 = False
+        my_comp_s2 = False
+        if logged_in_staff and comparison_date_str:
+            assigned_sessions_on_comp = list(my_duties_by_date.get(comparison_date_str, []))
+            if not assigned_sessions_on_comp:
+                db_comp_sessions = InvigilationSchedule.objects.filter(
+                    staff_id=logged_in_staff.staff_id,
+                    date=comparison_date_str
+                ).values_list('session', flat=True)
+                for s in db_comp_sessions:
+                    s_str = str(s).strip().lower()
+                    if s_str in ('1', 'session 1', 's1', 'forenoon', 'fn'):
+                        assigned_sessions_on_comp.append('1')
+                    elif s_str in ('2', 'session 2', 's2', 'afternoon', 'an'):
+                        assigned_sessions_on_comp.append('2')
 
-        if not my_s1_assigned:
-            available_session_options.append({
-                'value': 'SESSION 1',
-                'label': 'SESSION 1',
-            })
+            if '1' in assigned_sessions_on_comp:
+                my_comp_s1 = True
+            if '2' in assigned_sessions_on_comp:
+                my_comp_s2 = True
 
-        if not my_s2_assigned:
-            available_session_options.append({
-                'value': 'SESSION 2',
-                'label': 'SESSION 2',
-            })
+        # Determine available session options based on release date / release session:
+        # The release date and Staff Availability by Session must be treated as a pair.
+        # Options depend on the session Staff A wants to release on the selected release date:
+        # - Releasing Session 1 (or only has S1 on release date): BOTH SESSIONS, SESSION 1
+        # - Releasing Session 2 (or only has S2 on release date): BOTH SESSIONS, SESSION 2
+        # - Both sessions or no specific release session: BOTH SESSIONS, SESSION 1, SESSION 2
+        if release_session_param in ('1', 'SESSION 1', 'S1'):
+            available_session_options = [
+                {'value': 'BOTH SESSIONS', 'label': 'BOTH SESSIONS'},
+                {'value': 'SESSION 1', 'label': 'SESSION 1'},
+            ]
+        elif release_session_param in ('2', 'SESSION 2', 'S2'):
+            available_session_options = [
+                {'value': 'BOTH SESSIONS', 'label': 'BOTH SESSIONS'},
+                {'value': 'SESSION 2', 'label': 'SESSION 2'},
+            ]
+        elif release_session_param in ('BOTH', 'BOTH SESSIONS', 'BOTH_SESSIONS'):
+            available_session_options = [
+                {'value': 'BOTH SESSIONS', 'label': 'BOTH SESSIONS'},
+            ]
+        elif my_s1_assigned and not my_s2_assigned:
+            available_session_options = [
+                {'value': 'BOTH SESSIONS', 'label': 'BOTH SESSIONS'},
+                {'value': 'SESSION 1', 'label': 'SESSION 1'},
+            ]
+        elif not my_s1_assigned and my_s2_assigned:
+            available_session_options = [
+                {'value': 'BOTH SESSIONS', 'label': 'BOTH SESSIONS'},
+                {'value': 'SESSION 2', 'label': 'SESSION 2'},
+            ]
+        else:
+            available_session_options = [
+                {'value': 'BOTH SESSIONS', 'label': 'BOTH SESSIONS'},
+                {'value': 'SESSION 1', 'label': 'SESSION 1'},
+                {'value': 'SESSION 2', 'label': 'SESSION 2'},
+            ]
 
         allowed_session_values = [opt['value'] for opt in available_session_options]
+
         # Normalize session_filter aliases
         if session_filter in ('1', 'S1'):
             session_filter = 'SESSION 1'
@@ -265,7 +309,6 @@ class StaffAvailabilityView(View):
             session_filter = 'BOTH SESSIONS'
 
         if session_filter and session_filter not in allowed_session_values:
-            # Dropdown and backend must not allow/display session if logged-in staff is already assigned to it
             session_filter = ''
 
         # 5. Fetch distinct departments for filter dropdown (strictly restricted to staff's own dept_category)
@@ -284,125 +327,152 @@ class StaffAvailabilityView(View):
         count_session_2 = 0
 
         if comparison_date_str and selected_date_str:
-            # Step A: Identify staff members who have an existing duty on the comparison date
-            comp_assignments = InvigilationSchedule.objects.filter(
-                date=comparison_date_str,
-                staff_id__isnull=False
-            ).exclude(staff_id='').values('staff_id', 'session', 'hall_no', 'hall_department')
+            if my_comp_s1 and my_comp_s2:
+                # Staff A already holds duties in both sessions on compensation date; no exchange is possible
+                available_staff_list = []
+            else:
+                # Step A: Identify candidates holding duties on the compensation date (comparison_date_str)
+                comp_assignments = InvigilationSchedule.objects.filter(
+                    date=comparison_date_str,
+                    staff_id__isnull=False
+                ).exclude(staff_id='').values('staff_id', 'session', 'hall_no', 'hall_department')
 
-            comp_assigned_ids = set()
-            comp_duty_map = defaultdict(list)
-            for a in comp_assignments:
-                sid = a['staff_id']
-                comp_assigned_ids.add(sid)
-                s_no = a.get('session')
-                h_no = a.get('hall_no')
-                if h_no:
-                    comp_duty_map[sid].append(f"Session {s_no} (Hall {h_no})")
-                else:
-                    comp_duty_map[sid].append(f"Session {s_no}")
+                comp_assigned_ids = set()
+                comp_duty_map = defaultdict(list)
+                comp_sessions_map = defaultdict(set)
+                for a in comp_assignments:
+                    sid = a['staff_id']
+                    comp_assigned_ids.add(sid)
+                    s_str = str(a.get('session') or '').strip().lower()
+                    if s_str in ('1', 'session 1', 's1', 'forenoon', 'fn'):
+                        comp_sessions_map[sid].add('1')
+                    elif s_str in ('2', 'session 2', 's2', 'afternoon', 'an'):
+                        comp_sessions_map[sid].add('2')
 
-            # Step B: Fetch active staff details for these candidate staff
-            candidates_qs = Staff.objects.filter(
-                staff_id__in=comp_assigned_ids,
-                is_active=True
-            ).select_related('designation')
+                    s_no = a.get('session')
+                    h_no = a.get('hall_no')
+                    if h_no:
+                        comp_duty_map[sid].append(f"Session {s_no} (Hall {h_no})")
+                    else:
+                        comp_duty_map[sid].append(f"Session {s_no}")
 
-            # Strictly enforce Department Category restriction in backend
-            if logged_in_dept_category:
-                candidates_qs = candidates_qs.filter(dept_category__iexact=logged_in_dept_category)
+                # Step B: Fetch active candidate staff in the permitted department category
+                candidates_qs = Staff.objects.filter(
+                    staff_id__in=comp_assigned_ids,
+                    is_active=True
+                ).select_related('designation')
 
-            candidates = list(candidates_qs)
-            valid_candidate_ids = {c.staff_id for c in candidates}
+                if logged_in_dept_category:
+                    candidates_qs = candidates_qs.filter(dept_category__iexact=logged_in_dept_category)
 
-            # Step C: Batch fetch existing assignments on the selected date
-            sel_assignments = InvigilationSchedule.objects.filter(
-                date=selected_date_str,
-                staff_id__in=valid_candidate_ids
-            ).values_list('staff_id', 'session')
+                include_self = request.GET.get('include_self', '').lower() in ('true', '1', 'yes')
+                if not include_self and logged_in_staff:
+                    candidates_qs = candidates_qs.exclude(staff_id=logged_in_staff.staff_id)
 
-            sel_map = defaultdict(set)
-            for sid, sess in sel_assignments:
-                if sess:
-                    sel_map[sid].add(str(sess).strip().lower())
+                candidates = list(candidates_qs)
+                valid_candidate_ids = {c.staff_id for c in candidates}
 
-            include_self = request.GET.get('include_self', '').lower() in ('true', '1', 'yes')
+                # Step C: Batch fetch existing assignments on the release date (selected_date_str)
+                rel_assignments = InvigilationSchedule.objects.filter(
+                    date=selected_date_str,
+                    staff_id__in=valid_candidate_ids
+                ).values_list('staff_id', 'session')
 
-            # Step D: Calculate availability status and priority for each candidate
-            for staff in candidates:
-                # Exclude the logged-in staff member from candidate results unless include_self is requested
-                if not include_self and logged_in_staff and staff.staff_id == logged_in_staff.staff_id:
-                    continue
+                rel_sessions_map = defaultdict(set)
+                for sid, sess in rel_assignments:
+                    s_str = str(sess or '').strip().lower()
+                    if s_str in ('1', 'session 1', 's1', 'forenoon', 'fn'):
+                        rel_sessions_map[sid].add('1')
+                    elif s_str in ('2', 'session 2', 's2', 'afternoon', 'an'):
+                        rel_sessions_map[sid].add('2')
 
-                assigned_sessions = sel_map.get(staff.staff_id, set())
+                # Step D: Filter candidates and calculate table labels
+                for staff in candidates:
+                    cand_comp = comp_sessions_map.get(staff.staff_id, set())
 
-                has_s1 = any(s in ('1', 'session 1', 's1', 'forenoon', 'fn') for s in assigned_sessions)
-                has_s2 = any(s in ('2', 'session 2', 's2', 'afternoon', 'an') for s in assigned_sessions)
-
-                # Availability logic:
-                if not has_s1 and not has_s2:
-                    # Free in both sessions
-                    availability_label = 'BOTH SESSIONS'
-                    priority = 1
-                    count_both_sessions += 1
-                elif not has_s1 and has_s2:
-                    # Free in Session 1, but assigned in Session 2
-                    availability_label = 'SESSION 1'
-                    priority = 2
-                    count_session_1 += 1
-                elif has_s1 and not has_s2:
-                    # Free in Session 2, but assigned in Session 1
-                    availability_label = 'SESSION 2'
-                    priority = 2
-                    count_session_2 += 1
-                else:
-                    # Assigned in both sessions -> Not available on selected date
-                    continue
-
-                # Step E: Apply Department Filter
-                if dept_filter and dept_filter.upper() not in ('ALL', 'ALL DEPARTMENTS'):
-                    staff_dept = (staff.dept_name or '').strip().lower()
-                    if staff_dept != dept_filter.lower():
+                    # Rule 2: Candidate must have an existing invigilation duty on the selected compensation date
+                    if not cand_comp:
                         continue
 
-                # Step F: Apply Session Availability Filter
-                if session_filter and session_filter not in ('ALL', 'ALL SESSIONS', 'ALL AVAILABLE'):
-                    if session_filter in ('BOTH', 'BOTH SESSIONS'):
-                        if availability_label != 'BOTH SESSIONS':
-                            continue
-                    elif session_filter in ('1', 'SESSION 1', 'S1'):
-                        if availability_label != 'SESSION 1':
-                            continue
-                    elif session_filter in ('2', 'SESSION 2', 'S2'):
-                        if availability_label != 'SESSION 2':
-                            continue
-                    elif session_filter in ('ANY_S1', 'SESSION 1 AVAILABLE', 'S1 AVAILABLE'):
-                        if availability_label not in ('BOTH SESSIONS', 'SESSION 1'):
-                            continue
-                    elif session_filter in ('ANY_S2', 'SESSION 2 AVAILABLE', 'S2 AVAILABLE'):
-                        if availability_label not in ('BOTH SESSIONS', 'SESSION 2'):
+                    # Rule 3: Alternate session on compensation date
+                    # If Staff A already has a duty on the compensation date, display only candidates
+                    # assigned to the alternate session on that date.
+                    # If Staff A has Session 1, candidates must have Session 2.
+                    # If Staff A has Session 2, candidates must have Session 1.
+                    # If Staff A has no duty on compensation date, no alternate session restriction.
+                    if my_comp_s1 and '2' not in cand_comp:
+                        continue
+                    if my_comp_s2 and '1' not in cand_comp:
+                        continue
+
+                    # Rule 1: Availability on the release date
+                    cand_rel = rel_sessions_map.get(staff.staff_id, set())
+                    cand_free_s1 = '1' not in cand_rel
+                    cand_free_s2 = '2' not in cand_rel
+
+                    if cand_free_s1 and cand_free_s2:
+                        availability_label = 'BOTH SESSIONS'
+                        priority = 1
+                    elif cand_free_s1 and not cand_free_s2:
+                        availability_label = 'SESSION 1'
+                        priority = 2
+                    elif not cand_free_s1 and cand_free_s2:
+                        availability_label = 'SESSION 2'
+                        priority = 2
+                    else:
+                        # Candidate is assigned to both sessions on release date; not available
+                        continue
+
+                    # Exchange restrictions with Staff A's release options on release date
+                    if availability_label not in allowed_session_values:
+                        continue
+
+                    # Step E: Apply Department Filter
+                    if dept_filter and dept_filter.upper() not in ('ALL', 'ALL DEPARTMENTS'):
+                        staff_dept = (staff.dept_name or '').strip().lower()
+                        if staff_dept != dept_filter.lower():
                             continue
 
-                dept_display = staff.dept_name or staff.dept_category or '-'
-                mobile_display = staff.mobile or '-'
-                comp_duty_str = ", ".join(comp_duty_map.get(staff.staff_id, [])) or '-'
+                    # Track metric counts for matching candidates
+                    if availability_label == 'BOTH SESSIONS':
+                        count_both_sessions += 1
+                    elif availability_label == 'SESSION 1':
+                        count_session_1 += 1
+                    elif availability_label == 'SESSION 2':
+                        count_session_2 += 1
 
-                available_staff_list.append({
-                    'staff_id': staff.staff_id,
-                    'name': staff.name,
-                    'department': dept_display,
-                    'dept_category': staff.dept_category or '-',
-                    'mobile': mobile_display,
-                    'availability': availability_label,
-                    'priority': priority,
-                    'priority_label': f'Priority {priority}',
-                    'designation': str(staff.designation.name) if staff.designation else '',
-                    'comp_duty': comp_duty_str,
-                })
+                    # Step F: Apply Session Availability Filter
+                    if session_filter and session_filter not in ('ALL', 'ALL SESSIONS', 'ALL AVAILABLE'):
+                        if session_filter in ('BOTH', 'BOTH SESSIONS'):
+                            if availability_label != 'BOTH SESSIONS':
+                                continue
+                        elif session_filter in ('1', 'SESSION 1', 'S1'):
+                            if availability_label != 'SESSION 1':
+                                continue
+                        elif session_filter in ('2', 'SESSION 2', 'S2'):
+                            if availability_label != 'SESSION 2':
+                                continue
 
-            # Priority 1 (BOTH SESSIONS) comes first, followed by Priority 2 (SESSION 1 & SESSION 2)
-            # Secondary sort by name, then staff_id to ensure a deterministic order
-            available_staff_list.sort(key=lambda x: (x['priority'], x['name'].lower(), x['staff_id']))
+                    dept_display = staff.dept_name or staff.dept_category or '-'
+                    mobile_display = staff.mobile or '-'
+                    comp_duty_str = ", ".join(comp_duty_map.get(staff.staff_id, [])) or '-'
+
+                    available_staff_list.append({
+                        'staff_id': staff.staff_id,
+                        'name': staff.name,
+                        'department': dept_display,
+                        'dept_category': staff.dept_category or '-',
+                        'mobile': mobile_display,
+                        'availability': availability_label,
+                        'priority': priority,
+                        'priority_label': f'Priority {priority}',
+                        'designation': str(staff.designation.name) if staff.designation else '',
+                        'comp_duty': comp_duty_str,
+                    })
+
+                # Priority 1 (BOTH SESSIONS) comes first, followed by Priority 2 (SESSION 1 & SESSION 2)
+                # Secondary sort by name, then staff_id to ensure a deterministic order
+                available_staff_list.sort(key=lambda x: (x['priority'], x['name'].lower(), x['staff_id']))
 
         # Vertical Pagination
         page_size_param = request.GET.get('page_size', '15')
@@ -457,6 +527,8 @@ class StaffAvailabilityView(View):
             'my_duties_by_date_json': json.dumps(dict(my_duties_by_date)),
             'my_s1_assigned': my_s1_assigned,
             'my_s2_assigned': my_s2_assigned,
+            'my_comp_s1': my_comp_s1,
+            'my_comp_s2': my_comp_s2,
             'available_session_options': available_session_options,
             'exam_dates': exam_dates,
             'exam_date_strs': exam_date_strs,

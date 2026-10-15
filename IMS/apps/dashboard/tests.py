@@ -16,10 +16,10 @@ class StaffAvailabilityCheckerTests(TestCase):
             category="Teaching"
         )
 
-        # Dynamic exam dates (do not hardcode Oct 12 / Oct 15)
-        self.date1 = date(2026, 11, 10)  # Comparison Date
-        self.date2 = date(2026, 11, 12)  # Target Selected Date
-        self.date3 = date(2026, 11, 14)
+        # Dynamic exam dates
+        self.date1 = date(2026, 10, 12)  # Release Date
+        self.date2 = date(2026, 10, 13)  # Compensation Date
+        self.date3 = date(2026, 10, 14)
 
         ExamDate.objects.create(date=self.date1)
         ExamDate.objects.create(date=self.date2)
@@ -53,7 +53,7 @@ class StaffAvailabilityCheckerTests(TestCase):
             name=self.logged_staff.name
         )
 
-        # Candidate Staff 1: Has duty on date1; Free in BOTH sessions on date2 (Priority 1)
+        # Candidate Staff 1: Free in Session 1 on date1; Assigned in BOTH sessions on date2 (Priority 1)
         self.staff_p1 = Staff.objects.create(
             staff_id="STF_P1",
             name="Dr. Alpha Both",
@@ -67,7 +67,7 @@ class StaffAvailabilityCheckerTests(TestCase):
             role=4
         )
         InvigilationSchedule.objects.create(
-            date=self.date1,
+            date=self.date2,
             session="1",
             hall_no="LH-102",
             hall_department="Chemistry",
@@ -75,8 +75,17 @@ class StaffAvailabilityCheckerTests(TestCase):
             staff_id=self.staff_p1.staff_id,
             name=self.staff_p1.name
         )
+        InvigilationSchedule.objects.create(
+            date=self.date2,
+            session="2",
+            hall_no="LH-103",
+            hall_department="Chemistry",
+            hall_dept_category="AIDED",
+            staff_id=self.staff_p1.staff_id,
+            name=self.staff_p1.name
+        )
 
-        # Candidate Staff 2: Has duty on date1; Assigned in Session 2 on date2 -> Free in Session 1 (Priority 2)
+        # Candidate Staff 2: Has duty in Session 2 on date1 (free in Session 1); Assigned in Session 1 on date2 (Priority 2)
         self.staff_s1 = Staff.objects.create(
             staff_id="STF_S1",
             name="Prof. Beta FreeS1",
@@ -91,8 +100,8 @@ class StaffAvailabilityCheckerTests(TestCase):
         )
         InvigilationSchedule.objects.create(
             date=self.date1,
-            session="2",
-            hall_no="LH-103",
+            session="2",  # Assigned to Session 2 on release date -> Free in Session 1 (being released)
+            hall_no="LH-104",
             hall_department="Chemistry",
             hall_dept_category="AIDED",
             staff_id=self.staff_s1.staff_id,
@@ -100,15 +109,15 @@ class StaffAvailabilityCheckerTests(TestCase):
         )
         InvigilationSchedule.objects.create(
             date=self.date2,
-            session="2",  # Busy in session 2, so available in Session 1
-            hall_no="LH-104",
+            session="1",  # Assigned in Session 1 on compensation date
+            hall_no="LH-105",
             hall_department="Mathematics",
             hall_dept_category="AIDED",
             staff_id=self.staff_s1.staff_id,
             name=self.staff_s1.name
         )
 
-        # Candidate Staff 3: Has duty on date1; Assigned in Session 1 on date2 -> Free in Session 2 (Priority 2)
+        # Candidate Staff 3: Assigned to Session 1 on date1 (free in Session 2); Assigned in Session 2 on date2
         self.staff_s2 = Staff.objects.create(
             staff_id="STF_S2",
             name="Dr. Gamma FreeS2",
@@ -123,16 +132,16 @@ class StaffAvailabilityCheckerTests(TestCase):
         )
         InvigilationSchedule.objects.create(
             date=self.date1,
-            session="1",
-            hall_no="LH-105",
-            hall_department="Physics",
+            session="1",  # Assigned to Session 1 on release date -> Free in Session 2
+            hall_no="LH-106A",
+            hall_department="Mathematics",
             hall_dept_category="AIDED",
             staff_id=self.staff_s2.staff_id,
             name=self.staff_s2.name
         )
         InvigilationSchedule.objects.create(
             date=self.date2,
-            session="1",  # Busy in session 1, so available in Session 2
+            session="2",  # Assigned in Session 2 on compensation date
             hall_no="LH-106",
             hall_department="Computer Science",
             hall_dept_category="AIDED",
@@ -140,7 +149,7 @@ class StaffAvailabilityCheckerTests(TestCase):
             name=self.staff_s2.name
         )
 
-        # Candidate Staff 4: Has duty on date1; Assigned in BOTH sessions on date2 -> NOT available
+        # Candidate Staff 4: Already assigned to Session 1 on date1 (Release date) -> Must be EXCLUDED
         self.staff_busy = Staff.objects.create(
             staff_id="STF_BUSY",
             name="Prof. Delta Busy",
@@ -155,7 +164,7 @@ class StaffAvailabilityCheckerTests(TestCase):
         )
         InvigilationSchedule.objects.create(
             date=self.date1,
-            session="1",
+            session="1",  # Busy in Session 1 on release date
             hall_no="LH-107",
             hall_department="Physics",
             hall_dept_category="AIDED",
@@ -171,17 +180,8 @@ class StaffAvailabilityCheckerTests(TestCase):
             staff_id=self.staff_busy.staff_id,
             name=self.staff_busy.name
         )
-        InvigilationSchedule.objects.create(
-            date=self.date2,
-            session="2",
-            hall_no="LH-109",
-            hall_department="Mathematics",
-            hall_dept_category="AIDED",
-            staff_id=self.staff_busy.staff_id,
-            name=self.staff_busy.name
-        )
 
-        # Candidate Staff 5: Has NO duty on date1; Free on date2 -> Must NOT be included
+        # Candidate Staff 5: Free on date1, but has NO duty on date2 (Compensation date) -> Must be EXCLUDED
         self.staff_no_comp_duty = Staff.objects.create(
             staff_id="STF_NO_COMP",
             name="Dr. Epsilon NoDuty",
@@ -231,16 +231,20 @@ class StaffAvailabilityCheckerTests(TestCase):
 
     def test_availability_calculation_and_labels(self):
         """
-        Requirements 3 & 6:
-        - Only staff with duty on comparison date and available on selected date are returned.
-        - Labels: 'BOTH SESSIONS', 'SESSION 1', 'SESSION 2'.
+        Requirements 3 & 6 and Spec Section 3:
+        When Staff A releases Session 1 on date1 (Oct 12) with compensation date date2 (Oct 13):
+        - Candidate P1: Free in both sessions on date1 -> 'BOTH SESSIONS', Priority 1
+        - Candidate S1: Free in Session 1 (assigned to Session 2) on date1 -> 'SESSION 1', Priority 2
+        - Candidate S2: Assigned to Session 1 on date1 -> EXCLUDED (busy in Session 1)
+        - Candidate Busy: Assigned to Session 1 on date1 -> EXCLUDED
+        - Candidate No Comp Duty: Free on date1 but has no duty on date2 -> EXCLUDED
         """
         self._login_as_staff()
         response = self.client.get(
             reverse('staff_availability'),
             {
-                'selected_date': self.date2_str,
-                'comparison_date': self.date1_str,
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
                 'format': 'json',
             },
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
@@ -251,25 +255,23 @@ class StaffAvailabilityCheckerTests(TestCase):
 
         staff_map = {s['staff_id']: s for s in data['staff']}
 
-        # Staff P1 -> BOTH SESSIONS
+        # Staff P1 -> Free in both sessions on date1 -> BOTH SESSIONS, Priority 1
         self.assertIn(self.staff_p1.staff_id, staff_map)
         self.assertEqual(staff_map[self.staff_p1.staff_id]['availability'], 'BOTH SESSIONS')
         self.assertEqual(staff_map[self.staff_p1.staff_id]['priority'], 1)
 
-        # Staff S1 -> Free in Session 1, busy in Session 2
+        # Staff S1 -> Free in Session 1 (assigned Session 2) on date1 -> SESSION 1, Priority 2
         self.assertIn(self.staff_s1.staff_id, staff_map)
         self.assertEqual(staff_map[self.staff_s1.staff_id]['availability'], 'SESSION 1')
         self.assertEqual(staff_map[self.staff_s1.staff_id]['priority'], 2)
 
-        # Staff S2 -> Free in Session 2, busy in Session 1
-        self.assertIn(self.staff_s2.staff_id, staff_map)
-        self.assertEqual(staff_map[self.staff_s2.staff_id]['availability'], 'SESSION 2')
-        self.assertEqual(staff_map[self.staff_s2.staff_id]['priority'], 2)
+        # Staff S2 -> Assigned to Session 1 on date1 -> NOT included
+        self.assertNotIn(self.staff_s2.staff_id, staff_map)
 
-        # Staff Busy -> Assigned in both sessions -> NOT included
+        # Staff Busy -> Assigned in Session 1 on date1 -> NOT included
         self.assertNotIn(self.staff_busy.staff_id, staff_map)
 
-        # Staff No Comp Duty -> Has no duty on date1 -> NOT included
+        # Staff No Comp Duty -> Has no duty on date2 -> NOT included
         self.assertNotIn(self.staff_no_comp_duty.staff_id, staff_map)
 
     def test_priority_ordering(self):
@@ -278,8 +280,8 @@ class StaffAvailabilityCheckerTests(TestCase):
         response = self.client.get(
             reverse('staff_availability'),
             {
-                'selected_date': self.date2_str,
-                'comparison_date': self.date1_str,
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
                 'format': 'json',
             },
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
@@ -305,8 +307,8 @@ class StaffAvailabilityCheckerTests(TestCase):
         response = self.client.get(
             reverse('staff_availability'),
             {
-                'selected_date': self.date2_str,
-                'comparison_date': self.date1_str,
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
             }
         )
         self.assertEqual(response.status_code, 200)
@@ -334,8 +336,8 @@ class StaffAvailabilityCheckerTests(TestCase):
         response = self.client.get(
             reverse('staff_availability'),
             {
-                'selected_date': self.date2_str,
-                'comparison_date': self.date1_str,
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
                 'department': 'Physics',
                 'format': 'json',
             },
@@ -368,8 +370,8 @@ class StaffAvailabilityCheckerTests(TestCase):
         resp_both = self.client.get(
             reverse('staff_availability'),
             {
-                'selected_date': self.date2_str,
-                'comparison_date': self.date1_str,
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
                 'session_availability': 'BOTH SESSIONS',
                 'format': 'json',
             },
@@ -384,8 +386,8 @@ class StaffAvailabilityCheckerTests(TestCase):
         resp_s1 = self.client.get(
             reverse('staff_availability'),
             {
-                'selected_date': self.date2_str,
-                'comparison_date': self.date1_str,
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
                 'session_availability': 'SESSION 1',
                 'format': 'json',
             },
@@ -396,12 +398,31 @@ class StaffAvailabilityCheckerTests(TestCase):
         self.assertIn(self.staff_s1.staff_id, [s['staff_id'] for s in s1_staff])
         self.assertNotIn(self.staff_p1.staff_id, [s['staff_id'] for s in s1_staff])
 
-        # 3. Filter for SESSION 2
+        # 3. Filter for SESSION 2 when releasing Session 2
+        duty_date3_s2 = InvigilationSchedule.objects.create(
+            date=self.date3,
+            session="2",
+            hall_no="LH-109",
+            hall_department="Mathematics",
+            hall_dept_category="AIDED",
+            staff_id=self.logged_staff.staff_id,
+            name=self.logged_staff.name
+        )
+        duty_s2_cand = InvigilationSchedule.objects.create(
+            date=self.date3,
+            session="1",  # Assigned to Session 1 on release date -> free in Session 2
+            hall_no="LH-110",
+            hall_department="Mathematics",
+            hall_dept_category="AIDED",
+            staff_id=self.staff_s2.staff_id,
+            name=self.staff_s2.name
+        )
+        date3_str = self.date3.strftime('%Y-%m-%d')
         resp_s2 = self.client.get(
             reverse('staff_availability'),
             {
-                'selected_date': self.date2_str,
-                'comparison_date': self.date1_str,
+                'selected_date': date3_str,
+                'comparison_date': self.date2_str,
                 'session_availability': 'SESSION 2',
                 'format': 'json',
             },
@@ -410,7 +431,9 @@ class StaffAvailabilityCheckerTests(TestCase):
         s2_staff = resp_s2.json()['staff']
         self.assertTrue(all(s['availability'] == 'SESSION 2' for s in s2_staff))
         self.assertIn(self.staff_s2.staff_id, [s['staff_id'] for s in s2_staff])
-        self.assertNotIn(self.staff_p1.staff_id, [s['staff_id'] for s in s2_staff])
+        self.assertNotIn(self.staff_s1.staff_id, [s['staff_id'] for s in s2_staff])
+        duty_date3_s2.delete()
+        duty_s2_cand.delete()
 
     def test_combined_filters(self):
         """Requirement 7: Combined filters work together and maintain priority order."""
@@ -420,8 +443,8 @@ class StaffAvailabilityCheckerTests(TestCase):
         resp = self.client.get(
             reverse('staff_availability'),
             {
-                'selected_date': self.date2_str,
-                'comparison_date': self.date1_str,
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
                 'department': 'Physics',
                 'session_availability': 'BOTH SESSIONS',
                 'format': 'json',
@@ -442,9 +465,9 @@ class StaffAvailabilityCheckerTests(TestCase):
         initial_records = list(InvigilationSchedule.objects.values('serial_number', 'staff_id', 'date', 'session'))
 
         # Perform multiple availability queries and filter operations
-        self.client.get(reverse('staff_availability'), {'selected_date': self.date2_str, 'comparison_date': self.date1_str})
-        self.client.get(reverse('staff_availability'), {'selected_date': self.date2_str, 'department': 'Physics'})
-        self.client.get(reverse('staff_availability'), {'selected_date': self.date2_str, 'session_availability': 'SESSION 1'})
+        self.client.get(reverse('staff_availability'), {'selected_date': self.date1_str, 'comparison_date': self.date2_str})
+        self.client.get(reverse('staff_availability'), {'selected_date': self.date1_str, 'department': 'Physics'})
+        self.client.get(reverse('staff_availability'), {'selected_date': self.date1_str, 'session_availability': 'SESSION 1'})
 
         final_count = InvigilationSchedule.objects.count()
         final_records = list(InvigilationSchedule.objects.values('serial_number', 'staff_id', 'date', 'session'))
@@ -457,7 +480,7 @@ class StaffAvailabilityCheckerTests(TestCase):
         User Requirement 1: Staff can only view staff from their own department category.
         Staff from other department categories (e.g. SFM, SFW) must not be returned.
         """
-        # Create an SFM candidate with duty on date1 and free on date2
+        # Create an SFM candidate with duty on date2 (compensation date) and free on date1
         staff_sfm = Staff.objects.create(
             staff_id="STF_SFM_1",
             name="Prof. SFM Alpha",
@@ -471,7 +494,7 @@ class StaffAvailabilityCheckerTests(TestCase):
             role=4
         )
         InvigilationSchedule.objects.create(
-            date=self.date1,
+            date=self.date2,
             session="1",
             hall_no="LH-201",
             hall_department="SFM Commerce",
@@ -480,7 +503,7 @@ class StaffAvailabilityCheckerTests(TestCase):
             name=staff_sfm.name
         )
 
-        # Create an SFW candidate with duty on date1 and free on date2
+        # Create an SFW candidate with duty on date2 (compensation date) and free on date1
         staff_sfw = Staff.objects.create(
             staff_id="STF_SFW_1",
             name="Dr. SFW Beta",
@@ -494,7 +517,7 @@ class StaffAvailabilityCheckerTests(TestCase):
             role=4
         )
         InvigilationSchedule.objects.create(
-            date=self.date1,
+            date=self.date2,
             session="1",
             hall_no="LH-202",
             hall_department="SFW English",
@@ -508,8 +531,8 @@ class StaffAvailabilityCheckerTests(TestCase):
         response = self.client.get(
             reverse('staff_availability'),
             {
-                'selected_date': self.date2_str,
-                'comparison_date': self.date1_str,
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
                 'format': 'json',
             },
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
@@ -521,7 +544,6 @@ class StaffAvailabilityCheckerTests(TestCase):
         # AIDED candidates must be returned
         self.assertIn(self.staff_p1.staff_id, returned_ids)
         self.assertIn(self.staff_s1.staff_id, returned_ids)
-        self.assertIn(self.staff_s2.staff_id, returned_ids)
 
         # SFM and SFW candidates must NOT be returned
         self.assertNotIn(staff_sfm.staff_id, returned_ids)
@@ -530,7 +552,7 @@ class StaffAvailabilityCheckerTests(TestCase):
         # Department filter dropdown in HTML must only list AIDED departments
         html_resp = self.client.get(
             reverse('staff_availability'),
-            {'selected_date': self.date2_str, 'comparison_date': self.date1_str}
+            {'selected_date': self.date1_str, 'comparison_date': self.date2_str}
         )
         html_content = html_resp.content.decode('utf-8')
         self.assertIn('Physics', html_content)
@@ -538,6 +560,15 @@ class StaffAvailabilityCheckerTests(TestCase):
         self.assertNotIn('SFW English', html_content)
 
         # Now log in as SFM staff and verify only SFM candidate is returned
+        sfm_rel = InvigilationSchedule.objects.create(
+            date=self.date1,
+            session="1",
+            hall_no="LH-200",
+            hall_department="SFM Commerce",
+            hall_dept_category="SFM",
+            staff_id=staff_sfm.staff_id,
+            name=staff_sfm.name
+        )
         staff_sfm_2 = Staff.objects.create(
             staff_id="STF_SFM_2",
             name="Prof. SFM Beta",
@@ -551,8 +582,8 @@ class StaffAvailabilityCheckerTests(TestCase):
             role=4
         )
         InvigilationSchedule.objects.create(
-            date=self.date1,
-            session="1",
+            date=self.date2,
+            session="2",
             hall_no="LH-203",
             hall_department="SFM Commerce",
             hall_dept_category="SFM",
@@ -568,8 +599,8 @@ class StaffAvailabilityCheckerTests(TestCase):
         sfm_resp = self.client.get(
             reverse('staff_availability'),
             {
-                'selected_date': self.date2_str,
-                'comparison_date': self.date1_str,
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
                 'format': 'json',
             },
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
@@ -580,14 +611,248 @@ class StaffAvailabilityCheckerTests(TestCase):
         self.assertNotIn(self.staff_p1.staff_id, sfm_returned_ids)
         self.assertNotIn(staff_sfw.staff_id, sfm_returned_ids)
 
-    def test_dynamic_session_filter_when_assigned_session_1(self):
+        sfm_rel.delete()
+
+    def test_dynamic_session_filter_when_assigned_session_1_on_release_date(self):
         """
-        User Requirement 3: If logged-in staff is assigned to Session 1 on selected date,
-        SESSION 1 and BOTH SESSIONS must not display; only SESSION 2 is available.
+        Section 1: The release date and Staff Availability by Session must be treated as a pair.
+        The available session options must depend on the session Staff A wants to release on the selected release date.
+        When Staff A has Session 1 duty on release date (date1):
+        Dropdown options: BOTH SESSIONS, SESSION 1 (SESSION 2 must be hidden).
         """
         self._login_as_staff()
 
-        # Assign logged-in staff to Session 1 on date2 (selected date)
+        # Logged-in staff has Session 1 on date1 (from setUp)
+        response = self.client.get(
+            reverse('staff_availability'),
+            {
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
+                'format': 'json',
+            },
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        allowed_options = [opt['value'] for opt in data['allowed_session_options']]
+
+        self.assertIn('BOTH SESSIONS', allowed_options)
+        self.assertIn('SESSION 1', allowed_options)
+        self.assertNotIn('SESSION 2', allowed_options)
+
+        # In HTML response, sessionFilter dropdown reflects these options
+        html_resp = self.client.get(
+            reverse('staff_availability'),
+            {'selected_date': self.date1_str, 'comparison_date': self.date2_str}
+        )
+        content = html_resp.content.decode('utf-8')
+        self.assertIn('value="BOTH SESSIONS"', content)
+        self.assertIn('value="SESSION 1"', content)
+        self.assertNotIn('value="SESSION 2"', content)
+
+    def test_dynamic_session_filter_when_assigned_session_2_on_release_date(self):
+        """
+        Section 1: When Staff A has Session 2 duty on release date (date3):
+        Dropdown options: BOTH SESSIONS, SESSION 2 (SESSION 1 must be hidden).
+        """
+        self._login_as_staff()
+
+        # Assign logged-in staff to Session 2 on date3 (release date)
+        rel_duty_s2 = InvigilationSchedule.objects.create(
+            date=self.date3,
+            session="2",
+            hall_no="LH-101",
+            hall_department="Computer Science",
+            hall_dept_category="AIDED",
+            staff_id=self.logged_staff.staff_id,
+            name=self.logged_staff.name
+        )
+        date3_str = self.date3.strftime('%Y-%m-%d')
+
+        response = self.client.get(
+            reverse('staff_availability'),
+            {
+                'selected_date': date3_str,
+                'comparison_date': self.date2_str,
+                'format': 'json',
+            },
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        allowed_options = [opt['value'] for opt in data['allowed_session_options']]
+
+        self.assertIn('BOTH SESSIONS', allowed_options)
+        self.assertIn('SESSION 2', allowed_options)
+        self.assertNotIn('SESSION 1', allowed_options)
+
+        html_resp = self.client.get(
+            reverse('staff_availability'),
+            {'selected_date': date3_str, 'comparison_date': self.date2_str}
+        )
+        content = html_resp.content.decode('utf-8')
+        self.assertIn('value="BOTH SESSIONS"', content)
+        self.assertIn('value="SESSION 2"', content)
+        self.assertNotIn('value="SESSION 1"', content)
+
+        rel_duty_s2.delete()
+
+    def test_dynamic_session_filter_when_assigned_both_sessions_on_release_date(self):
+        """
+        Section 1: When Staff A has both sessions on release date:
+        Show all 3 options: BOTH SESSIONS, SESSION 1, SESSION 2.
+        """
+        self._login_as_staff()
+
+        # Assign Staff A to Session 2 on date1 as well (has both sessions on date1)
+        d2 = InvigilationSchedule.objects.create(
+            date=self.date1,
+            session="2",
+            hall_no="LH-102",
+            hall_department="Computer Science",
+            hall_dept_category="AIDED",
+            staff_id=self.logged_staff.staff_id,
+            name=self.logged_staff.name
+        )
+
+        response = self.client.get(
+            reverse('staff_availability'),
+            {
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
+                'format': 'json',
+            },
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        allowed_options = [opt['value'] for opt in data['allowed_session_options']]
+        self.assertEqual(allowed_options, ['BOTH SESSIONS', 'SESSION 1', 'SESSION 2'])
+
+        html_resp = self.client.get(
+            reverse('staff_availability'),
+            {'selected_date': self.date1_str, 'comparison_date': self.date2_str}
+        )
+        content = html_resp.content.decode('utf-8')
+        self.assertIn('value="BOTH SESSIONS"', content)
+        self.assertIn('value="SESSION 1"', content)
+        self.assertIn('value="SESSION 2"', content)
+
+        d2.delete()
+
+    def test_dynamic_session_filter_when_no_duties_on_release_date(self):
+        """
+        Section 1: When Staff A has no duties on release date (date2):
+        Dropdown options: BOTH SESSIONS, SESSION 1, SESSION 2.
+        """
+        self._login_as_staff()
+
+        response = self.client.get(
+            reverse('staff_availability'),
+            {
+                'selected_date': self.date2_str,
+                'comparison_date': self.date1_str,
+                'format': 'json',
+            },
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        allowed_options = [opt['value'] for opt in data['allowed_session_options']]
+
+        self.assertEqual(allowed_options, ['BOTH SESSIONS', 'SESSION 1', 'SESSION 2'])
+
+    def test_dropdown_updates_when_release_date_changes(self):
+        """
+        Section 1: Dropdown options must update dynamically when the release date changes.
+        Do not base these options on Staff A's compensation-date assignments.
+        """
+        self._login_as_staff()
+
+        # Date 1 (Staff A has Session 1 duty) -> ['BOTH SESSIONS', 'SESSION 1']
+        resp_date1 = self.client.get(
+            reverse('staff_availability'),
+            {
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
+                'format': 'json',
+            },
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        opts_date1 = [opt['value'] for opt in resp_date1.json()['allowed_session_options']]
+        self.assertEqual(opts_date1, ['BOTH SESSIONS', 'SESSION 1'])
+
+        # Date 2 (Staff A has NO duty) -> ['BOTH SESSIONS', 'SESSION 1', 'SESSION 2']
+        resp_date2 = self.client.get(
+            reverse('staff_availability'),
+            {
+                'selected_date': self.date2_str,
+                'comparison_date': self.date1_str,
+                'format': 'json',
+            },
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        opts_date2 = [opt['value'] for opt in resp_date2.json()['allowed_session_options']]
+        self.assertEqual(opts_date2, ['BOTH SESSIONS', 'SESSION 1', 'SESSION 2'])
+
+        # Adding a Session 2 duty on the compensation date (date2) does NOT change options for release date (date1)
+        comp_duty = InvigilationSchedule.objects.create(
+            date=self.date2,
+            session="2",
+            hall_no="LH-101",
+            hall_department="Computer Science",
+            hall_dept_category="AIDED",
+            staff_id=self.logged_staff.staff_id,
+            name=self.logged_staff.name
+        )
+        resp_date1_again = self.client.get(
+            reverse('staff_availability'),
+            {
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
+                'format': 'json',
+            },
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        opts_date1_again = [opt['value'] for opt in resp_date1_again.json()['allowed_session_options']]
+        self.assertEqual(opts_date1_again, ['BOTH SESSIONS', 'SESSION 1'])
+        comp_duty.delete()
+
+    def test_stale_session_filter_cleared_on_backend(self):
+        """
+        Section 4: Clear stale selections when inputs change.
+        If a session_availability is passed that is not allowed on the release date,
+        the backend clears it to ''.
+        """
+        self._login_as_staff()
+
+        # On date1, Staff A has Session 1 only -> only BOTH SESSIONS and SESSION 1 allowed.
+        # Send session_availability='SESSION 2', which is stale/invalid for date1.
+        response = self.client.get(
+            reverse('staff_availability'),
+            {
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
+                'session_availability': 'SESSION 2',
+                'format': 'json',
+            },
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['session_filter'], '')
+
+    def test_invalid_exchanges_due_to_staff_a_compensation_duty(self):
+        """
+        Section 2 (Rule 3): Alternate session filtering on compensation date:
+        - When Staff A has Session 1 on compensation date, candidates offering only Session 1
+          on compensation date cannot be exchanged and are excluded.
+        - Candidates offering Session 2 or Both Sessions can be exchanged.
+        - When Staff A has both sessions on compensation date, no exchange is possible.
+        """
+        self._login_as_staff()
+
+        # Case 1: Staff A has Session 1 on date2 (compensation date)
         duty_s1 = InvigilationSchedule.objects.create(
             date=self.date2,
             session="1",
@@ -601,84 +866,26 @@ class StaffAvailabilityCheckerTests(TestCase):
         response = self.client.get(
             reverse('staff_availability'),
             {
-                'selected_date': self.date2_str,
-                'comparison_date': self.date1_str,
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
                 'format': 'json',
             },
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        allowed_options = [opt['value'] for opt in data['allowed_session_options']]
+        returned_ids = [s['staff_id'] for s in data['staff']]
 
-        # SESSION 1 and BOTH SESSIONS must not appear
-        self.assertNotIn('SESSION 1', allowed_options)
-        self.assertNotIn('BOTH SESSIONS', allowed_options)
-        # SESSION 2 must appear
-        self.assertIn('SESSION 2', allowed_options)
+        # Staff S1 has only Session 1 on compensation date -> Must be EXCLUDED (not alternate session)
+        self.assertNotIn(self.staff_s1.staff_id, returned_ids)
 
-        # In HTML response, option for SESSION 1 must not be inside the sessionFilter select
-        html_resp = self.client.get(
-            reverse('staff_availability'),
-            {'selected_date': self.date2_str, 'comparison_date': self.date1_str}
-        )
-        content = html_resp.content.decode('utf-8')
-        self.assertIn('value="SESSION 2"', content)
-        self.assertNotIn('value="SESSION 1"', content)
-        self.assertNotIn('value="BOTH SESSIONS"', content)
+        # Staff P1 has both sessions on compensation date (including Session 2) -> Must be INCLUDED
+        self.assertIn(self.staff_p1.staff_id, returned_ids)
 
-        # Cleanup
         duty_s1.delete()
 
-    def test_dynamic_session_filter_when_assigned_session_2(self):
-        """
-        User Requirement 3: If logged-in staff is assigned to Session 2 on selected date,
-        SESSION 2 and BOTH SESSIONS must not display; only SESSION 1 is available.
-        """
-        self._login_as_staff()
-
-        # Assign logged-in staff to Session 2 on date2 (selected date)
-        duty_s2 = InvigilationSchedule.objects.create(
-            date=self.date2,
-            session="2",
-            hall_no="LH-101",
-            hall_department="Computer Science",
-            hall_dept_category="AIDED",
-            staff_id=self.logged_staff.staff_id,
-            name=self.logged_staff.name
-        )
-
-        response = self.client.get(
-            reverse('staff_availability'),
-            {
-                'selected_date': self.date2_str,
-                'comparison_date': self.date1_str,
-                'format': 'json',
-            },
-            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
-        )
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        allowed_options = [opt['value'] for opt in data['allowed_session_options']]
-
-        # SESSION 2 and BOTH SESSIONS must not appear
-        self.assertNotIn('SESSION 2', allowed_options)
-        self.assertNotIn('BOTH SESSIONS', allowed_options)
-        # SESSION 1 must appear
-        self.assertIn('SESSION 1', allowed_options)
-
-        # Cleanup
-        duty_s2.delete()
-
-    def test_dynamic_session_filter_when_assigned_both_sessions(self):
-        """
-        User Requirement 3: If logged-in staff is assigned to both sessions on selected date,
-        neither SESSION 1, SESSION 2, nor BOTH SESSIONS should appear.
-        """
-        self._login_as_staff()
-
-        # Assign logged-in staff to Session 1 and Session 2 on date2
-        d1 = InvigilationSchedule.objects.create(
+        # Case 2: Staff A has BOTH sessions on compensation date -> No exchange possible (total 0)
+        d_both_1 = InvigilationSchedule.objects.create(
             date=self.date2,
             session="1",
             hall_no="LH-101",
@@ -687,7 +894,7 @@ class StaffAvailabilityCheckerTests(TestCase):
             staff_id=self.logged_staff.staff_id,
             name=self.logged_staff.name
         )
-        d2 = InvigilationSchedule.objects.create(
+        d_both_2 = InvigilationSchedule.objects.create(
             date=self.date2,
             session="2",
             hall_no="LH-102",
@@ -697,32 +904,190 @@ class StaffAvailabilityCheckerTests(TestCase):
             name=self.logged_staff.name
         )
 
+        resp_both = self.client.get(
+            reverse('staff_availability'),
+            {
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
+                'format': 'json',
+            },
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest'
+        )
+        self.assertEqual(resp_both.status_code, 200)
+        self.assertEqual(resp_both.json()['total_count'], 0)
+
+        d_both_1.delete()
+        d_both_2.delete()
+
+    def test_availability_based_on_compensation_date_not_release_date(self):
+        """
+        Section 2 & 3: Candidate Staff Eligibility Verification (Spec Example):
+        Staff A releases Session 1 on October 12 and selects October 14 as the compensation date.
+        - Candidate B: Free in both sessions on October 12 and assigned to Session 1 on October 14 -> BOTH SESSIONS.
+        - Candidate C: Free in Session 1, assigned in Session 2 on October 12, assigned in Session 1 on October 14 -> SESSION 1.
+        - Candidate D: Already assigned to Session 1 on October 12 -> exclude.
+        - Candidate E: Free in Session 1 on October 12 but has no duty on October 14 -> exclude.
+        - Candidate F: Free in Session 1 (assigned to Session 2 on date1), assigned in Session 1 on Oct 14 -> SESSION 1.
+        """
+        self._login_as_staff()
+
+        # Date 1 = 2026-10-12 (Release Date), Date 3 = 2026-10-14 (Compensation Date)
+        date3_str = self.date3.strftime('%Y-%m-%d')
+
+        # Candidate B: Free on date1, assigned Session 1 on date3
+        cand_b = Staff.objects.create(
+            staff_id="STF_CAND_B",
+            name="Candidate B",
+            dept_name="Physics",
+            dept_category="AIDED",
+            staff_category="Teaching",
+            designation=self.designation,
+            mobile="9876543230",
+            session=2,
+            is_active=True,
+            role=4
+        )
+        InvigilationSchedule.objects.create(
+            date=self.date3,
+            session="1",
+            hall_no="LH-401",
+            hall_department="Physics",
+            hall_dept_category="AIDED",
+            staff_id=cand_b.staff_id,
+            name=cand_b.name
+        )
+
+        # Candidate C: Free on date1, assigned Session 2 on date3
+        cand_c = Staff.objects.create(
+            staff_id="STF_CAND_C",
+            name="Candidate C",
+            dept_name="Mathematics",
+            dept_category="AIDED",
+            staff_category="Teaching",
+            designation=self.designation,
+            mobile="9876543231",
+            session=2,
+            is_active=True,
+            role=4
+        )
+        InvigilationSchedule.objects.create(
+            date=self.date3,
+            session="2",
+            hall_no="LH-402",
+            hall_department="Mathematics",
+            hall_dept_category="AIDED",
+            staff_id=cand_c.staff_id,
+            name=cand_c.name
+        )
+
+        # Candidate D: Assigned to Session 1 on date1, assigned Session 1 on date3
+        cand_d = Staff.objects.create(
+            staff_id="STF_CAND_D",
+            name="Candidate D",
+            dept_name="Physics",
+            dept_category="AIDED",
+            staff_category="Teaching",
+            designation=self.designation,
+            mobile="9876543232",
+            session=2,
+            is_active=True,
+            role=4
+        )
+        InvigilationSchedule.objects.create(
+            date=self.date1,
+            session="1",  # Busy in session being released
+            hall_no="LH-403",
+            hall_department="Physics",
+            hall_dept_category="AIDED",
+            staff_id=cand_d.staff_id,
+            name=cand_d.name
+        )
+        InvigilationSchedule.objects.create(
+            date=self.date3,
+            session="1",
+            hall_no="LH-404",
+            hall_department="Physics",
+            hall_dept_category="AIDED",
+            staff_id=cand_d.staff_id,
+            name=cand_d.name
+        )
+
+        # Candidate E: Free in Session 1 on date1, has NO duty on date3
+        cand_e = Staff.objects.create(
+            staff_id="STF_CAND_E",
+            name="Candidate E",
+            dept_name="Physics",
+            dept_category="AIDED",
+            staff_category="Teaching",
+            designation=self.designation,
+            mobile="9876543233",
+            session=2,
+            is_active=True,
+            role=4
+        )
+
+        # Candidate F: Assigned to Session 2 on date1 (free in Session 1!), assigned Session 1 on date3
+        cand_f = Staff.objects.create(
+            staff_id="STF_CAND_F",
+            name="Candidate F",
+            dept_name="Chemistry",
+            dept_category="AIDED",
+            staff_category="Teaching",
+            designation=self.designation,
+            mobile="9876543234",
+            session=2,
+            is_active=True,
+            role=4
+        )
+        InvigilationSchedule.objects.create(
+            date=self.date1,
+            session="2",  # Free in Session 1!
+            hall_no="LH-405",
+            hall_department="Chemistry",
+            hall_dept_category="AIDED",
+            staff_id=cand_f.staff_id,
+            name=cand_f.name
+        )
+        InvigilationSchedule.objects.create(
+            date=self.date3,
+            session="1",
+            hall_no="LH-406",
+            hall_department="Chemistry",
+            hall_dept_category="AIDED",
+            staff_id=cand_f.staff_id,
+            name=cand_f.name
+        )
+
         response = self.client.get(
             reverse('staff_availability'),
             {
-                'selected_date': self.date2_str,
-                'comparison_date': self.date1_str,
+                'selected_date': self.date1_str,
+                'comparison_date': date3_str,
                 'format': 'json',
             },
             HTTP_X_REQUESTED_WITH='XMLHttpRequest'
         )
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        allowed_options = [opt['value'] for opt in data['allowed_session_options']]
+        staff_map = {s['staff_id']: s for s in data['staff']}
 
-        # No session filter options should be offered
-        self.assertEqual(len(allowed_options), 0)
+        # Candidate B: Free on date1, assigned Session 1 on date3 -> Eligible, label 'BOTH SESSIONS'
+        self.assertIn(cand_b.staff_id, staff_map)
+        self.assertEqual(staff_map[cand_b.staff_id]['availability'], 'BOTH SESSIONS')
 
-        html_resp = self.client.get(
-            reverse('staff_availability'),
-            {'selected_date': self.date2_str, 'comparison_date': self.date1_str}
-        )
-        content = html_resp.content.decode('utf-8')
-        self.assertIn('No Sessions Available (Assigned to Both Sessions)', content)
+        # Candidate C: Free on date1, assigned Session 2 on date3 -> Eligible, label 'BOTH SESSIONS'
+        self.assertIn(cand_c.staff_id, staff_map)
+        self.assertEqual(staff_map[cand_c.staff_id]['availability'], 'BOTH SESSIONS')
 
-        # Cleanup
-        d1.delete()
-        d2.delete()
+        # Candidate D: Assigned to Session 1 on date1 -> Excluded
+        self.assertNotIn(cand_d.staff_id, staff_map)
+
+        # Candidate E: Free on date1 but has no duty on date3 -> Excluded
+        self.assertNotIn(cand_e.staff_id, staff_map)
+
+        # Candidate F: Assigned to Session 2 on date1 (free in Session 1) -> Eligible, label 'SESSION 1'!
+        self.assertIn(cand_f.staff_id, staff_map)
+        self.assertEqual(staff_map[cand_f.staff_id]['availability'], 'SESSION 1')
 
     def test_vertical_and_horizontal_pagination(self):
         """
@@ -731,7 +1096,7 @@ class StaffAvailabilityCheckerTests(TestCase):
         """
         self._login_as_staff()
 
-        # Create additional AIDED candidates to test multiple pages (say 20 candidates)
+        # Create additional AIDED candidates with duties on date2 (compensation date) to test multiple pages
         created_staff = []
         created_duties = []
         for i in range(1, 21):
@@ -749,7 +1114,7 @@ class StaffAvailabilityCheckerTests(TestCase):
             )
             created_staff.append(st)
             d = InvigilationSchedule.objects.create(
-                date=self.date1,
+                date=self.date2,
                 session="1",
                 hall_no=f"LH-{300+i}",
                 hall_department="Mathematics",
@@ -763,8 +1128,8 @@ class StaffAvailabilityCheckerTests(TestCase):
         resp_p1 = self.client.get(
             reverse('staff_availability'),
             {
-                'selected_date': self.date2_str,
-                'comparison_date': self.date1_str,
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
                 'page': '1',
                 'page_size': '10',
             }
@@ -783,8 +1148,8 @@ class StaffAvailabilityCheckerTests(TestCase):
         resp_p2 = self.client.get(
             reverse('staff_availability'),
             {
-                'selected_date': self.date2_str,
-                'comparison_date': self.date1_str,
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
                 'page': '2',
                 'page_size': '10',
             }
@@ -795,8 +1160,8 @@ class StaffAvailabilityCheckerTests(TestCase):
         self.assertIn('Prev', content_p2)
 
         # Check that pagination links preserve date and other parameters
-        self.assertIn(f'selected_date={self.date2_str}', content_p2)
-        self.assertIn(f'comparison_date={self.date1_str}', content_p2)
+        self.assertIn(f'selected_date={self.date1_str}', content_p2)
+        self.assertIn(f'comparison_date={self.date2_str}', content_p2)
 
         # Cleanup
         for d in created_duties:
@@ -829,11 +1194,12 @@ class StaffAvailabilityCheckerTests(TestCase):
     def test_session_dropdown_displays_only_three_values(self):
         """
         Verify that Staff Availability (By Session) dropdown displays only:
-        BOTH SESSIONS, SESSION 1, SESSION 2, and removes Priority 1, Option 1, etc.
+        BOTH SESSIONS, SESSION 1, SESSION 2 (or allowed subset based on release date),
+        and removes Priority 1, Option 1, etc.
         """
         self._login_as_staff()
 
-        # Date 2 is selected date; logged_staff has NO duties on date2 -> all 3 options available
+        # Date 2 is selected date; Staff A has no duties on date2 -> all 3 options available
         resp = self.client.get(
             reverse('staff_availability'),
             {
@@ -864,3 +1230,19 @@ class StaffAvailabilityCheckerTests(TestCase):
         self.assertNotIn('Priority 2', select_html)
         self.assertNotIn('Option 1', select_html)
         self.assertNotIn('All Available', select_html)
+
+        # On date1 (where Staff A has Session 1), only BOTH SESSIONS and SESSION 1 are available:
+        resp_date1 = self.client.get(
+            reverse('staff_availability'),
+            {
+                'selected_date': self.date1_str,
+                'comparison_date': self.date2_str,
+            }
+        )
+        self.assertEqual(resp_date1.status_code, 200)
+        content_date1 = resp_date1.content.decode('utf-8')
+        match_date1 = re.search(r'<select[^>]*id="sessionFilter"[^>]*>(.*?)</select>', content_date1, re.DOTALL)
+        self.assertIsNotNone(match_date1)
+        opts_date1 = re.findall(r'<option[^>]*>(.*?)</option>', match_date1.group(1), re.DOTALL)
+        cleaned_opts_date1 = [re.sub(r'\s+', ' ', opt).strip() for opt in opts_date1 if opt.strip()]
+        self.assertEqual(cleaned_opts_date1, ['BOTH SESSIONS', 'SESSION 1'])
