@@ -15,11 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const requiredElements = ['applyBtn', 'blockFilter', 'deptCategoryFilter', 
                             'deptNameFilter', 'searchInput', 'tableBody'];
     
-    for (const elem of requiredElements) {
-        if (!elements[elem]) {
-            console.error(`Missing required element: ${elem}`);
-            return;
-        }
+    if (!elements.applyBtn) {
+        // Hall management page handles filtering via hall_management.js
+        return;
     }
 
     // Get all room rows

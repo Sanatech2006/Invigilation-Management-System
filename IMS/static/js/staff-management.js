@@ -1,133 +1,149 @@
 // -------------------------------------------------------------------------------------------------------------------------------
-
-// Handles staff table filtering and search functionality once the page content is fully loaded
+// Unified Staff Table Filter & Fast Search with Dynamic Record Count
+// -------------------------------------------------------------------------------------------------------------------------------
 
 document.addEventListener("DOMContentLoaded", function () {
-    /* ---------------- Debug Helper ---------------- */
-    // Logs whether a required DOM element exists
-    const debugElement = (name, element) => {
-        if (!element) {
-            console.error(`[ERROR] Element not found: ${name}`);
-            return false;
-        }
-        console.log(`[DEBUG] Found element: ${name}`);
-        return true;
-    };
-
-    /* ---------------- DOM Elements ---------------- */
-    // Collect all required DOM references
     const elements = {
         searchInput: document.getElementById("searchInput"),
+        clearSearchBtn: document.getElementById("clearStaffSearchBtn"),
         staffTypeFilter: document.getElementById("staffTypeFilter"),
         designationFilter: document.getElementById("designationFilter"),
         deptCategoryFilter: document.getElementById("deptCategoryFilter"),
         deptNameFilter: document.getElementById("deptNameFilter"),
         searchButton: document.getElementById("searchButton"),
-        tableBody: document.querySelector("tbody"),
-        showingCount: document.querySelector(".record-count"),
-        staffRows: document.querySelectorAll("tbody tr"),
+        tableBody: document.getElementById("staffTableBody") || document.querySelector("tbody"),
+        showingCount: document.getElementById("staffRecordCount") || document.querySelector(".record-count"),
+        staffRows: document.querySelectorAll("#staffTableBody tr"),
     };
 
-    /* ---------------- Validation ---------------- */
-    // Ensure all critical elements are present
-    const elementsFound = Object.entries(elements).every(([name, element]) => {
-        return debugElement(name, element);
-    });
-
-    if (!elementsFound) {
-        console.error("Critical elements missing - stopping execution");
+    if (!elements.tableBody) {
         return;
     }
 
-    /* ---------------- Initial Debug Data ---------------- */
-    // Log initial staff row data for verification
-    console.log(`[DEBUG] Found ${elements.staffRows.length} staff rows`);
-    elements.staffRows.forEach((row, index) => {
-        console.log(`[DEBUG] Row ${index + 1} data:`, {
-            staffType: row.dataset.staffType || row.querySelector("td:nth-child(3)")?.textContent.trim(),
-            designation: row.dataset.designation || row.querySelector("td:nth-child(4)")?.textContent.trim(),
-            deptCategory: row.dataset.deptCategory || row.querySelector("td:nth-child(5)")?.textContent.trim(),
-            deptName: row.dataset.deptName || row.querySelector("td:nth-child(6)")?.textContent.trim(),
-        });
-    });
-
-    /* ---------------- Filter Logic ---------------- */
-    // Applies all selected filters and updates row visibility
+    // Applies all selected filters and search query and updates row visibility and count
     function applyFilters() {
-        console.log("[DEBUG] Applying filters");
-
-        // Read filter values
         const filters = {
-            staffType: elements.staffTypeFilter.value.toLowerCase(),
-            designation: elements.designationFilter.value.toLowerCase(),
-            deptCategory: elements.deptCategoryFilter.value.toLowerCase(),
-            deptName: elements.deptNameFilter.value.toLowerCase(),
-            search: elements.searchInput.value.toLowerCase(),
+            staffType: elements.staffTypeFilter ? elements.staffTypeFilter.value.toLowerCase().trim() : "",
+            designation: elements.designationFilter ? elements.designationFilter.value.toLowerCase().trim() : "",
+            deptCategory: elements.deptCategoryFilter ? elements.deptCategoryFilter.value.toLowerCase().trim() : "",
+            deptName: elements.deptNameFilter ? elements.deptNameFilter.value.toLowerCase().trim() : "",
+            search: elements.searchInput ? elements.searchInput.value.toLowerCase().trim() : "",
         };
 
-        console.log("[DEBUG] Current filters:", filters);
+        if (elements.clearSearchBtn) {
+            elements.clearSearchBtn.classList.toggle("hidden", filters.search === "");
+        }
 
         let visibleCount = 0;
+        let serial = 1;
 
-        // Loop through each staff row
         elements.staffRows.forEach((row) => {
-            // Extract row data from dataset or table cells
+            if (row.id === "staff-empty-state") return;
+
             const rowData = {
                 staffType: (row.dataset.staffType || row.querySelector("td:nth-child(3)")?.textContent || "").toLowerCase().trim(),
                 designation: (row.dataset.designation || row.querySelector("td:nth-child(4)")?.textContent || "").toLowerCase().trim(),
-                deptCategory: (row.dataset.deptCategory || row.querySelector("td:nth-child(5)")?.textContent || "").toLowerCase().trim(),
-                deptName: (row.dataset.deptName || row.querySelector("td:nth-child(6)")?.textContent || "").toLowerCase().trim(),
-                searchText: ((row.querySelector("td:nth-child(1)")?.textContent || "") + " " + (row.querySelector("td:nth-child(2)")?.textContent || "") + " " + (row.querySelector("td:nth-child(3)")?.textContent || "") + " " + (row.querySelector("td:nth-child(4)")?.textContent || "") + " " + (row.querySelector("td:nth-child(5)")?.textContent || "") + " " + (row.querySelector("td:nth-child(6)")?.textContent || "")).toLowerCase(),
+                deptName: (row.dataset.deptName || row.querySelector("td:nth-child(5)")?.textContent || "").toLowerCase().trim(),
+                deptCategory: (row.dataset.deptCategory || row.querySelector("td:nth-child(6)")?.textContent || "").toLowerCase().trim(),
             };
 
-            console.log("[DEBUG] Row data for comparison:", rowData);
+            const matchesStaffType = !filters.staffType || rowData.staffType === filters.staffType;
+            const matchesDesignation = !filters.designation || rowData.designation === filters.designation;
+            const matchesDeptCategory = !filters.deptCategory || rowData.deptCategory === filters.deptCategory;
+            const matchesDeptName = !filters.deptName || rowData.deptName === filters.deptName;
 
-            // Check if row satisfies all filters
-            const matchesAllFilters = (!filters.staffType || rowData.staffType.includes(filters.staffType)) && (!filters.designation || rowData.designation.includes(filters.designation)) && (!filters.deptCategory || rowData.deptCategory.includes(filters.deptCategory)) && (!filters.deptName || rowData.deptName.includes(filters.deptName)) && (!filters.search || rowData.searchText.includes(filters.search));
+            const matchesAllFilters = matchesStaffType && matchesDesignation && matchesDeptCategory && matchesDeptName;
 
-            // Show or hide row
-            row.style.display = matchesAllFilters ? "" : "none";
-            if (matchesAllFilters) visibleCount++;
+            let matchesSearch = true;
+            if (filters.search) {
+                const rowSearchText = row.textContent.toLowerCase();
+                matchesSearch = rowSearchText.includes(filters.search);
+            }
+
+            const isVisible = matchesAllFilters && matchesSearch;
+            row.style.display = isVisible ? "" : "none";
+
+            if (isVisible) {
+                visibleCount++;
+                const snoCol = row.querySelector("td:first-child");
+                if (snoCol) snoCol.textContent = serial++;
+            }
         });
 
-        // Update visible record count
+        // Dynamic record count
         if (elements.showingCount) {
-            elements.showingCount.textContent = `Showing ${visibleCount} of ${elements.staffRows.length} records`;
-            console.log(`[DEBUG] Updated counts - visible: ${visibleCount}, total: ${elements.staffRows.length}`);
+            elements.showingCount.textContent = `${visibleCount} records`;
+        }
+
+        // Empty state row
+        let emptyRow = document.getElementById("staff-empty-state");
+        if (visibleCount === 0) {
+            if (!emptyRow) {
+                emptyRow = document.createElement("tr");
+                emptyRow.id = "staff-empty-state";
+                emptyRow.innerHTML = `
+                    <td colspan="7" class="py-12 text-center">
+                        <div class="flex flex-col items-center justify-center">
+                            <div class="relative mb-3">
+                                <div class="absolute inset-0 scale-150 bg-indigo-100 rounded-full blur-xl opacity-40"></div>
+                                <svg class="relative w-12 h-12 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </div>
+                            <h4 class="text-sm font-bold tracking-widest text-gray-400 uppercase">No staff records found</h4>
+                            <p class="mt-1 text-xs text-gray-400">Try adjusting your filters or search keywords.</p>
+                        </div>
+                    </td>
+                `;
+                elements.tableBody.appendChild(emptyRow);
+            }
+            emptyRow.style.display = "";
+        } else if (emptyRow) {
+            emptyRow.style.display = "none";
         }
     }
 
-    /* ---------------- Event Listeners ---------------- */
     // Debounced search input handler
     let searchTimeout;
-    elements.searchInput.addEventListener("input", function () {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            console.log("[DEBUG] Search input changed");
-            applyFilters();
-        }, 300);
-    });
-
-    // Dropdown filter change handlers
-    [elements.staffTypeFilter, elements.designationFilter, elements.deptCategoryFilter, elements.deptNameFilter].forEach((filter) => {
-        filter.addEventListener("change", function () {
-            console.log(`[DEBUG] ${this.id} changed to ${this.value}`);
-            applyFilters();
+    if (elements.searchInput) {
+        elements.searchInput.addEventListener("input", function () {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(applyFilters, 100);
         });
-    });
 
-    // Search button handler
-    if (elements.searchButton) {
-        elements.searchButton.addEventListener("click", function () {
-            console.log("[DEBUG] Search button clicked");
+        elements.searchInput.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                this.value = "";
+                applyFilters();
+            }
+        });
+    }
+
+    if (elements.clearSearchBtn) {
+        elements.clearSearchBtn.addEventListener("click", function () {
+            if (elements.searchInput) {
+                elements.searchInput.value = "";
+                elements.searchInput.focus();
+            }
             applyFilters();
         });
     }
 
-    /* ---------------- Initial Load ---------------- */
+    // Dropdown filter change handlers
+    [elements.staffTypeFilter, elements.designationFilter, elements.deptCategoryFilter, elements.deptNameFilter].forEach((filter) => {
+        if (filter) {
+            filter.addEventListener("change", applyFilters);
+        }
+    });
+
+    if (elements.searchButton) {
+        elements.searchButton.addEventListener("click", applyFilters);
+    }
+
     // Apply filters once on page load
     applyFilters();
 });
+
 
 // -------------------------------------------------------------------------------------------------------------------------------
 

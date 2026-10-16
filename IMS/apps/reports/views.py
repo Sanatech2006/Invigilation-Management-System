@@ -171,6 +171,9 @@ def hod_view(request):
         item['dept_name'] = staff_obj.dept_name if staff_obj else 'Unknown'
         staff_schedule.append(item)
 
+    staff_id_list = sorted(list({s['staff_id'] for s in staff_details if s.get('staff_id')}))
+    date_list = sorted(list({d.strftime('%Y-%m-%d') if hasattr(d, 'strftime') else str(d) for d in current_dates}))
+
     context = {
         # 'welcome_message': f"Welcome  {hod.name},    Department of {hod.dept_name}",
         'welcome_message': f"Welcome {hod.name}<br>Department of {hod.dept_name}",
@@ -183,6 +186,8 @@ def hod_view(request):
         'hall_details': hall_details,
         'hall_schedule': hall_schedule,
         'staff_schedule': staff_schedule,
+        'staff_id_list': staff_id_list,
+        'date_list': date_list,
         'display_schedule': settings.display_reports_to_staff,
         'display_reports_to_staff': settings.display_reports_to_staff,
     }

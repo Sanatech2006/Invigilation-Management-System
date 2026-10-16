@@ -90,40 +90,129 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // -------------------------------
-    // Filter functionality
+    // Unified Hall Filter & Fast Search
     // -------------------------------
     function applyFilters() {
-        const searchTerm = document.getElementById('roomSearch').value.toLowerCase();
-        const blockValue = document.getElementById('filter-block').value;
-        const deptCategoryValue = document.getElementById('filter-dept-category').value;
-        const deptNameValue = document.getElementById('filter-dept-name').value;
-        
+        const searchInput = document.getElementById('roomSearch');
+        const clearBtn = document.getElementById('clearRoomSearchBtn');
+        const blockFilter = document.getElementById('filter-block');
+        const deptCatFilter = document.getElementById('filter-dept-category');
+        const deptNameFilter = document.getElementById('filter-dept-name');
+
+        const searchTerm = (searchInput?.value || '').toLowerCase().trim();
+        const blockValue = (blockFilter?.value || '').toLowerCase().trim();
+        const deptCategoryValue = (deptCatFilter?.value || '').toLowerCase().trim();
+        const deptNameValue = (deptNameFilter?.value || '').toLowerCase().trim();
+
+        if (clearBtn) {
+            clearBtn.classList.toggle('hidden', searchTerm === '');
+        }
+
         const rows = document.querySelectorAll('.room-row');
         let visibleCount = 0;
-        
-        rows.forEach(row => {
-            const matchesSearch = row.getAttribute('data-search').includes(searchTerm);
-            const matchesBlock = !blockValue || row.getAttribute('data-block') === blockValue;
-            const matchesDeptCategory = !deptCategoryValue || row.getAttribute('data-dept-category') === deptCategoryValue;
-            const matchesDeptName = !deptNameValue || row.getAttribute('data-dept-name') === deptNameValue;
-            
-            if (matchesSearch && matchesBlock && matchesDeptCategory && matchesDeptName) {
-                row.style.display = '';
+        let serial = 1;
+
+        rows.forEach((row) => {
+            if (row.id === 'room-empty-state') return;
+
+            const rowSearch = (row.getAttribute('data-search') || row.textContent).toLowerCase();
+            const rowBlock = (row.getAttribute('data-block') || '').toLowerCase().trim();
+            const rowDeptCategory = (row.getAttribute('data-dept-category') || '').toLowerCase().trim();
+            const rowDeptName = (row.getAttribute('data-dept-name') || '').toLowerCase().trim();
+
+            const matchesSearch = !searchTerm || rowSearch.includes(searchTerm);
+            const matchesBlock = !blockValue || rowBlock === blockValue;
+            const matchesDeptCategory = !deptCategoryValue || rowDeptCategory === deptCategoryValue;
+            const matchesDeptName = !deptNameValue || rowDeptName === deptNameValue;
+
+            const isVisible = matchesSearch && matchesBlock && matchesDeptCategory && matchesDeptName;
+            row.style.display = isVisible ? '' : 'none';
+
+            if (isVisible) {
                 visibleCount++;
-            } else {
-                row.style.display = 'none';
+                const snoCol = row.querySelector('td:first-child');
+                if (snoCol) snoCol.textContent = serial++;
             }
         });
-        
-        document.getElementById('showingCount').textContent = `Showing ${visibleCount} results`;
+
+        // Update record count
+        const totalCountElem = document.getElementById('totalCount');
+        if (totalCountElem) {
+            totalCountElem.textContent = `${visibleCount}`;
+        }
+        const showingCountElem = document.getElementById('showingCount');
+        if (showingCountElem) {
+            showingCountElem.textContent = `Showing ${visibleCount} results`;
+        }
+
+        // Empty state row
+        const tableBody = document.getElementById('roomTableBody');
+        let emptyRow = document.getElementById('room-empty-state');
+        if (visibleCount === 0) {
+            if (!emptyRow && tableBody) {
+                emptyRow = document.createElement('tr');
+                emptyRow.id = 'room-empty-state';
+                emptyRow.innerHTML = `
+                    <td colspan="7" class="py-12 text-center">
+                        <div class="flex flex-col items-center justify-center">
+                            <svg class="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            <h4 class="text-sm font-bold tracking-widest text-gray-400 uppercase">No hall records found</h4>
+                            <p class="mt-1 text-xs text-gray-400">Try adjusting your filters or search keywords.</p>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(emptyRow);
+            }
+            if (emptyRow) emptyRow.style.display = '';
+        } else if (emptyRow) {
+            emptyRow.style.display = 'none';
+        }
     }
-    
+
+    window.resetHallFilters = function () {
+        document.querySelectorAll('#filters-container select').forEach((s) => (s.value = ''));
+        const searchInput = document.getElementById('roomSearch');
+        if (searchInput) searchInput.value = '';
+        applyFilters();
+    };
+
+    // Debounced search input handler
+    let roomSearchTimeout;
+    const roomSearchInput = document.getElementById('roomSearch');
+    if (roomSearchInput) {
+        roomSearchInput.addEventListener('input', function () {
+            clearTimeout(roomSearchTimeout);
+            roomSearchTimeout = setTimeout(applyFilters, 100);
+        });
+
+        roomSearchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                this.value = '';
+                applyFilters();
+            }
+        });
+    }
+
+    const clearRoomSearchBtn = document.getElementById('clearRoomSearchBtn');
+    if (clearRoomSearchBtn) {
+        clearRoomSearchBtn.addEventListener('click', function () {
+            if (roomSearchInput) {
+                roomSearchInput.value = '';
+                roomSearchInput.focus();
+            }
+            applyFilters();
+        });
+    }
+
     // Initialize filters
     document.getElementById('apply-filters-btn')?.addEventListener('click', applyFilters);
-    document.getElementById('roomSearch')?.addEventListener('input', applyFilters);
     document.getElementById('filter-block')?.addEventListener('change', applyFilters);
     document.getElementById('filter-dept-category')?.addEventListener('change', applyFilters);
     document.getElementById('filter-dept-name')?.addEventListener('change', applyFilters);
+
+    applyFilters();
 });
 
 

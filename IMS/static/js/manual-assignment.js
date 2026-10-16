@@ -6,47 +6,234 @@ window.staffAssignmentsMap = {};
 
 function setupSearch() {
     const staffSearch = document.getElementById("staffSearch");
+    const clearStaffBtn = document.getElementById("clearStaffSearchBtn");
     const hallSearch = document.getElementById("hallSearch");
+    const clearHallBtn = document.getElementById("clearHallSearchBtn");
+
+    let staffDebounce = null;
+    let hallDebounce = null;
 
     if (staffSearch) {
+        const handleStaffSearch = () => {
+            const query = staffSearch.value.trim().toLowerCase();
+            if (clearStaffBtn) {
+                clearStaffBtn.style.display = query.length > 0 ? "flex" : "none";
+            }
+            filterStaffTable(query);
+        };
+
         staffSearch.addEventListener("input", function () {
-            filterTable("staffTable", this.value.toLowerCase());
+            clearTimeout(staffDebounce);
+            staffDebounce = setTimeout(handleStaffSearch, 150);
+        });
+
+        staffSearch.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                this.value = "";
+                clearTimeout(staffDebounce);
+                handleStaffSearch();
+            }
+        });
+    }
+
+    if (clearStaffBtn) {
+        clearStaffBtn.addEventListener("click", function () {
+            if (staffSearch) {
+                staffSearch.value = "";
+                staffSearch.focus();
+            }
+            clearStaffBtn.style.display = "none";
+            filterStaffTable("");
         });
     }
 
     if (hallSearch) {
+        const handleHallSearch = () => {
+            const query = hallSearch.value.trim().toLowerCase();
+            if (clearHallBtn) {
+                clearHallBtn.style.display = query.length > 0 ? "flex" : "none";
+            }
+            filterHallTable(query);
+        };
+
         hallSearch.addEventListener("input", function () {
-            filterTable("hallTable", this.value.toLowerCase());
+            clearTimeout(hallDebounce);
+            hallDebounce = setTimeout(handleHallSearch, 150);
+        });
+
+        hallSearch.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                this.value = "";
+                clearTimeout(hallDebounce);
+                handleHallSearch();
+            }
+        });
+    }
+
+    if (clearHallBtn) {
+        clearHallBtn.addEventListener("click", function () {
+            if (hallSearch) {
+                hallSearch.value = "";
+                hallSearch.focus();
+            }
+            clearHallBtn.style.display = "none";
+            filterHallTable("");
         });
     }
 }
 
 // -------------------------------------------------------------------------------------------------
 
-// Filter table based on search input
-
-function filterTable(tableId, searchText) {
-    const table = document.getElementById(tableId);
+// Filter staff table and update dynamic counts & S.No
+function filterStaffTable(searchText) {
+    const table = document.getElementById("staffTable");
     if (!table) return;
 
-    const rows = table.querySelectorAll("tbody tr");
+    const tbody = table.querySelector("tbody");
+    if (!tbody) return;
+
+    // Remove any previous empty row
+    const existingEmptyRow = tbody.querySelector("#staffEmptyRow");
+    if (existingEmptyRow) existingEmptyRow.remove();
+
+    const rows = tbody.querySelectorAll("tr:not(#staffEmptyRow)");
+    let visibleCount = 0;
+    let visibleSessions = 0;
 
     rows.forEach((row) => {
         const cells = row.querySelectorAll("td");
         let found = false;
 
-        cells.forEach((cell) => {
-            if (cell.textContent.toLowerCase().includes(searchText)) {
-                found = true;
-            }
-        });
+        if (!searchText) {
+            found = true;
+        } else {
+            cells.forEach((cell) => {
+                if (cell.textContent.toLowerCase().includes(searchText)) {
+                    found = true;
+                }
+            });
+        }
 
         if (found) {
             row.style.display = "";
+            visibleCount++;
+            // Sessions column is 5th column
+            const sessionsCell = row.querySelector("td:nth-child(5)");
+            if (sessionsCell) {
+                const sVal = parseInt(sessionsCell.textContent.trim(), 10) || 0;
+                visibleSessions += sVal;
+            }
+            // Re-index S.No (1st column)
+            const snoCell = row.querySelector("td:first-child");
+            if (snoCell) {
+                snoCell.textContent = visibleCount;
+            }
         } else {
             row.style.display = "none";
         }
     });
+
+    // Update dynamic record count badge
+    const staffTotal = document.getElementById("staffTotal");
+    const staffSessionsTotal = document.getElementById("staffSessionsTotal");
+    if (staffTotal) {
+        staffTotal.textContent = `${visibleCount} Staff`;
+    }
+    if (staffSessionsTotal) {
+        staffSessionsTotal.textContent = `${visibleSessions} Session${visibleSessions === 1 ? '' : 's'}`;
+    }
+
+    // If no matching rows, show empty state
+    if (visibleCount === 0 && rows.length > 0) {
+        const emptyRow = document.createElement("tr");
+        emptyRow.id = "staffEmptyRow";
+        emptyRow.innerHTML = `
+            <td colspan="6" class="text-center py-12 text-slate-400 font-medium">
+                <div class="flex flex-col items-center justify-center">
+                    <svg class="w-8 h-8 text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <span>No unallotted staff matching "${searchText}"</span>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(emptyRow);
+    }
+}
+
+// Filter hall table and update dynamic counts & S.No
+function filterHallTable(searchText) {
+    const table = document.getElementById("hallTable");
+    if (!table) return;
+
+    const tbody = table.querySelector("tbody");
+    if (!tbody) return;
+
+    // Remove any previous empty row
+    const existingEmptyRow = tbody.querySelector("#hallEmptyRow");
+    if (existingEmptyRow) existingEmptyRow.remove();
+
+    const rows = tbody.querySelectorAll("tr:not(#hallEmptyRow)");
+    let visibleCount = 0;
+
+    rows.forEach((row) => {
+        const cells = row.querySelectorAll("td");
+        let found = false;
+
+        if (!searchText) {
+            found = true;
+        } else {
+            cells.forEach((cell) => {
+                if (cell.textContent.toLowerCase().includes(searchText)) {
+                    found = true;
+                }
+            });
+        }
+
+        if (found) {
+            row.style.display = "";
+            visibleCount++;
+            // Re-index S.No (1st column)
+            const snoCell = row.querySelector("td:first-child");
+            if (snoCell) {
+                snoCell.textContent = visibleCount;
+            }
+        } else {
+            row.style.display = "none";
+        }
+    });
+
+    // Update dynamic record count badge
+    const hallTotal = document.getElementById("hallTotal");
+    if (hallTotal) {
+        hallTotal.textContent = `${visibleCount} Hall${visibleCount === 1 ? '' : 's'}`;
+    }
+
+    // If no matching rows, show empty state
+    if (visibleCount === 0 && rows.length > 0) {
+        const emptyRow = document.createElement("tr");
+        emptyRow.id = "hallEmptyRow";
+        emptyRow.innerHTML = `
+            <td colspan="7" class="text-center py-12 text-slate-400 font-medium">
+                <div class="flex flex-col items-center justify-center">
+                    <svg class="w-8 h-8 text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <span>No unassigned hall slots matching "${searchText}"</span>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(emptyRow);
+    }
+}
+
+// Backward compatibility alias
+function filterTable(tableId, searchText) {
+    if (tableId === "staffTable") {
+        filterStaffTable(searchText);
+    } else if (tableId === "hallTable") {
+        filterHallTable(searchText);
+    }
 }
 
 // -------------------------------------------------------------------------------------------------

@@ -162,8 +162,16 @@
                         </div>
                         <input type="text" id="globalSearchInput" 
                             placeholder="Search by faculty, hall, or department..."
-                            class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 h-12 text-[13px] font-medium text-slate-900 placeholder-slate-400 transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 outline-none" />
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-9 h-12 text-[13px] font-medium text-slate-900 placeholder-slate-400 transition-all focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 outline-none" />
+                        <button type="button" id="clearGlobalSearchBtn" class="absolute inset-y-0 right-0 items-center pr-3 text-slate-400 hover:text-slate-600 hidden cursor-pointer" title="Clear search">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
                     </div>
+                    <button type="button" id="resetReportsFiltersBtn" title="Reset all filters and search"
+                            class="h-12 px-3.5 text-xs font-bold text-slate-600 hover:text-rose-600 bg-slate-50 hover:bg-rose-50 border border-slate-200 rounded-xl transition-all hidden items-center gap-1.5 cursor-pointer whitespace-nowrap">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <span>Reset</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -178,8 +186,12 @@
                 <button data-target="hallSchedule" class="tab-btn px-4 py-2 rounded-lg text-sm font-bold text-slate-600 hover:text-slate-900 transition-all">Hall Schedule</button>
                 {% endif %}
             </div>
-            <div id="activeTabDisplay" class="hidden md:block px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-widest rounded border border-indigo-100">
-                Instructions
+            <div class="flex items-center gap-2">
+                <div id="activeTabDisplay" class="hidden md:block px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-widest rounded border border-indigo-100">
+                    Instructions
+                </div>
+                <div id="reportsRecordCount" class="hidden px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider rounded border border-emerald-200">
+                </div>
             </div>
         </div>
 
@@ -257,7 +269,7 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100">
                                 {% for schedule in staff_schedule %}
-                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                <tr class="hover:bg-slate-50/50 transition-colors report-row" data-staff-id="{{ schedule.staff_id }}" data-date="{{ schedule.date|date:'Y-m-d'|default:schedule.date }}">
                                     <td class="px-6 py-4 text-sm text-slate-500">{{ forloop.counter }}</td>
                                     <td class="px-6 py-4 text-sm font-bold text-slate-900">{{ schedule.staff_name }}</td>
                                     <td class="px-6 py-4 text-sm text-slate-600">{{ schedule.date }}</td>
@@ -293,7 +305,7 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100">
                                 {% for staff in staff_details %}
-                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                <tr class="hover:bg-slate-50/50 transition-colors report-row" data-staff-id="{{ staff.staff_id }}">
                                     <td class="px-6 py-4 text-sm text-slate-500">{{ forloop.counter }}</td>
                                     <td class="px-6 py-4 text-sm font-bold text-indigo-600">{{ staff.staff_id }}</td>
                                     <td class="px-6 py-4 text-sm font-semibold text-slate-900">{{ staff.name }}</td>
@@ -321,7 +333,7 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100">
                                 {% for hall in hall_details %}
-                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                <tr class="hover:bg-slate-50/50 transition-colors report-row">
                                     <td class="px-6 py-4 text-sm text-slate-500">{{ forloop.counter }}</td>
                                     <td class="px-6 py-4 text-sm font-black text-slate-900">{{ hall.hall_no }}</td>
                                     <td class="px-6 py-4 text-sm">
@@ -356,7 +368,7 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100">
                                 {% for schedule in hall_schedule %}
-                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                <tr class="hover:bg-slate-50/50 transition-colors report-row" data-staff-id="{{ schedule.staff_id }}" data-date="{{ schedule.date|date:'Y-m-d'|default:schedule.date }}">
                                     <td class="px-6 py-4 text-sm text-slate-500">{{ forloop.counter }}</td>
                                     <td class="px-6 py-4 text-sm font-black text-indigo-600">{{ schedule.hall_no }}</td>
                                     <td class="px-6 py-4 text-sm text-slate-600">{{ schedule.date }}</td>
@@ -412,14 +424,17 @@
                 activeBtn.classList.add("active-tab");
                 activeTabDisplay.textContent = activeBtn.innerText;
             }
+            if (typeof window.applyReportsFilter === "function") {
+                window.applyReportsFilter();
+            }
         }
         tabButtons.forEach(btn => {
             btn.addEventListener("click", () => {
                 showTab(btn.getAttribute("data-target"));
-            })
-        })
+            });
+        });
         showTab("instructions");
-    })
+    });
 </script>
 
 {% endblock %}

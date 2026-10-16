@@ -1,37 +1,27 @@
 // -------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Handles dynamic loading of filter options and applies multiple table-based filters to display matching invigilation schedule records in real time
+// Unified Schedule Filter & Fast Search with Dynamic Record Count
+// -------------------------------------------------------------------------------------------------------------------------------------------------
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Debugging helper
-    const debugElement = (name, element) => {
-        if (!element) {
-            console.error(`[ERROR] Element not found: ${name}`);
-            return false;
-        }
-        return true;
-    };
-
-    // Get references - ADD THE NEW FILTER
     const elements = {
         dateFilter: document.getElementById("filter-date"),
         deptCategoryFilter: document.getElementById("filter-dept-category"),
         hallDeptFilter: document.getElementById("filter-hall-dept"),
-        hallDeptCategoryFilter: document.getElementById("filter-hall-dept-category"), // NEW
-        tableBody: document.querySelector("tbody"),
-        showingCount: document.querySelector(".record-count"),
-        scheduleRows: document.querySelectorAll("tbody tr"),
+        hallDeptCategoryFilter: document.getElementById("filter-hall-dept-category"),
+        doubleSessionFilter: document.getElementById("filter-double-session"),
+        searchInput: document.getElementById("searchInput"),
+        clearSearchBtn: document.getElementById("clearSearchBtn"),
+        table: document.getElementById("schedule-table"),
+        tableBody: document.querySelector("#schedule-table tbody") || document.querySelector("tbody"),
+        showingCount: document.getElementById("showingCount") || document.querySelector(".record-count"),
+        scheduleRows: document.querySelectorAll("#schedule-table tbody tr"),
     };
 
-    // Verify all elements exist
-    const elementsFound = Object.entries(elements).every(([name, element]) => debugElement(name, element));
-
-    if (!elementsFound) {
-        console.error("Critical elements missing - stopping execution");
+    if (!elements.tableBody) {
         return;
     }
 
-    // Function to extract unique values from a data attribute instead of column index
+    // Function to extract unique values from a data attribute
     function extractUniqueValuesFromAttribute(attrName) {
         const values = new Set();
         elements.scheduleRows.forEach((row) => {
@@ -43,66 +33,12 @@ document.addEventListener("DOMContentLoaded", function () {
         return Array.from(values).sort();
     }
 
-    // Apply filters to table rows - now uses data attributes
-    function applyFilters() {
-        const filters = {
-            date: elements.dateFilter.value.toLowerCase().trim(),
-            deptCategory: elements.deptCategoryFilter.value.toLowerCase().trim(),
-            hallDept: elements.hallDeptFilter.value.toLowerCase().trim(),
-            hallDeptCategory: elements.hallDeptCategoryFilter.value.toLowerCase().trim(),
-        };
-
-        let visibleCount = 0;
-
-        elements.scheduleRows.forEach((row) => {
-            const rowData = {
-                date: row.getAttribute("data-date")?.toLowerCase().trim() || "",
-                deptCategory: row.getAttribute("data-dept-category")?.toLowerCase().trim() || "",
-                hallDept: row.getAttribute("data-hall-dept")?.toLowerCase().trim() || "",
-                hallDeptCategory: row.getAttribute("data-hall-dept-category")?.toLowerCase().trim() || "",
-            };
-
-            const matchesAllFilters = (!filters.date || rowData.date === filters.date) && (!filters.deptCategory || rowData.deptCategory === filters.deptCategory) && (!filters.hallDept || rowData.hallDept === filters.hallDept) && (!filters.hallDeptCategory || rowData.hallDeptCategory === filters.hallDeptCategory);
-
-            row.style.display = matchesAllFilters ? "" : "none";
-            if (matchesAllFilters) visibleCount++;
-        });
-
-        if (elements.showingCount) {
-            elements.showingCount.textContent = `${elements.scheduleRows.length} records`;
-        }
-    }
-
-    // Fetch and populate filter options
-    function loadFilters() {
-        // Extract unique values directly from table data attributes
-        const dates = extractUniqueValuesFromAttribute("date");
-        const deptCategories = extractUniqueValuesFromAttribute("dept-category");
-        const hallDepartments = extractUniqueValuesFromAttribute("hall-dept");
-        const hallDeptCategories = extractUniqueValuesFromAttribute("hall-dept-category");
-
-        // Populate filter dropdowns
-        populateSelect(elements.dateFilter, dates);
-        populateSelect(elements.deptCategoryFilter, deptCategories);
-        populateSelect(elements.hallDeptFilter, hallDepartments);
-        populateSelect(elements.hallDeptCategoryFilter, hallDeptCategories);
-
-        console.log("[DEBUG] Filters loaded from table data only");
-    }
-
     function populateSelect(select, values) {
         if (!select) return;
-
         select.innerHTML = '<option value="">All</option>';
-
-        if (!Array.isArray(values)) {
-            console.error("[ERROR] Values is not an array:", values);
-            return;
-        }
-
+        if (!Array.isArray(values)) return;
         values.forEach((val) => {
             if (val) {
-                // Only add non-empty values
                 const option = document.createElement("option");
                 option.value = val;
                 option.textContent = val;
@@ -111,129 +47,157 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Event listeners - ADD THE NEW FILTER
-    [elements.dateFilter, elements.deptCategoryFilter, elements.hallDeptFilter, elements.hallDeptCategoryFilter].forEach((filter) => {
-        filter.addEventListener("change", function () {
-            console.log(`[DEBUG] ${this.id} changed to "${this.value}"`);
-            applyFilters();
-        });
-    });
-
-    // Initial Setup
-    loadFilters();
-    setTimeout(() => {
-        applyFilters();
-    }, 100);
-});
-
-// -------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Filters invigilation schedule table rows based on double-session status and updates the visible record count dynamically
-
-document.addEventListener("DOMContentLoaded", () => {
-    // Get filter dropdown, table rows, and record count display
-    const doubleSessionFilter = document.getElementById("filter-double-session");
-    const tableRows = document.querySelectorAll("#schedule-table tbody tr");
-    const showingCount = document.getElementById("showingCount") || document.querySelector(".record-count");
-
-    // Apply filter when dropdown value changes
-    if (doubleSessionFilter) {
-        doubleSessionFilter.addEventListener("change", () => {
-            const selectedValue = doubleSessionFilter.value.toLowerCase().trim();
-            let visibleCount = 0;
-            const totalCount = tableRows.length;
-
-            tableRows.forEach((row) => {
-                const doubleSessionText = (row.dataset.doubleSession || "").toLowerCase();
-
-                if (!selectedValue) {
-                    row.style.display = "";
-                    visibleCount++;
-                } else if ((selectedValue === "true" && doubleSessionText === "yes") || (selectedValue === "false" && doubleSessionText === "no")) {
-                    row.style.display = "";
-                    visibleCount++;
-                } else {
-                    row.style.display = "none";
-                }
-            });
-
-            // Update visible record count
-            if (showingCount) {
-                showingCount.textContent = visibleCount === totalCount ? `${visibleCount} records` : `${visibleCount} records`;
-            }
-        });
+    // Load filter options dynamically from data attributes if empty
+    function loadFilters() {
+        if (elements.dateFilter && elements.dateFilter.options.length <= 1) {
+            populateSelect(elements.dateFilter, extractUniqueValuesFromAttribute("date"));
+        }
+        if (elements.deptCategoryFilter && elements.deptCategoryFilter.options.length <= 1) {
+            populateSelect(elements.deptCategoryFilter, extractUniqueValuesFromAttribute("dept-category"));
+        }
+        if (elements.hallDeptFilter && elements.hallDeptFilter.options.length <= 1) {
+            populateSelect(elements.hallDeptFilter, extractUniqueValuesFromAttribute("hall-dept"));
+        }
+        if (elements.hallDeptCategoryFilter && elements.hallDeptCategoryFilter.options.length <= 1) {
+            populateSelect(elements.hallDeptCategoryFilter, extractUniqueValuesFromAttribute("hall-dept-category"));
+        }
     }
-});
 
-// -------------------------------------------------------------------------------------------------------------------------------------------------
+    // Unified Filter & Search Function
+    function applyFiltersAndSearch() {
+        const filters = {
+            date: elements.dateFilter ? elements.dateFilter.value.toLowerCase().trim() : "",
+            deptCategory: elements.deptCategoryFilter ? elements.deptCategoryFilter.value.toLowerCase().trim() : "",
+            hallDept: elements.hallDeptFilter ? elements.hallDeptFilter.value.toLowerCase().trim() : "",
+            hallDeptCategory: elements.hallDeptCategoryFilter ? elements.hallDeptCategoryFilter.value.toLowerCase().trim() : "",
+            doubleSession: elements.doubleSessionFilter ? elements.doubleSessionFilter.value.toLowerCase().trim() : "",
+        };
 
-// Enables real-time text-based search across all invigilation schedule table rows and updates the visible record count dyn
+        const searchTerm = elements.searchInput ? elements.searchInput.value.toLowerCase().trim() : "";
 
-document.addEventListener("DOMContentLoaded", function () {
-    // Get required DOM elements
-    const searchInput = document.getElementById("searchInput");
-    const clearSearchBtn = document.getElementById("clearSearchBtn");
-    const table = document.getElementById("schedule-table");
-    const tableBody = table.querySelector("tbody");
-    const rows = tableBody.querySelectorAll("tr");
-    const showingCount = document.getElementById("showingCount");
+        // Toggle clear search button
+        if (elements.clearSearchBtn) {
+            elements.clearSearchBtn.classList.toggle("hidden", searchTerm === "");
+        }
 
-    // Perform search across all table rows
-    function performSearch() {
-        const searchTerm = searchInput.value.trim().toLowerCase();
         let visibleCount = 0;
+        let serial = 1;
 
-        // If search box is empty, show all rows
-        if (searchTerm === "") {
-            rows.forEach((row) => {
-                row.style.display = "";
+        elements.scheduleRows.forEach((row) => {
+            if (row.id === "schedule-empty-state") return;
+
+            const rowData = {
+                date: (row.getAttribute("data-date") || "").toLowerCase().trim(),
+                deptCategory: (row.getAttribute("data-dept-category") || "").toLowerCase().trim(),
+                hallDept: (row.getAttribute("data-hall-dept") || "").toLowerCase().trim(),
+                hallDeptCategory: (row.getAttribute("data-hall-dept-category") || "").toLowerCase().trim(),
+                doubleSession: (row.getAttribute("data-double-session") || "").toLowerCase().trim(),
+            };
+
+            const matchesDate = !filters.date || rowData.date === filters.date;
+            const matchesDeptCategory = !filters.deptCategory || rowData.deptCategory === filters.deptCategory;
+            const matchesHallDept = !filters.hallDept || rowData.hallDept === filters.hallDept;
+            const matchesHallDeptCategory = !filters.hallDeptCategory || rowData.hallDeptCategory === filters.hallDeptCategory;
+
+            let matchesDouble = true;
+            if (filters.doubleSession === "true") {
+                matchesDouble = rowData.doubleSession === "yes";
+            } else if (filters.doubleSession === "false") {
+                matchesDouble = rowData.doubleSession === "no";
+            }
+
+            const matchesFilters = matchesDate && matchesDeptCategory && matchesHallDept && matchesHallDeptCategory && matchesDouble;
+
+            let matchesSearch = true;
+            if (searchTerm) {
+                const rowText = row.textContent.toLowerCase();
+                matchesSearch = rowText.includes(searchTerm);
+            }
+
+            const isVisible = matchesFilters && matchesSearch;
+            row.style.display = isVisible ? "" : "none";
+
+            if (isVisible) {
                 visibleCount++;
-            });
-            showingCount.textContent = `Showing all records`;
-            return;
-        }
-
-        // Loop through each row to check for matches
-        rows.forEach((row) => {
-            const cells = row.querySelectorAll("td");
-            let matchFound = false;
-
-            // Check each cell for the search term
-            cells.forEach((cell) => {
-                if (cell.textContent.toLowerCase().includes(searchTerm)) {
-                    matchFound = true;
-                }
-            });
-
-            // Show or hide row based on match
-            if (matchFound) {
-                row.style.display = "";
-                visibleCount++;
-            } else {
-                row.style.display = "none";
+                const snoCol = row.querySelector("td:first-child");
+                if (snoCol) snoCol.textContent = serial++;
             }
         });
 
-        // Update record count
-        showingCount.textContent = `${rows.length} records`;
+        // Dynamic record count update
+        if (elements.showingCount) {
+            elements.showingCount.textContent = `${visibleCount} records`;
+        }
+
+        // Empty state row
+        let emptyRow = document.getElementById("schedule-empty-state");
+        if (visibleCount === 0) {
+            if (!emptyRow) {
+                emptyRow = document.createElement("tr");
+                emptyRow.id = "schedule-empty-state";
+                emptyRow.innerHTML = `
+                    <td colspan="15" class="py-12 text-center">
+                        <div class="flex flex-col items-center justify-center">
+                            <svg class="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <p class="text-sm font-bold text-gray-400 uppercase tracking-wider">No matching schedule records found</p>
+                            <p class="mt-1 text-xs text-gray-400">Try adjusting your filters or search keywords.</p>
+                        </div>
+                    </td>
+                `;
+                elements.tableBody.appendChild(emptyRow);
+            }
+            emptyRow.style.display = "";
+        } else if (emptyRow) {
+            emptyRow.style.display = "none";
+        }
     }
 
-    // Trigger search on input typing
-    searchInput.addEventListener("input", performSearch);
+    // Debounced search input handler
+    let searchTimeout;
+    if (elements.searchInput) {
+        elements.searchInput.addEventListener("input", function () {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(applyFiltersAndSearch, 100);
+        });
 
-    // Clear search input and reset table
-    clearSearchBtn.addEventListener("click", function () {
-        searchInput.value = "";
-        performSearch();
-    });
+        elements.searchInput.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                this.value = "";
+                applyFiltersAndSearch();
+            }
+        });
+    }
 
-    // Trigger search on Enter key press
-    searchInput.addEventListener("keypress", function (e) {
-        if (e.key === "Enter") {
-            performSearch();
+    if (elements.clearSearchBtn) {
+        elements.clearSearchBtn.addEventListener("click", function () {
+            if (elements.searchInput) {
+                elements.searchInput.value = "";
+                elements.searchInput.focus();
+            }
+            applyFiltersAndSearch();
+        });
+    }
+
+    // Attach change handlers to all filters
+    [
+        elements.dateFilter,
+        elements.deptCategoryFilter,
+        elements.hallDeptFilter,
+        elements.hallDeptCategoryFilter,
+        elements.doubleSessionFilter
+    ].forEach((filter) => {
+        if (filter) {
+            filter.addEventListener("change", applyFiltersAndSearch);
         }
     });
+
+    // Initial setup
+    loadFilters();
+    applyFiltersAndSearch();
 });
+
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 

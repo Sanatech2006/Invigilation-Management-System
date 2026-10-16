@@ -593,7 +593,7 @@ def staff_management(request):
     staff_counts = get_staff_counts_by_dept()
     
     # Get filter parameters
-    search_query = request.GET.get('search', '')
+    search_query = (request.GET.get('search') or request.GET.get('q') or '').strip()
     staff_category_filter = request.GET.get('staff_category')
     dept_category_filter = request.GET.get('dept_category')
     designation_filter = request.GET.get('designation')

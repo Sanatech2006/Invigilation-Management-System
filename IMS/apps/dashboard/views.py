@@ -14,6 +14,7 @@ from apps.exam_dates.models import ExamDate
 from apps.invigilation_schedule.models import InvigilationSchedule
 from apps.common.decorators import role_required
 from django.core.paginator import Paginator
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 def normalize_date_str(val):
@@ -470,9 +471,25 @@ class StaffAvailabilityView(View):
                         'comp_duty': comp_duty_str,
                     })
 
-                # Priority 1 (BOTH SESSIONS) comes first, followed by Priority 2 (SESSION 1 & SESSION 2)
-                # Secondary sort by name, then staff_id to ensure a deterministic order
                 available_staff_list.sort(key=lambda x: (x['priority'], x['name'].lower(), x['staff_id']))
+
+        # Capture full list for fast client-side filtering and search
+        all_available_staff_json = json.dumps(available_staff_list, cls=DjangoJSONEncoder)
+
+        # Filter by search parameter if passed in query string
+        search_query = (request.GET.get('search') or request.GET.get('q') or '').strip()
+        if search_query:
+            sq_lower = search_query.lower()
+            available_staff_list = [
+                s for s in available_staff_list
+                if sq_lower in s['staff_id'].lower()
+                or sq_lower in s['name'].lower()
+                or sq_lower in s['department'].lower()
+                or sq_lower in s['designation'].lower()
+            ]
+            count_both_sessions = sum(1 for s in available_staff_list if s['availability'] == 'BOTH SESSIONS')
+            count_session_1 = sum(1 for s in available_staff_list if s['availability'] == 'SESSION 1')
+            count_session_2 = sum(1 for s in available_staff_list if s['availability'] == 'SESSION 2')
 
         # Vertical Pagination
         page_size_param = request.GET.get('page_size', '15')
@@ -546,6 +563,8 @@ class StaffAvailabilityView(View):
             'count_both_sessions': count_both_sessions,
             'count_session_1': count_session_1,
             'count_session_2': count_session_2,
+            'search_query': search_query,
+            'all_available_staff_json': all_available_staff_json,
             'user_role': role,
         }
         return render(request, 'dashboard/staff_availability.html', context)
